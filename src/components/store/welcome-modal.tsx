@@ -62,8 +62,29 @@ export function WelcomeModal() {
     if (seen) return;
 
     // A beat after paint, so it lands on a drawn page rather than a blank one.
-    const timer = setTimeout(() => setOpen(true), 700);
-    return () => clearTimeout(timer);
+    const show = () => setTimeout(() => setOpen(true), 700);
+
+    // On the session's first load the splash owns the screen, so wait for it to
+    // lift rather than animating in behind it. <SplashScreen /> flips the flag
+    // to "seen" when it is done, skipped or shortened for reduced motion.
+    const root = document.documentElement;
+    if (root.dataset.splash !== "running") {
+      const timer = show();
+      return () => clearTimeout(timer);
+    }
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const observer = new MutationObserver(() => {
+      if (root.dataset.splash === "running") return;
+      observer.disconnect();
+      timer = show();
+    });
+    observer.observe(root, { attributeFilter: ["data-splash"] });
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
   }, []);
 
   function handleOpenChange(next: boolean) {
