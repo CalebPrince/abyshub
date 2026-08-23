@@ -37,3 +37,17 @@ export const DELIVERY_FLAT_RATE = Number(
 
 /** True when a WhatsApp number is configured, so the UI can hide the option. */
 export const whatsappEnabled = WHATSAPP_NUMBER.length > 0;
+
+/**
+ * Details the legal pages need. Anything left blank is omitted from the page
+ * rather than printed as an empty placeholder — but fill them in before you
+ * trade: a registered name and address are what make the pages meaningful.
+ */
+export const LEGAL = {
+  entity: process.env.NEXT_PUBLIC_LEGAL_ENTITY ?? STORE_NAME,
+  address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS ?? "",
+  registration: process.env.NEXT_PUBLIC_BUSINESS_REGISTRATION ?? "",
+  jurisdiction: process.env.NEXT_PUBLIC_JURISDICTION ?? "Ghana",
+  /** Shown as "Last updated" on every legal page. */
+  updated: "23 August 2026",
+} as const;

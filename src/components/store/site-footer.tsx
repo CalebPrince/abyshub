@@ -17,11 +17,17 @@ const helpLinks = [
   { href: "/enquiry", label: "Request a quote" },
 ];
 
+const legalLinks = [
+  { href: "/legal/terms", label: "Terms of Use" },
+  { href: "/legal/privacy", label: "Privacy" },
+  { href: "/legal/cookies", label: "Cookies" },
+];
+
 export function SiteFooter() {
   return (
     <footer className="bg-foreground text-background mt-auto">
       <div className="mx-auto max-w-[1400px] px-4 py-16 lg:px-8">
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div className="space-y-4">
             <Logo className="[&_span:first-child]:bg-background [&_span:first-child]:text-foreground text-background" />
             <p className="text-background/65 max-w-xs text-sm">
@@ -68,6 +74,24 @@ export function SiteFooter() {
 
           <div className="space-y-4">
             <h3 className="text-[11px] font-semibold tracking-[0.18em] uppercase">
+              Legal
+            </h3>
+            <ul className="space-y-2.5">
+              {legalLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-background/65 hover:text-background text-sm transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-[11px] font-semibold tracking-[0.18em] uppercase">
               Reach us
             </h3>
             <ul className="space-y-2.5 text-sm">
@@ -100,7 +124,17 @@ export function SiteFooter() {
             © {new Date().getFullYear()} {STORE_NAME}. Tupperware is a trademark
             of its owner; we are an independent retailer.
           </p>
-          <p>Prices in the catalogue are samples — replace with live stock.</p>
+          <p>
+            Built by{" "}
+            <a
+              href="https://princecaleb.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-background/80 hover:text-background underline underline-offset-4 transition-colors"
+            >
+              princecaleb.dev
+            </a>
+          </p>
         </div>
       </div>
     </footer>

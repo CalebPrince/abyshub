@@ -8,6 +8,7 @@ import { ChatWidget } from "@/components/store/chat/chat-widget";
 import { SiteFooter } from "@/components/store/site-footer";
 import { SiteHeader } from "@/components/store/site-header";
 import { ThemeProvider } from "@/components/store/theme-provider";
+import { WelcomeModal } from "@/components/store/welcome-modal";
 import "./globals.css";
 
 // Archivo carries the headings — condensed, heavy, poster-like.
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <SiteFooter />
             <CartSheet />
             <ChatWidget />
+            <WelcomeModal />
           </CartProvider>
         </ThemeProvider>
       </body>
