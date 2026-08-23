@@ -132,7 +132,7 @@ export function WelcomeModal() {
           </DialogClose>
           <DialogClose asChild>
             <Button variant="outline" className="h-9 flex-1 sm:h-10">
-              <MessageCircleIcon /> Have a look around
+              <MessageCircleIcon /> Keep browsing
             </Button>
           </DialogClose>
         </div>
