@@ -10,6 +10,7 @@ import {
   type SortOption,
 } from "@/components/store/product-filters";
 import { getCategoryBySlug, products } from "@/lib/products";
+import { matchesQuery } from "@/lib/search";
 import type { Product } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -36,24 +37,6 @@ function sortProducts(list: Product[], sort: SortOption): Product[] {
         (a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured))
       );
   }
-}
-
-function matchesQuery(product: Product, query: string) {
-  const haystack = [
-    product.name,
-    product.brand,
-    product.tagline,
-    product.description,
-    product.category,
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  return query
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(Boolean)
-    .every((term) => haystack.includes(term));
 }
 
 export default async function ProductsPage({
