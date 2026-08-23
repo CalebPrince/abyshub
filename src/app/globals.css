@@ -1,0 +1,182 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Abys Hub runs on three colours: red, black and white. Everything else is a
+ * tint of those, so nothing on the page drifts off brand.
+ */
+:root {
+  --radius: 0.25rem;
+
+  --background: oklch(0.99 0.002 60);
+  --foreground: oklch(0.16 0.004 60);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.16 0.004 60);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.004 60);
+
+  /* Brand red */
+  --primary: oklch(0.55 0.21 27.5);
+  --primary-foreground: oklch(0.99 0.002 60);
+
+  /* Brand black, used for the heavy editorial blocks */
+  --secondary: oklch(0.16 0.004 60);
+  --secondary-foreground: oklch(0.99 0.002 60);
+
+  --muted: oklch(0.96 0.003 60);
+  --muted-foreground: oklch(0.46 0.006 60);
+
+  --accent: oklch(0.55 0.21 27.5);
+  --accent-foreground: oklch(0.99 0.002 60);
+
+  --destructive: oklch(0.55 0.21 27.5);
+  --destructive-foreground: oklch(0.99 0.002 60);
+
+  --border: oklch(0.9 0.004 60);
+  --input: oklch(0.88 0.004 60);
+  --ring: oklch(0.55 0.21 27.5);
+
+  /* Named brand tokens for the places that need the raw values. */
+  --brand-red: oklch(0.55 0.21 27.5);
+  --brand-red-deep: oklch(0.45 0.19 27.5);
+  --brand-ink: oklch(0.16 0.004 60);
+  --brand-paper: oklch(0.99 0.002 60);
+}
+
+.dark {
+  --background: oklch(0.14 0.004 60);
+  --foreground: oklch(0.97 0.002 60);
+
+  --card: oklch(0.185 0.004 60);
+  --card-foreground: oklch(0.97 0.002 60);
+
+  --popover: oklch(0.185 0.004 60);
+  --popover-foreground: oklch(0.97 0.002 60);
+
+  --primary: oklch(0.63 0.21 27.5);
+  --primary-foreground: oklch(0.14 0.004 60);
+
+  --secondary: oklch(0.97 0.002 60);
+  --secondary-foreground: oklch(0.14 0.004 60);
+
+  --muted: oklch(0.24 0.004 60);
+  --muted-foreground: oklch(0.7 0.006 60);
+
+  --accent: oklch(0.63 0.21 27.5);
+  --accent-foreground: oklch(0.14 0.004 60);
+
+  --destructive: oklch(0.63 0.21 27.5);
+  --destructive-foreground: oklch(0.14 0.004 60);
+
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.63 0.21 27.5);
+
+  --brand-red: oklch(0.63 0.21 27.5);
+  --brand-red-deep: oklch(0.52 0.2 27.5);
+  --brand-ink: oklch(0.14 0.004 60);
+  --brand-paper: oklch(0.97 0.002 60);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-brand-red: var(--brand-red);
+  --color-brand-red-deep: var(--brand-red-deep);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-paper: var(--brand-paper);
+
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-geist-mono);
+
+  --radius-sm: calc(var(--radius) - 1px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /*
+   * Headings run in the condensed display face, tight and uppercase-friendly.
+   * This is the single biggest thing separating the shop from a stock template.
+   */
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display), var(--font-body), ui-sans-serif, sans-serif;
+    letter-spacing: -0.015em;
+  }
+}
+
+@layer components {
+  /* The red rule that opens most sections. */
+  .rule-red::before {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 4px;
+    background: var(--brand-red);
+    margin-bottom: 1rem;
+  }
+
+  /* Diagonal red/ink hatch used behind the editorial blocks. */
+  .hatch {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      color-mix(in oklab, var(--brand-red) 100%, transparent) 0 1px,
+      transparent 1px 9px
+    );
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}
