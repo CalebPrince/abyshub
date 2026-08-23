@@ -7,8 +7,11 @@ import { CartSheet } from "@/components/store/cart-sheet";
 import { ChatWidget } from "@/components/store/chat/chat-widget";
 import { SiteFooter } from "@/components/store/site-footer";
 import { SiteHeader } from "@/components/store/site-header";
+import { SplashScreen } from "@/components/store/splash-screen";
+import { SplashScript } from "@/components/store/splash-script";
 import { ThemeProvider } from "@/components/store/theme-provider";
 import { WelcomeModal } from "@/components/store/welcome-modal";
+import { SITE_URL } from "@/lib/config";
 import "./globals.css";
 
 // Archivo carries the headings — condensed, heavy, poster-like.
@@ -29,9 +32,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-  ),
+  // Via SITE_URL rather than a second raw read: a blank NEXT_PUBLIC_SITE_URL
+  // reached `new URL("")` here and failed the production build outright.
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Abys Hub — Genuine Tupperware & home goods",
     template: "%s | Abys Hub",
@@ -54,6 +57,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${display.variable} ${body.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        {/* First in the body so the flag lands on <html> before the splash below
+            it is parsed — a returning tab never paints a frame of it. */}
+        <SplashScript />
+        <SplashScreen />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
