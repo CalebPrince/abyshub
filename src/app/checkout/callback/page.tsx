@@ -109,7 +109,7 @@ function Result({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-20 lg:py-28">
-      <div className="border-foreground/12 border p-8 text-center sm:p-12">
+      <div className="border-foreground/12 rounded-xl border p-8 text-center sm:p-12">
         <Icon
           className={
             tone === "success"

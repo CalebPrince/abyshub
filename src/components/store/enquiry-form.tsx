@@ -21,7 +21,7 @@ export function EnquiryForm() {
 
   if (state.status === "sent") {
     return (
-      <div className="border-foreground/12 mt-10 border p-8 text-center sm:p-12">
+      <div className="border-foreground/12 mt-10 rounded-xl border p-8 text-center sm:p-12">
         <CheckCircle2Icon className="mx-auto size-12 text-emerald-600" />
         <h2 className="font-display mt-6 text-2xl font-extrabold tracking-tight uppercase">
           Enquiry sent
@@ -41,7 +41,7 @@ export function EnquiryForm() {
       <input type="hidden" name="cart" value={JSON.stringify(items)} />
 
       {lines.length > 0 && (
-        <div className="border-foreground/12 border p-5">
+        <div className="border-foreground/12 rounded-xl border p-5">
           <p className="text-primary text-[11px] font-semibold tracking-[0.16em] uppercase">
             Attached to this enquiry
           </p>

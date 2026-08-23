@@ -177,7 +177,7 @@ function FilterChip({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "cursor-pointer border px-4 py-2 text-[11px] font-semibold tracking-[0.12em] uppercase transition-colors",
+        "cursor-pointer rounded-full border px-4 py-2 text-[11px] font-semibold tracking-[0.12em] uppercase shadow-sm transition-all hover:shadow-md active:translate-y-px",
         active
           ? "border-foreground bg-foreground text-background"
           : "border-foreground/20 hover:border-foreground"

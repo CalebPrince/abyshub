@@ -51,7 +51,7 @@ export function CheckoutForm({
 
   if (lines.length === 0) {
     return (
-      <div className="border-foreground/12 mt-10 flex flex-col items-center gap-4 border border-dashed py-20 text-center">
+      <div className="border-foreground/12 mt-10 flex flex-col items-center gap-4 rounded-xl border border-dashed py-20 text-center">
         <p className="font-display text-xl font-extrabold uppercase">
           Nothing to check out
         </p>
@@ -109,7 +109,7 @@ export function CheckoutForm({
               <label
                 key={option.id}
                 className={cn(
-                  "border-foreground/12 relative flex cursor-pointer flex-col gap-2 border p-5 transition-colors",
+                  "border-foreground/12 relative flex cursor-pointer flex-col gap-2 rounded-xl border p-5 transition-colors",
                   method === option.id
                     ? "bg-foreground text-background"
                     : "hover:border-foreground/40",
@@ -192,7 +192,7 @@ export function CheckoutForm({
             {state.error && (
               <p
                 role="alert"
-                className="border-primary text-primary border-l-4 py-2 pl-4 text-sm"
+                className="border-primary text-primary rounded-r-lg border-l-4 py-2 pl-4 text-sm"
               >
                 {state.error}
               </p>
@@ -229,7 +229,7 @@ export function CheckoutForm({
               with availability, delivery cost and how to pay.
             </p>
 
-            <pre className="border-foreground/12 text-muted-foreground max-h-56 overflow-auto border bg-muted/40 p-4 font-mono text-xs whitespace-pre-wrap">
+            <pre className="border-foreground/12 text-muted-foreground bg-muted/40 max-h-56 overflow-auto rounded-xl border p-4 font-mono text-xs whitespace-pre-wrap">
               {buildWhatsAppOrder(lines, totals)}
             </pre>
 
@@ -260,7 +260,7 @@ export function CheckoutForm({
       </div>
 
       {/* ── Order panel ── */}
-      <aside className="border-foreground/12 space-y-5 border p-6 lg:sticky lg:top-32">
+      <aside className="border-foreground/12 space-y-5 rounded-xl border p-6 lg:sticky lg:top-32">
         <h2 className="font-display text-lg font-extrabold tracking-tight uppercase">
           Your order
         </h2>
@@ -268,7 +268,7 @@ export function CheckoutForm({
         <ul className="space-y-3.5">
           {lines.map((line) => (
             <li key={line.productId} className="flex items-center gap-3">
-              <div className="bg-muted relative size-14 shrink-0 overflow-hidden">
+              <div className="bg-muted relative size-14 shrink-0 overflow-hidden rounded-lg">
                 <Image
                   src={line.product.image}
                   alt={line.product.name}
@@ -276,7 +276,7 @@ export function CheckoutForm({
                   sizes="56px"
                   className="object-cover"
                 />
-                <span className="bg-foreground text-background absolute top-0 right-0 flex size-5 items-center justify-center text-[10px] font-bold">
+                <span className="bg-foreground text-background absolute top-0 right-0 flex size-5 items-center justify-center rounded-full text-[10px] font-bold">
                   {line.quantity}
                 </span>
               </div>

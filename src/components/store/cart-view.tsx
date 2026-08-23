@@ -31,7 +31,7 @@ export function CartView() {
 
   if (lines.length === 0) {
     return (
-      <div className="border-foreground/12 mt-10 flex flex-col items-center gap-4 border border-dashed py-24 text-center">
+      <div className="border-foreground/12 mt-10 flex flex-col items-center gap-4 rounded-xl border border-dashed py-24 text-center">
         <ShoppingBasketIcon className="text-muted-foreground size-10" />
         <p className="font-display text-xl font-extrabold uppercase">
           Your basket is empty
@@ -49,12 +49,12 @@ export function CartView() {
   return (
     <div className="mt-10 grid items-start gap-10 lg:grid-cols-[1fr_380px]">
       <div className="space-y-5">
-        <ul className="border-foreground/12 divide-foreground/12 divide-y border">
+        <ul className="border-foreground/12 divide-foreground/12 divide-y overflow-hidden rounded-xl border">
           {lines.map((line) => (
             <li key={line.productId} className="flex gap-4 p-4 sm:p-5">
               <Link
                 href={`/products/${line.product.slug}`}
-                className="bg-muted relative size-24 shrink-0 overflow-hidden sm:size-32"
+                className="bg-muted relative size-24 shrink-0 overflow-hidden rounded-lg sm:size-32"
               >
                 <Image
                   src={line.product.image}
@@ -121,7 +121,7 @@ export function CartView() {
         </div>
       </div>
 
-      <aside className="border-foreground/12 space-y-5 border p-6 lg:sticky lg:top-32">
+      <aside className="border-foreground/12 space-y-5 rounded-xl border p-6 lg:sticky lg:top-32">
         <h2 className="font-display text-lg font-extrabold tracking-tight uppercase">
           Summary
         </h2>

@@ -41,7 +41,7 @@ export function ChatHandoff({
 
   if (state.status === "sent") {
     return (
-      <div className="border-foreground/12 space-y-3 border p-4 text-center">
+      <div className="border-foreground/12 space-y-3 rounded-xl border p-4 text-center">
         <CheckCircle2Icon className="mx-auto size-8 text-emerald-600" />
         <p className="text-sm font-semibold">Message sent</p>
         <p className="text-muted-foreground text-xs">{state.message}</p>
@@ -53,7 +53,7 @@ export function ChatHandoff({
   }
 
   return (
-    <div className="border-foreground/12 space-y-4 border p-4">
+    <div className="border-foreground/12 space-y-4 rounded-xl border p-4">
       {whatsappEnabled && (
         <>
           <WhatsAppLink message={whatsappMessage} className="block">

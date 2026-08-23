@@ -99,7 +99,7 @@ export default async function ProductPage({
         </ol>
       </nav>
 
-      <div className="border-foreground/12 grid border lg:grid-cols-2">
+      <div className="border-foreground/12 grid overflow-hidden rounded-2xl border lg:grid-cols-2">
         <div className="border-foreground/12 relative aspect-square border-b lg:sticky lg:top-32 lg:self-start lg:border-b-0">
           <Image
             src={product.image}
@@ -109,11 +109,11 @@ export default async function ProductPage({
             sizes="(min-width: 1024px) 50vw, 100vw"
             className="object-cover"
           />
-          <span className="bg-foreground text-background absolute top-0 left-0 px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
+          <span className="bg-foreground text-background absolute top-4 left-4 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
             {product.brand}
           </span>
           {onSale && (
-            <span className="bg-primary text-primary-foreground absolute top-0 right-0 px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
+            <span className="bg-primary text-primary-foreground absolute top-4 right-4 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
               Save {formatPrice(product.compareAtPrice! - product.price)}
             </span>
           )}
@@ -159,7 +159,7 @@ export default async function ProductPage({
           </div>
 
           <div className="border-foreground/12 border-t pt-6">
-            <div className="bg-primary mb-3 h-1 w-12" aria-hidden />
+            <div className="bg-primary mb-3 h-1 w-12 rounded-full" aria-hidden />
             <div className="flex items-baseline gap-3">
               <span className="font-display text-4xl font-extrabold tabular-nums">
                 {formatPrice(product.price)}
@@ -178,7 +178,7 @@ export default async function ProductPage({
 
           <div className="flex items-center gap-2 text-sm">
             <span
-              className={`size-2 ${product.inStock ? "bg-emerald-600" : "bg-muted-foreground"}`}
+              className={`size-2 rounded-full ${product.inStock ? "bg-emerald-600" : "bg-muted-foreground"}`}
               aria-hidden
             />
             {product.inStock
@@ -222,7 +222,7 @@ export default async function ProductPage({
                   {product.highlights.map((highlight) => (
                     <li key={highlight} className="flex gap-2.5">
                       <span
-                        className="bg-primary mt-2 size-1.5 shrink-0"
+                        className="bg-primary mt-2 size-1.5 shrink-0 rounded-full"
                         aria-hidden
                       />
                       {highlight}

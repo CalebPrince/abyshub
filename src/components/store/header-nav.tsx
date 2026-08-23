@@ -78,7 +78,7 @@ export function HeaderNav({
         >
           {link.label}
           {isActive(link.href) && (
-            <span className="bg-primary absolute -bottom-0.5 left-0 h-[3px] w-full" />
+            <span className="bg-primary absolute -bottom-0.5 left-0 h-[3px] w-full rounded-full" />
           )}
         </Link>
       ))}

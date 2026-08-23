@@ -21,7 +21,7 @@ export function Logo({
     >
       <span
         aria-hidden
-        className="bg-foreground text-background font-display grid size-9 place-items-center text-sm font-extrabold tracking-tighter"
+        className="bg-foreground text-background font-display bg-linear-to-b from-white/18 to-black/25 shadow-md ring-foreground/10 grid size-9 place-items-center rounded-xl text-sm font-extrabold tracking-tighter ring-1 transition-shadow group-hover:shadow-lg"
       >
         AH
       </span>
