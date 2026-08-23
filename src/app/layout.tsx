@@ -4,6 +4,7 @@ import { Archivo, DM_Sans, Geist_Mono } from "next/font/google";
 
 import { CartProvider } from "@/components/store/cart-provider";
 import { CartSheet } from "@/components/store/cart-sheet";
+import { ChatWidget } from "@/components/store/chat/chat-widget";
 import { SiteFooter } from "@/components/store/site-footer";
 import { SiteHeader } from "@/components/store/site-header";
 import { ThemeProvider } from "@/components/store/theme-provider";
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <main className="flex-1">{children}</main>
             <SiteFooter />
             <CartSheet />
+            <ChatWidget />
           </CartProvider>
         </ThemeProvider>
       </body>

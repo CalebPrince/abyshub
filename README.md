@@ -61,6 +61,32 @@ paid order should be written to a database and confirmation emails sent. Paystac
 retries until it receives a 200, so look the reference up first and make the
 handler idempotent.
 
+## Lisa, the chat assistant
+
+A launcher sits bottom-right on every page. Lisa answers from a fixed rule set
+in `src/lib/chat/scripted-responder.ts` — no network call, no API key, no cost
+per message. She covers delivery and payment, brands and warranty, returns, and
+finding things on the shelves; product answers come back as cards you can add to
+the basket without leaving the chat. Ask for a person and she opens a handoff
+form that posts through the same server action as the enquiry page, with a
+WhatsApp button alongside carrying the conversation so far.
+
+Product lookups use the same matcher as the listing page (`src/lib/search.ts`),
+so Lisa can only ever name real stock.
+
+### Making her AI-powered
+
+`Responder` in `src/lib/chat/types.ts` is the seam:
+
+```ts
+type Responder = (input: string, context: ChatContext) => ChatReply | Promise<ChatReply>;
+```
+
+Write a second implementation that posts to a route handler wrapping your model,
+ground it in `src/lib/products.ts` so it cannot invent stock or prices, and pass
+it in: `<ChatWidget responder={aiResponder} />` in `src/app/layout.tsx`. The
+scripted one makes a good fallback when the API is down or over budget.
+
 ## The catalogue
 
 `src/lib/products.ts` is the single source of truth — products, categories and
@@ -81,11 +107,14 @@ src/
   components/
     ui/                         shadcn/ui primitives
     store/                      storefront components
+    store/chat/                 Lisa, the chat assistant
   lib/
     products.ts                 catalogue
+    search.ts                   product matching, shared by listing and chat
     cart-store.ts               basket (useSyncExternalStore + localStorage)
     totals.ts                   pricing, shared by client and server
     paystack.ts                 server-only Paystack client
+    chat/                       chat types and the scripted responder
     config.ts  money.ts         settings and currency formatting
 ```
 

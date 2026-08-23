@@ -22,6 +22,10 @@ export async function submitEnquiry(
   const email = text(formData, "email");
   const phone = text(formData, "phone");
   const details = text(formData, "details");
+  // The chat handoff sends the conversation as `details` and anything the
+  // person typed as `note`; the enquiry page sends `details` alone.
+  const note = text(formData, "note");
+  const fullDetails = note ? `${details}\n\nThey added: ${note}` : details;
 
   if (!name || !details || (!email && !phone)) {
     return {
@@ -60,7 +64,7 @@ export async function submitEnquiry(
     name,
     email,
     phone,
-    details,
+    details: fullDetails,
     basketSummary,
     forwardTo: CONTACT_EMAIL,
   });

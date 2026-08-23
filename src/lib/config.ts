@@ -23,6 +23,9 @@ export const SITE_URL =
 
 export const STORE_NAME = "Abys Hub";
 
+/** The name the chat assistant introduces herself by. */
+export const ASSISTANT_NAME = "Lisa";
+
 /** Order totals, all in minor units of CURRENCY (pesewas). */
 export const FREE_DELIVERY_THRESHOLD = Number(
   process.env.NEXT_PUBLIC_FREE_DELIVERY_THRESHOLD ?? 50000
