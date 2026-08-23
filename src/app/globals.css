@@ -180,3 +180,337 @@
     animation: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Splash screen
+ *
+ * The first-load brand moment: the AH tile arrives as a lid and a base that
+ * snap shut, the initials only resolving once the two halves meet.
+ *
+ * Every step is a CSS animation with `forwards`, and the last frame is
+ * `visibility: hidden` — so the splash clears itself with no JavaScript at all.
+ * <SplashScreen /> only removes the leftover node and releases the scroll lock.
+ * ------------------------------------------------------------------------- */
+
+/* Set before first paint by <SplashScript />, so a returning tab never sees a
+   frame of this, and the page underneath cannot be scrolled mid-animation. */
+html[data-splash="running"] {
+  overflow: hidden;
+}
+
+html[data-splash="seen"] .splash {
+  display: none;
+}
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  /* Ink in both themes. The splash is the brand, not the page. */
+  background: var(--brand-ink);
+  animation: splash-exit 500ms cubic-bezier(0.76, 0, 0.24, 1) 1400ms forwards;
+}
+
+/* Fast-forward when the visitor clicks or types through the intro. */
+.splash.is-skipping {
+  animation: splash-fade 260ms ease forwards;
+}
+
+.splash-hatch {
+  position: absolute;
+  inset: -10%;
+  opacity: 0.07;
+  animation: splash-hatch-in 900ms ease-out both;
+}
+
+.splash-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-inline: 1.5rem;
+  animation: splash-stage-out 380ms cubic-bezier(0.5, 0, 0.75, 0) 1340ms forwards;
+}
+
+/* --- The mark ------------------------------------------------------------ */
+
+.splash-mark {
+  --splash-mark: clamp(4.5rem, 18vw, 6rem);
+  position: relative;
+  width: var(--splash-mark);
+  aspect-ratio: 1;
+  animation: splash-seal-impact 320ms cubic-bezier(0.33, 1, 0.68, 1) 500ms both;
+}
+
+/* Red bloom behind the tile, flashed at the moment the seal closes. */
+.splash-bloom {
+  position: absolute;
+  inset: -140%;
+  z-index: -1;
+  border-radius: 50%;
+  opacity: 0.22;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--brand-red) 70%, transparent) 0%,
+    transparent 70%
+  );
+  animation: splash-bloom-flash 900ms cubic-bezier(0.16, 1, 0.3, 1) 440ms both;
+}
+
+.splash-half {
+  position: absolute;
+  left: 0;
+  height: 50%;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--brand-paper);
+  /* Sized to the whole tile across both halves, so the sheen reads as one
+     surface once they close — same trick as the header tile's gradient. */
+  background-image: linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0.6),
+    rgb(0 0 0 / 0.06)
+  );
+  background-size: 100% 200%;
+}
+
+.splash-half.is-lid {
+  top: 0;
+  height: calc(50% + 1px);
+  border-radius: 1.5rem 1.5rem 0 0;
+  background-position: top;
+  animation: splash-lid-in 440ms cubic-bezier(0.55, 0, 0.1, 1) 80ms both;
+}
+
+.splash-half.is-base {
+  bottom: 0;
+  border-radius: 0 0 1.5rem 1.5rem;
+  background-position: bottom;
+  animation: splash-base-in 440ms cubic-bezier(0.55, 0, 0.1, 1) 80ms both;
+}
+
+/* Full-tile-height inside a half-height mask: each half shows its own slice of
+   one shared "AH", so the letters complete exactly on contact. */
+.splash-initials {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: var(--splash-mark);
+  display: grid;
+  place-items: center;
+  color: var(--brand-ink);
+  font-family: var(--font-display), var(--font-body), ui-sans-serif, sans-serif;
+  font-size: calc(var(--splash-mark) * 0.38);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.is-lid .splash-initials {
+  top: 0;
+}
+
+.is-base .splash-initials {
+  bottom: 0;
+}
+
+/* The seal itself: a red line flashing outward along the joint. */
+.splash-seal {
+  position: absolute;
+  top: calc(50% - 1px);
+  left: -32%;
+  height: 2px;
+  width: 164%;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--brand-red) 9%,
+    var(--brand-red) 17%,
+    transparent 20%,
+    transparent 80%,
+    var(--brand-red) 83%,
+    var(--brand-red) 91%,
+    transparent 100%
+  );
+  filter: drop-shadow(0 0 5px color-mix(in oklab, var(--brand-red) 85%, transparent));
+  animation: splash-seal-flash 420ms ease-out 490ms both;
+}
+
+/* --- Wordmark, rule, tagline --------------------------------------------- */
+
+.splash-word {
+  display: flex;
+  margin-top: 1.75rem;
+  color: var(--brand-paper);
+  font-family: var(--font-display), var(--font-body), ui-sans-serif, sans-serif;
+  font-size: clamp(2.5rem, 12vw, 4.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.splash-letter {
+  display: inline-block;
+  overflow: hidden;
+}
+
+.splash-letter.is-accent {
+  color: var(--brand-red);
+}
+
+.splash-letter-inner {
+  display: inline-block;
+  animation: splash-letter-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The house rule, drawn rather than dropped in. */
+.splash-rule {
+  width: 3rem;
+  height: 4px;
+  margin-top: 1.5rem;
+  background: var(--brand-red);
+  animation: splash-rule-in 380ms cubic-bezier(0.65, 0, 0.35, 1) 900ms both;
+}
+
+.splash-tag {
+  margin-top: 1.25rem;
+  color: color-mix(in oklab, var(--brand-paper) 72%, transparent);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-align: center;
+  text-transform: uppercase;
+  animation: splash-tag-in 400ms ease-out 960ms both;
+}
+
+/* --- Keyframes ------------------------------------------------------------ */
+
+@keyframes splash-exit {
+  to {
+    transform: translateY(-100%);
+    visibility: hidden;
+  }
+}
+
+@keyframes splash-fade {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes splash-hatch-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes splash-stage-out {
+  to {
+    transform: translateY(-2rem);
+    opacity: 0;
+  }
+}
+
+@keyframes splash-lid-in {
+  from {
+    transform: translateY(-260%);
+  }
+}
+
+@keyframes splash-base-in {
+  from {
+    transform: translateY(260%);
+  }
+}
+
+/* Squash on contact — the tile takes the hit so the halves never overlap. */
+@keyframes splash-seal-impact {
+  0% {
+    transform: scale(1, 1);
+  }
+  22% {
+    transform: scale(1.05, 0.92);
+  }
+  55% {
+    transform: scale(0.985, 1.03);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+@keyframes splash-bloom-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  32% {
+    opacity: 0.6;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 0.22;
+    transform: scale(1);
+  }
+}
+
+@keyframes splash-seal-flash {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.92);
+  }
+  20% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1.3);
+  }
+}
+
+@keyframes splash-letter-in {
+  from {
+    opacity: 0;
+    transform: translateY(105%);
+  }
+}
+
+@keyframes splash-rule-in {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes splash-tag-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.625rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Everything lands in its resting state; only the panel itself moves, and it
+     only fades. The keyframes above are all `from`-only for exactly this. */
+  .splash-hatch,
+  .splash-stage,
+  .splash-mark,
+  .splash-bloom,
+  .splash-half,
+  .splash-seal,
+  .splash-letter-inner,
+  .splash-rule,
+  .splash-tag {
+    animation: none;
+  }
+
+  .splash {
+    animation: splash-fade 400ms ease 700ms forwards;
+  }
+}
