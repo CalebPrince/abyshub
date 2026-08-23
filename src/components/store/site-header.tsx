@@ -45,7 +45,7 @@ export function SiteHeader() {
                   className="flex items-center gap-10 text-[11px] font-semibold tracking-[0.18em] whitespace-nowrap uppercase"
                 >
                   {item}
-                  <span className="bg-primary size-1.5" />
+                  <span className="bg-primary size-1.5 rounded-full" />
                 </span>
               ))}
             </div>

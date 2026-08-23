@@ -104,10 +104,10 @@ export default function HomePage() {
           </div>
 
           {/* Two stacked product plates rather than one stock photo. */}
-          <div className="border-foreground/12 grid lg:col-span-5 lg:grid-rows-[1.3fr_1fr] lg:border-l">
+          <div className="grid gap-4 p-4 lg:col-span-5 lg:grid-rows-[1.3fr_1fr] lg:p-6">
             <Link
               href={`/products/${hero.slug}`}
-              className="group border-foreground/12 relative block aspect-4/3 overflow-hidden border-b bg-[#FBFAF9] sm:aspect-16/9 lg:aspect-auto"
+              className="group border-foreground/12 relative block aspect-4/3 overflow-hidden rounded-2xl border bg-[#FBFAF9] sm:aspect-16/9 lg:aspect-auto"
             >
               <Image
                 src={hero.image}
@@ -117,7 +117,7 @@ export default function HomePage() {
                 sizes="(min-width: 1024px) 42vw, 100vw"
                 className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
               />
-              <div className="absolute bottom-0 left-0 max-w-[86%] bg-white/95 p-4">
+              <div className="absolute bottom-3 left-3 max-w-[86%] rounded-xl bg-white/95 p-4">
                 <p className="text-primary text-[10px] font-semibold tracking-[0.16em] uppercase">
                   Best seller
                 </p>
@@ -132,7 +132,7 @@ export default function HomePage() {
 
             <Link
               href={`/products/${secondary.slug}`}
-              className="group relative block aspect-2/1 overflow-hidden bg-[#FBFAF9] lg:aspect-auto"
+              className="group relative block aspect-2/1 overflow-hidden rounded-2xl bg-[#FBFAF9] lg:aspect-auto"
             >
               <Image
                 src={secondary.image}
@@ -141,7 +141,7 @@ export default function HomePage() {
                 sizes="(min-width: 1024px) 42vw, 100vw"
                 className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
               />
-              <div className="absolute right-0 bottom-0 max-w-[86%] bg-[#111] p-4 text-white">
+              <div className="absolute right-3 bottom-3 max-w-[86%] rounded-xl bg-[#111] p-4 text-white">
                 <p className="font-display leading-tight font-bold">
                   {secondary.name}
                 </p>
@@ -177,7 +177,7 @@ export default function HomePage() {
             <Link
               key={category.slug}
               href={`/products?category=${category.slug}`}
-              className="group border-foreground/12 hover:bg-foreground hover:text-background relative flex min-h-56 flex-col justify-between border p-6 transition-colors"
+              className="group border-foreground/12 hover:bg-foreground hover:text-background relative flex min-h-56 flex-col justify-between rounded-xl border p-6 transition-colors"
             >
               <span className="text-muted-foreground group-hover:text-background/50 font-display text-3xl font-extrabold">
                 0{index + 1}
@@ -244,7 +244,7 @@ export default function HomePage() {
             {orderRoutes.map((route) => (
               <div
                 key={route.title}
-                className="border-background/20 flex flex-col gap-4 border p-7"
+                className="border-background/20 flex flex-col gap-4 rounded-xl border p-7"
               >
                 <route.icon className="text-primary size-7" />
                 <h3 className="font-display text-xl font-extrabold tracking-tight uppercase">
@@ -263,7 +263,7 @@ export default function HomePage() {
           </div>
 
           {whatsappEnabled && (
-            <div className="border-background/20 mt-10 flex flex-wrap items-center justify-between gap-4 border p-6">
+            <div className="border-background/20 mt-10 flex flex-wrap items-center justify-between gap-4 rounded-xl border p-6">
               <p className="text-background/80 text-sm">
                 Prefer to just ask a question first?
               </p>
@@ -299,7 +299,7 @@ export default function HomePage() {
           ].map((item) => (
             <div
               key={item.title}
-              className="border-foreground/12 flex flex-col gap-3 border p-7"
+              className="border-foreground/12 flex flex-col gap-3 rounded-xl border p-7"
             >
               <item.icon className="text-primary size-6" />
               <h3 className="font-display text-lg font-extrabold tracking-tight uppercase">

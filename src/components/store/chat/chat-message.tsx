@@ -28,10 +28,10 @@ export function ChatMessage({
     >
       <div
         className={cn(
-          "max-w-[85%] px-3.5 py-2.5 text-sm whitespace-pre-line",
+          "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm whitespace-pre-line",
           isAssistant
-            ? "bg-muted text-foreground"
-            : "bg-primary text-primary-foreground"
+            ? "bg-muted text-foreground rounded-bl-sm"
+            : "bg-primary text-primary-foreground rounded-br-sm"
         )}
       >
         {message.text}
@@ -52,7 +52,7 @@ export function ChatMessage({
               key={reply}
               type="button"
               onClick={() => onQuickReply(reply)}
-              className="border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background cursor-pointer border px-2.5 py-1.5 text-[11px] font-semibold tracking-wide uppercase transition-colors"
+              className="border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background cursor-pointer rounded-full border px-2.5 py-1.5 text-[11px] font-semibold tracking-wide uppercase shadow-sm transition-all hover:shadow-md active:translate-y-px"
             >
               {reply}
             </button>
@@ -67,10 +67,10 @@ function ChatProduct({ product }: { product: NonNullable<Message["products"]>[nu
   const { addItem } = useCart();
 
   return (
-    <li className="border-foreground/12 flex items-center gap-3 border p-2">
+    <li className="border-foreground/12 flex items-center gap-3 rounded-xl border p-2">
       <Link
         href={`/products/${product.slug}`}
-        className="bg-muted relative size-12 shrink-0 overflow-hidden"
+        className="bg-muted relative size-12 shrink-0 overflow-hidden rounded-lg"
       >
         <Image
           src={product.image}
@@ -110,7 +110,7 @@ export function TypingIndicator() {
   return (
     <div className="flex items-center gap-1.5" aria-live="polite">
       <span className="sr-only">{ASSISTANT_NAME} is typing</span>
-      <div className="bg-muted flex gap-1 px-3.5 py-3" aria-hidden>
+      <div className="bg-muted flex gap-1 rounded-2xl rounded-bl-sm px-3.5 py-3" aria-hidden>
         {[0, 1, 2].map((dot) => (
           <span
             key={dot}

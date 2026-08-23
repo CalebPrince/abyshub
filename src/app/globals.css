@@ -8,7 +8,7 @@
  * tint of those, so nothing on the page drifts off brand.
  */
 :root {
-  --radius: 0.25rem;
+  --radius: 0.75rem;
 
   --background: oklch(0.99 0.002 60);
   --foreground: oklch(0.16 0.004 60);

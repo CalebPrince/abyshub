@@ -27,6 +27,7 @@ Every setting lives in `.env.local`; see `.env.example` for the annotated list.
 | `PAYSTACK_SECRET_KEY` | **Server only.** Enables card checkout. |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Digits only, with country code. Blank hides all WhatsApp options. |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | Shown in the footer, and where enquiries are addressed. |
+| `NEXT_PUBLIC_LEGAL_ENTITY`, `NEXT_PUBLIC_BUSINESS_ADDRESS`, `NEXT_PUBLIC_BUSINESS_REGISTRATION`, `NEXT_PUBLIC_JURISDICTION` | Company details printed on the legal pages. Blank fields are omitted rather than printed empty. |
 
 ### Currency
 
@@ -87,6 +88,38 @@ ground it in `src/lib/products.ts` so it cannot invent stock or prices, and pass
 it in: `<ChatWidget responder={aiResponder} />` in `src/app/layout.tsx`. The
 scripted one makes a good fallback when the API is down or over budget.
 
+## Legal pages
+
+`/legal/terms`, `/legal/privacy` and `/legal/cookies`, linked from the footer.
+They are written against what this site actually does rather than from a
+generic template — the cookies page can honestly say the site sets **no
+cookies**, because it doesn't: the only client-side storage is the basket and
+the theme preference, both in `localStorage`, and the fonts are self-hosted by
+`next/font` so no request leaves the origin on a page view.
+
+**These are a starting point, not legal advice.** Before you trade:
+
+- Fill in `NEXT_PUBLIC_LEGAL_ENTITY`, `NEXT_PUBLIC_BUSINESS_ADDRESS` and
+  `NEXT_PUBLIC_BUSINESS_REGISTRATION` — the pages are close to meaningless
+  without a real registered name and address behind them.
+- Have a Ghanaian lawyer review them. The privacy page references the Data
+  Protection Act, 2012 (Act 843); whether you also need to register with the
+  Data Protection Commission is a question for them, not for this README.
+- Bump `LEGAL.updated` in `src/lib/config.ts` whenever you change the wording.
+
+Two changes would make the current text inaccurate and must be reflected there:
+adding **any** analytics or tracking (the cookies page promises none), and
+switching Lisa to an **AI responder** (the privacy page says chat messages never
+leave your browser).
+
+## The welcome modal
+
+`src/components/store/welcome-modal.tsx` shows once per browser tab, keyed on
+`sessionStorage` — so a new tab or a new browser sees it again, while moving
+around the shop in one tab does not. It is deliberately small on phones (about
+40% of the screen) and closes on the X, Escape, a click outside, or either
+button.
+
 ## The catalogue
 
 `src/lib/products.ts` is the single source of truth — products, categories and
@@ -104,6 +137,7 @@ src/
     cart/  checkout/  enquiry/  the three ordering routes
     checkout/callback/          Paystack return + verification
     api/paystack/webhook/       signed webhook handler
+    legal/                      terms, privacy, cookies
   components/
     ui/                         shadcn/ui primitives
     store/                      storefront components

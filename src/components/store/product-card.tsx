@@ -24,7 +24,7 @@ export function ProductCard({
   return (
     <article
       className={cn(
-        "group border-foreground/12 hover:border-foreground/35 bg-card text-card-foreground relative flex flex-col border transition-colors",
+        "group border-foreground/12 hover:border-foreground/35 bg-card text-card-foreground relative flex flex-col overflow-hidden rounded-xl border transition-colors",
         className
       )}
     >
@@ -40,19 +40,19 @@ export function ProductCard({
           className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
 
-        <span className="bg-foreground text-background absolute top-0 left-0 px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase">
+        <span className="bg-foreground text-background absolute top-3 left-3 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase">
           {product.brand}
         </span>
 
         {onSale && (
-          <span className="bg-primary text-primary-foreground absolute top-0 right-0 px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase">
+          <span className="bg-primary text-primary-foreground absolute top-3 right-3 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase">
             Sale
           </span>
         )}
 
         {!product.inStock && (
           <span className="bg-background/75 absolute inset-0 grid place-items-center">
-            <span className="border-foreground text-foreground border px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
+            <span className="border-foreground text-foreground rounded-full border px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
               Out of stock
             </span>
           </span>
@@ -76,7 +76,7 @@ export function ProductCard({
 
         <div className="flex items-end justify-between gap-2">
           <div>
-            <div className="bg-primary mb-1.5 h-[3px] w-7" aria-hidden />
+            <div className="bg-primary mb-1.5 h-[3px] w-7 rounded-full" aria-hidden />
             <div className="flex items-baseline gap-2">
               <span className="font-display text-lg font-extrabold tabular-nums">
                 {formatPrice(product.price)}

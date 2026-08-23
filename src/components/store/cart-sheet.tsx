@@ -59,7 +59,7 @@ export function CartSheet() {
                   <Link
                     href={`/products/${line.product.slug}`}
                     onClick={() => setOpen(false)}
-                    className="bg-secondary relative size-20 shrink-0 overflow-hidden rounded-md"
+                    className="bg-secondary relative size-20 shrink-0 overflow-hidden rounded-lg"
                   >
                     <Image
                       src={line.product.image}

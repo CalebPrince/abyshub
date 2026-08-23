@@ -91,7 +91,7 @@ export default async function ProductsPage({
       </div>
 
       {results.length === 0 ? (
-        <div className="border-foreground/12 flex flex-col items-center gap-4 border border-dashed py-24 text-center">
+        <div className="border-foreground/12 flex flex-col items-center gap-4 rounded-xl border border-dashed py-24 text-center">
           <p className="font-display text-xl font-extrabold uppercase">
             Nothing matched
           </p>
