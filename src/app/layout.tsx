@@ -59,9 +59,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           disableTransitionOnChange
         >
           <CartProvider>
-            <React.Suspense fallback={<div className="h-[104px] border-b" />}>
-              <SiteHeader />
-            </React.Suspense>
+            <SiteHeader />
             <main className="flex-1">{children}</main>
             <SiteFooter />
             <CartSheet />

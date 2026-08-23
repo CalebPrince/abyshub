@@ -100,7 +100,7 @@ export default async function ProductPage({
       </nav>
 
       <div className="border-foreground/12 grid border lg:grid-cols-2">
-        <div className="border-foreground/12 relative aspect-square border-b lg:border-r lg:border-b-0">
+        <div className="border-foreground/12 relative aspect-square border-b lg:sticky lg:top-32 lg:self-start lg:border-b-0">
           <Image
             src={product.image}
             alt={product.name}
@@ -119,7 +119,7 @@ export default async function ProductPage({
           )}
         </div>
 
-        <div className="space-y-7 p-6 lg:p-10">
+        <div className="border-foreground/12 space-y-7 p-6 lg:border-l lg:p-10">
           <div className="space-y-4">
             {category && (
               <Link
