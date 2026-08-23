@@ -22,7 +22,7 @@ Every setting lives in `.env.local`; see `.env.example` for the annotated list.
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | Public origin. Paystack redirects back here after payment. |
-| `NEXT_PUBLIC_CURRENCY` / `NEXT_PUBLIC_LOCALE` | Charge currency and price formatting. Defaults to `NGN` / `en-NG`. |
+| `NEXT_PUBLIC_CURRENCY` / `NEXT_PUBLIC_LOCALE` | Charge currency and price formatting. Defaults to `GHS` / `en-GH`. |
 | `NEXT_PUBLIC_FREE_DELIVERY_THRESHOLD` / `NEXT_PUBLIC_DELIVERY_FLAT_RATE` | Delivery rules, in minor units. |
 | `PAYSTACK_SECRET_KEY` | **Server only.** Enables card checkout. |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Digits only, with country code. Blank hides all WhatsApp options. |
@@ -30,10 +30,13 @@ Every setting lives in `.env.local`; see `.env.example` for the annotated list.
 
 ### Currency
 
-Prices are stored as **integer minor units** (kobo, pesewas, cents) throughout —
-`8950000` is ₦89,500 — so no float rounding can reach a charge. If your Paystack
-account settles in GHS, KES or ZAR, change `NEXT_PUBLIC_CURRENCY` and
-`NEXT_PUBLIC_LOCALE` and restate the prices in `src/lib/products.ts`.
+The shop charges in **Ghana cedis**. Prices are stored as **integer minor units**
+(pesewas) throughout — `95000` is GH₵950 — so no float rounding can reach a
+charge. Your Paystack account must be enabled for GHS.
+
+To move to another currency, change `NEXT_PUBLIC_CURRENCY` and
+`NEXT_PUBLIC_LOCALE`, then restate the prices in `src/lib/products.ts` and the
+two delivery thresholds. Nothing else reads a currency figure directly.
 
 ## Paystack
 

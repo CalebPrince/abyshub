@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/store/product-card";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
 import { categories, getFeaturedProducts, products } from "@/lib/products";
-import { whatsappEnabled } from "@/lib/config";
+import { FREE_DELIVERY_THRESHOLD, whatsappEnabled } from "@/lib/config";
 import { formatPrice } from "@/lib/money";
 
 const orderRoutes = [
@@ -104,10 +104,10 @@ export default function HomePage() {
           </div>
 
           {/* Two stacked product plates rather than one stock photo. */}
-          <div className="relative grid lg:col-span-5">
+          <div className="border-foreground/12 grid lg:col-span-5 lg:grid-rows-[1.3fr_1fr] lg:border-l">
             <Link
               href={`/products/${hero.slug}`}
-              className="group border-foreground/12 relative block aspect-square border-b lg:aspect-auto"
+              className="group border-foreground/12 relative block aspect-4/3 overflow-hidden border-b bg-[#FBFAF9] sm:aspect-16/9 lg:aspect-auto"
             >
               <Image
                 src={hero.image}
@@ -115,7 +115,7 @@ export default function HomePage() {
                 fill
                 priority
                 sizes="(min-width: 1024px) 42vw, 100vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
               />
               <div className="absolute bottom-0 left-0 max-w-[86%] bg-white/95 p-4">
                 <p className="text-primary text-[10px] font-semibold tracking-[0.16em] uppercase">
@@ -132,14 +132,14 @@ export default function HomePage() {
 
             <Link
               href={`/products/${secondary.slug}`}
-              className="group relative hidden aspect-[2/1] lg:block"
+              className="group relative block aspect-2/1 overflow-hidden bg-[#FBFAF9] lg:aspect-auto"
             >
               <Image
                 src={secondary.image}
                 alt={secondary.name}
                 fill
-                sizes="42vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                sizes="(min-width: 1024px) 42vw, 100vw"
+                className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
               />
               <div className="absolute right-0 bottom-0 max-w-[86%] bg-[#111] p-4 text-white">
                 <p className="font-display leading-tight font-bold">
@@ -218,7 +218,7 @@ export default function HomePage() {
             </Button>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -289,7 +289,7 @@ export default function HomePage() {
             {
               icon: TruckIcon,
               title: "Nationwide delivery",
-              body: `Free over ${formatPrice(5000000)}. Dispatch within one working day.`,
+              body: `Free over ${formatPrice(FREE_DELIVERY_THRESHOLD)}. Dispatch within one working day.`,
             },
             {
               icon: MessageCircleIcon,

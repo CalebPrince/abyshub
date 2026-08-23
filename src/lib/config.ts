@@ -7,10 +7,10 @@
  * ISO 4217 code Paystack charges in. Paystack supports NGN, GHS, ZAR, KES and
  * USD; the account must be enabled for whichever you set here.
  */
-export const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY ?? "NGN";
+export const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY ?? "GHS";
 
 /** Locale used to format prices. */
-export const LOCALE = process.env.NEXT_PUBLIC_LOCALE ?? "en-NG";
+export const LOCALE = process.env.NEXT_PUBLIC_LOCALE ?? "en-GH";
 
 /** Where customers reach the shop for WhatsApp orders. Digits only, with country code. */
 export const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
@@ -23,13 +23,13 @@ export const SITE_URL =
 
 export const STORE_NAME = "Abys Hub";
 
-/** Order totals, all in minor units of CURRENCY. */
+/** Order totals, all in minor units of CURRENCY (pesewas). */
 export const FREE_DELIVERY_THRESHOLD = Number(
-  process.env.NEXT_PUBLIC_FREE_DELIVERY_THRESHOLD ?? 5000000
+  process.env.NEXT_PUBLIC_FREE_DELIVERY_THRESHOLD ?? 50000
 );
 
 export const DELIVERY_FLAT_RATE = Number(
-  process.env.NEXT_PUBLIC_DELIVERY_FLAT_RATE ?? 350000
+  process.env.NEXT_PUBLIC_DELIVERY_FLAT_RATE ?? 3500
 );
 
 /** True when a WhatsApp number is configured, so the UI can hide the option. */

@@ -27,7 +27,7 @@ import {
   products,
 } from "@/lib/products";
 import { formatPrice } from "@/lib/money";
-import { STORE_NAME } from "@/lib/config";
+import { FREE_DELIVERY_THRESHOLD, STORE_NAME } from "@/lib/config";
 
 export function generateStaticParams() {
   return products.map((product) => ({ slug: product.slug }));
@@ -100,7 +100,7 @@ export default async function ProductPage({
       </nav>
 
       <div className="border-foreground/12 grid border lg:grid-cols-2">
-        <div className="border-foreground/12 relative aspect-square border-b lg:border-r lg:border-b-0">
+        <div className="border-foreground/12 relative aspect-square border-b lg:sticky lg:top-32 lg:self-start lg:border-b-0">
           <Image
             src={product.image}
             alt={product.name}
@@ -119,7 +119,7 @@ export default async function ProductPage({
           )}
         </div>
 
-        <div className="space-y-7 p-6 lg:p-10">
+        <div className="border-foreground/12 space-y-7 p-6 lg:border-l lg:p-10">
           <div className="space-y-4">
             {category && (
               <Link
@@ -238,7 +238,7 @@ export default async function ProductPage({
               <AccordionContent className="text-muted-foreground space-y-2">
                 <p>
                   Orders confirmed before 3pm go out the same working day.
-                  Delivery is free over {formatPrice(5000000)}.
+                  Delivery is free over {formatPrice(FREE_DELIVERY_THRESHOLD)}.
                 </p>
                 <p>
                   Anything faulty is replaced. Tupperware seals carry the

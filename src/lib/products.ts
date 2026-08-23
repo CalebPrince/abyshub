@@ -38,9 +38,9 @@ export const categories: Category[] = [
 ];
 
 /**
- * Placeholder catalogue. Prices are in minor units (kobo) so nothing is ever
- * held as a float. Swap this file for your real inventory — everything else
- * reads from it.
+ * Placeholder catalogue. Prices are in minor units (pesewas) so nothing is ever
+ * held as a float — 95000 is GH₵950.00. Swap this file for your real inventory;
+ * everything else reads from it.
  */
 export const products: Product[] = [
   {
@@ -51,8 +51,8 @@ export const products: Product[] = [
     tagline: "Garri, rice and beans sealed dry for months",
     description:
       "Eight square canisters that stack flush and lock airtight, so nothing draws damp and nothing gets in. The set covers a full pantry shelf: two tall for rice and beans, four mid for garri and semo, two short for spices.",
-    price: 8950000,
-    compareAtPrice: 11200000,
+    price: 95000,
+    compareAtPrice: 119000,
     category: "food-storage",
     image: "/products/modular-dry-storage-set-8-piece.svg",
     rating: 4.9,
@@ -74,7 +74,7 @@ export const products: Product[] = [
     tagline: "Stew, soup and leftovers, sealed and stackable",
     description:
       "Five nesting rounds that go fridge to freezer to microwave without staining or holding smell. The seal holds through a bumpy journey, so cooked stew travels without a spill.",
-    price: 4200000,
+    price: 44500,
     category: "food-storage",
     image: "/products/round-container-set-5-piece.svg",
     rating: 4.8,
@@ -96,7 +96,7 @@ export const products: Product[] = [
     tagline: "Vegetables that last the week, not two days",
     description:
       "A vented base lifts produce off the moisture that rots it, and the adjustable vent lets you tune airflow for leaves or for tomatoes. Ugu and ewedu keep for a week instead of wilting overnight.",
-    price: 2850000,
+    price: 30000,
     category: "food-storage",
     image: "/products/fridge-produce-keeper.svg",
     rating: 4.7,
@@ -118,8 +118,8 @@ export const products: Product[] = [
     tagline: "Batch-cook once, eat all week",
     description:
       "Four flat blocks sized to freeze a single portion of stew or soup, so you thaw only what you need. They stack square in the freezer instead of sliding around in bags.",
-    price: 3600000,
-    compareAtPrice: 4300000,
+    price: 38000,
+    compareAtPrice: 45500,
     category: "food-storage",
     image: "/products/freezer-block-set-4-piece.svg",
     rating: 4.6,
@@ -140,7 +140,7 @@ export const products: Product[] = [
     tagline: "Onions, pepper and ata rodo in seconds, no tears",
     description:
       "Pull the cord and the blades do the work — a full bowl of onions or pepper reduced in about ten pulls. No electricity, nothing to charge, and the bowl doubles as the storage container.",
-    price: 3450000,
+    price: 36500,
     category: "kitchen-prep",
     image: "/products/speedy-chopper.svg",
     rating: 4.9,
@@ -162,7 +162,7 @@ export const products: Product[] = [
     tagline: "Three sizes, sealed lids, non-slip base",
     description:
       "Bowls that grip the counter while you beat, then take a lid and go in the fridge. Sizes run from a single egg wash up to a full batch of puff-puff batter.",
-    price: 4700000,
+    price: 49500,
     category: "kitchen-prep",
     image: "/products/mixing-bowl-trio.svg",
     rating: 4.7,
@@ -183,8 +183,8 @@ export const products: Product[] = [
     tagline: "Beans in twenty minutes, in the microwave",
     description:
       "A sealed cooker that builds pressure in a microwave, so beans, rice and tough cuts finish in a fraction of the usual time — and without the gas. The vent releases on its own when it is done.",
-    price: 6800000,
-    compareAtPrice: 7900000,
+    price: 72000,
+    compareAtPrice: 84000,
     category: "kitchen-prep",
     image: "/products/microwave-pressure-cooker.svg",
     rating: 4.8,
@@ -206,7 +206,7 @@ export const products: Product[] = [
     tagline: "Rice one side, stew the other, nothing leaks",
     description:
       "A divided box that keeps rice from swimming in stew, with a seal that survives a school bag on its side. The divider lifts out when you want one big compartment.",
-    price: 1850000,
+    price: 19500,
     category: "on-the-go",
     image: "/products/lunch-set-with-divider.svg",
     rating: 4.8,
@@ -228,7 +228,7 @@ export const products: Product[] = [
     tagline: "One bottle instead of a week of sachets",
     description:
       "A flip-top bottle that seals properly in a bag and pours without glugging. Wide enough at the neck to get a brush in, so it actually gets clean.",
-    price: 1250000,
+    price: 13000,
     category: "on-the-go",
     image: "/products/eco-water-bottle-750ml.svg",
     rating: 4.6,
@@ -249,7 +249,7 @@ export const products: Product[] = [
     tagline: "Hot for six hours, cold for twelve",
     description:
       "Double-walled steel that keeps tea hot through a morning commute and zobo cold through an afternoon. The lid seals shut rather than just sitting on top.",
-    price: 1590000,
+    price: 16800,
     category: "on-the-go",
     image: "/products/insulated-travel-tumbler.svg",
     rating: 4.5,
@@ -270,7 +270,7 @@ export const products: Product[] = [
     tagline: "Carry it to the party, store what comes back",
     description:
       "Good enough to put on the table and sealed enough to travel with. Take jollof to an owambe and bring the leftovers home in the same bowl.",
-    price: 2400000,
+    price: 25500,
     category: "serveware",
     image: "/products/serving-bowl-with-lid.svg",
     rating: 4.7,
@@ -291,7 +291,7 @@ export const products: Product[] = [
     tagline: "Fridge-door jug that actually seals",
     description:
       "A slim jug that fits the fridge door and seals so it does not take on the smell of everything around it. Pours clean without dribbling down the side.",
-    price: 1950000,
+    price: 20500,
     category: "serveware",
     image: "/products/water-jug-2l.svg",
     rating: 4.6,
@@ -312,7 +312,7 @@ export const products: Product[] = [
     tagline: "Cleans glass and steel with water alone",
     description:
       "Six colour-coded cloths so the one for the kitchen never ends up in the bathroom. They lift grease with plain water, which means less spend on chemicals.",
-    price: 890000,
+    price: 9500,
     category: "home-care",
     image: "/products/microfibre-cloth-set-6-piece.svg",
     rating: 4.5,
@@ -333,8 +333,8 @@ export const products: Product[] = [
     tagline: "Cutlery and utensils, each in its place",
     description:
       "Interlocking trays that size to your drawer instead of rattling around inside it. Deep enough for serving spoons, shallow enough for teaspoons to stay visible.",
-    price: 1350000,
-    compareAtPrice: 1700000,
+    price: 14200,
+    compareAtPrice: 18000,
     category: "home-care",
     image: "/products/drawer-organiser-set.svg",
     rating: 4.4,
