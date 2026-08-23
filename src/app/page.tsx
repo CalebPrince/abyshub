@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/store/product-card";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
 import { categories, getFeaturedProducts, products } from "@/lib/products";
-import { whatsappEnabled } from "@/lib/config";
+import { FREE_DELIVERY_THRESHOLD, whatsappEnabled } from "@/lib/config";
 import { formatPrice } from "@/lib/money";
 
 const orderRoutes = [
@@ -289,7 +289,7 @@ export default function HomePage() {
             {
               icon: TruckIcon,
               title: "Nationwide delivery",
-              body: `Free over ${formatPrice(5000000)}. Dispatch within one working day.`,
+              body: `Free over ${formatPrice(FREE_DELIVERY_THRESHOLD)}. Dispatch within one working day.`,
             },
             {
               icon: MessageCircleIcon,

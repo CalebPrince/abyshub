@@ -27,7 +27,7 @@ import {
   products,
 } from "@/lib/products";
 import { formatPrice } from "@/lib/money";
-import { STORE_NAME } from "@/lib/config";
+import { FREE_DELIVERY_THRESHOLD, STORE_NAME } from "@/lib/config";
 
 export function generateStaticParams() {
   return products.map((product) => ({ slug: product.slug }));
@@ -238,7 +238,7 @@ export default async function ProductPage({
               <AccordionContent className="text-muted-foreground space-y-2">
                 <p>
                   Orders confirmed before 3pm go out the same working day.
-                  Delivery is free over {formatPrice(5000000)}.
+                  Delivery is free over {formatPrice(FREE_DELIVERY_THRESHOLD)}.
                 </p>
                 <p>
                   Anything faulty is replaced. Tupperware seals carry the
