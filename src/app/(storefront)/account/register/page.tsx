@@ -3,13 +3,40 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import { AccountForm } from "@/components/store/account-form";
+import { AccountShowcase } from "@/components/store/account-showcase";
 import { register } from "@/lib/actions/account";
+import { getCatalogue, featuredFrom } from "@/lib/shop/catalogue";
 
 export const metadata: Metadata = { title: "Create an account" };
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const { products } = await getCatalogue();
+  const showcase = [
+    ...featuredFrom(products),
+    ...products.filter((p) => p.inStock),
+  ]
+    .filter((p, i, all) => all.findIndex((x) => x.id === p.id) === i)
+    .slice(0, 3);
+
   return (
-    <div className="mx-auto w-full max-w-sm px-4 py-16 lg:py-24">
+    <div className="grid min-h-[calc(100dvh-14rem)] lg:grid-cols-2">
+      <AccountShowcase
+        products={showcase}
+        eyebrow="Join us"
+        heading={
+          <>
+            Buy it once.
+            <br />
+            <span className="text-foreground">Keep it</span>
+            <br />
+            for years.
+          </>
+        }
+        body="An account keeps your delivery details ready and every order you have placed in one list."
+      />
+
+      <div className="flex items-start justify-center px-4 pt-10 pb-16 lg:px-12 lg:pt-16">
+        <div className="w-full max-w-sm">
       <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
         Your account
       </p>
@@ -35,7 +62,9 @@ export default function RegisterPage() {
             </Link>
           </p>
         </AccountForm>
-      </React.Suspense>
+          </React.Suspense>
+        </div>
+      </div>
     </div>
   );
 }

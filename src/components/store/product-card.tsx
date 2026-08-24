@@ -40,7 +40,7 @@ export function ProductCard({
           className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
 
-        <span className="bg-foreground text-background absolute top-3 left-3 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase">
+        <span className="bg-primary text-primary-foreground absolute top-3 left-3 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase">
           {product.brand}
         </span>
 

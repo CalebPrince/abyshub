@@ -52,7 +52,7 @@ export function ChatMessage({
               key={reply}
               type="button"
               onClick={() => onQuickReply(reply)}
-              className="border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background cursor-pointer rounded-full border px-2.5 py-1.5 text-[11px] font-semibold tracking-wide uppercase shadow-sm transition-all hover:shadow-md active:translate-y-px"
+              className="border-foreground/20 hover:border-primary hover:bg-primary hover:text-primary-foreground cursor-pointer rounded-full border px-2.5 py-1.5 text-[11px] font-semibold tracking-wide uppercase shadow-sm transition-all hover:shadow-md active:translate-y-px"
             >
               {reply}
             </button>

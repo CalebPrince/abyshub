@@ -111,7 +111,7 @@ export function CheckoutForm({
                 className={cn(
                   "border-foreground/12 relative flex cursor-pointer flex-col gap-2 rounded-xl border p-5 transition-colors",
                   method === option.id
-                    ? "bg-foreground text-background"
+                    ? "bg-primary text-primary-foreground"
                     : "hover:border-foreground/40",
                   !option.available && "cursor-not-allowed opacity-45"
                 )}
@@ -276,7 +276,7 @@ export function CheckoutForm({
                   sizes="56px"
                   className="object-cover"
                 />
-                <span className="bg-foreground text-background absolute top-0 right-0 flex size-5 items-center justify-center rounded-full text-[10px] font-bold">
+                <span className="bg-primary text-primary-foreground absolute top-0 right-0 flex size-5 items-center justify-center rounded-full text-[10px] font-bold">
                   {line.quantity}
                 </span>
               </div>

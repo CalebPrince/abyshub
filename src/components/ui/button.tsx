@@ -14,13 +14,13 @@ const buttonVariants = cva(
         // a fixed pair, so every variant picks up the same lit-from-above feel
         // without hardcoding a second shade per theme.
         default:
-          "bg-primary text-primary-foreground bg-linear-to-b from-white/18 to-black/12 shadow-md shadow-primary/30 hover:bg-brand-red-deep hover:shadow-lg",
+          "bg-primary text-primary-foreground bg-linear-to-b from-white/18 to-black/12 shadow-md shadow-primary/30 hover:bg-brand-pink-deep hover:shadow-lg",
         destructive:
-          "bg-destructive text-destructive-foreground bg-linear-to-b from-white/18 to-black/12 shadow-md shadow-destructive/30 hover:bg-brand-red-deep hover:shadow-lg",
+          "bg-destructive text-destructive-foreground bg-linear-to-b from-white/18 to-black/12 shadow-md shadow-destructive/30 hover:bg-brand-pink-deep hover:shadow-lg",
         // Stays transparent so it can sit on the dark sections too; the
         // shadow alone carries the raised feel here.
         outline:
-          "border border-foreground/25 bg-transparent shadow-sm hover:border-foreground hover:bg-foreground hover:text-background hover:shadow-md",
+          "border border-foreground/25 bg-transparent shadow-sm hover:border-primary hover:bg-primary hover:text-primary-foreground hover:shadow-md",
         secondary:
           "bg-secondary text-secondary-foreground bg-linear-to-b from-white/14 to-black/16 shadow-md hover:shadow-lg",
         accent:

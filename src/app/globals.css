@@ -4,82 +4,102 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Abys Hub runs on three colours: red, black and white. Everything else is a
- * tint of those, so nothing on the page drifts off brand.
+ * Abys Hub runs on two colours: the pink lifted from the logo, and white.
+ * Black is reserved for type — it is never a surface — so the heavy editorial
+ * blocks that used to be black are pink now.
+ *
+ * The logo keeps its exact ink, #FA026F, measured from the interiors of the
+ * strokes in the original file rather than guessed from a screenshot. It sits
+ * near the edge of sRGB — nearly a fifth of those pixels clip the red channel
+ * — which is why it reads hot rather than merely red.
+ *
+ * The interface runs a step deeper at #D6005F. White text on the logo pink is
+ * only 3.96:1, under the 4.5:1 body text needs; this is 5.22:1. It is not a
+ * different colour so much as the same one with enough weight to carry type,
+ * and it stops short of darker still because the black display accents on
+ * these panels need 3:1 of their own — they hold 3.62:1 here.
  */
 :root {
   --radius: 0.75rem;
 
-  --background: oklch(0.99 0.002 60);
-  --foreground: oklch(0.16 0.004 60);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.178 0 0);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0.004 60);
+  --card-foreground: oklch(0.178 0 0);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.004 60);
+  --popover-foreground: oklch(0.178 0 0);
 
-  /* Brand red */
-  --primary: oklch(0.55 0.21 27.5);
-  --primary-foreground: oklch(0.99 0.002 60);
+  /* Brand pink */
+  --primary: oklch(0.562 0.225 6.6);
+  --primary-foreground: oklch(1 0 0);
 
-  /* Brand black, used for the heavy editorial blocks */
-  --secondary: oklch(0.16 0.004 60);
-  --secondary-foreground: oklch(0.99 0.002 60);
+  /* The soft tint, for surfaces that need to sit back without going grey. */
+  --secondary: oklch(0.969 0.018 351.1);
+  --secondary-foreground: oklch(0.178 0 0);
 
-  --muted: oklch(0.96 0.003 60);
-  --muted-foreground: oklch(0.46 0.006 60);
+  --muted: oklch(0.969 0.018 351.1);
+  --muted-foreground: oklch(0.528 0 0);
 
-  --accent: oklch(0.55 0.21 27.5);
-  --accent-foreground: oklch(0.99 0.002 60);
+  --accent: oklch(0.562 0.225 6.6);
+  --accent-foreground: oklch(1 0 0);
 
-  --destructive: oklch(0.55 0.21 27.5);
-  --destructive-foreground: oklch(0.99 0.002 60);
+  /*
+   * Deliberately a deeper pink rather than the brand pink: a delete button
+   * that is the same colour as every primary button is not a warning.
+   */
+  --destructive: oklch(0.438 0.175 8.1);
+  --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.9 0.004 60);
-  --input: oklch(0.88 0.004 60);
-  --ring: oklch(0.55 0.21 27.5);
+  --border: oklch(0.910 0.047 350.8);
+  --input: oklch(0.860 0.069 351.7);
+  --ring: oklch(0.562 0.225 6.6);
 
   /* Named brand tokens for the places that need the raw values. */
-  --brand-red: oklch(0.55 0.21 27.5);
-  --brand-red-deep: oklch(0.45 0.19 27.5);
-  --brand-ink: oklch(0.16 0.004 60);
-  --brand-paper: oklch(0.99 0.002 60);
+  --brand-pink: oklch(0.562 0.225 6.6);
+  --brand-pink-deep: oklch(0.503 0.202 6.1);
+  --brand-ink: oklch(0.178 0 0);
+  --brand-paper: oklch(1 0 0);
 }
 
+/*
+ * Dark mode keeps the toggle honest. Black cannot be the type colour on a dark
+ * ground, so the roles invert: paper for the words, pink still the accent.
+ */
 .dark {
-  --background: oklch(0.14 0.004 60);
-  --foreground: oklch(0.97 0.002 60);
+  --background: oklch(0.15 0 0);
+  --foreground: oklch(0.98 0 0);
 
-  --card: oklch(0.185 0.004 60);
-  --card-foreground: oklch(0.97 0.002 60);
+  --card: oklch(0.19 0 0);
+  --card-foreground: oklch(0.98 0 0);
 
-  --popover: oklch(0.185 0.004 60);
-  --popover-foreground: oklch(0.97 0.002 60);
+  --popover: oklch(0.19 0 0);
+  --popover-foreground: oklch(0.98 0 0);
 
-  --primary: oklch(0.63 0.21 27.5);
-  --primary-foreground: oklch(0.14 0.004 60);
+  --primary: oklch(0.673 0.234 0.9);
+  --primary-foreground: oklch(1 0 0);
 
-  --secondary: oklch(0.97 0.002 60);
-  --secondary-foreground: oklch(0.14 0.004 60);
+  --secondary: oklch(0.26 0.02 350);
+  --secondary-foreground: oklch(0.98 0 0);
 
-  --muted: oklch(0.24 0.004 60);
-  --muted-foreground: oklch(0.7 0.006 60);
+  --muted: oklch(0.24 0.012 350);
+  --muted-foreground: oklch(0.72 0.01 350);
 
-  --accent: oklch(0.63 0.21 27.5);
-  --accent-foreground: oklch(0.14 0.004 60);
+  --accent: oklch(0.673 0.234 0.9);
+  --accent-foreground: oklch(1 0 0);
 
-  --destructive: oklch(0.63 0.21 27.5);
-  --destructive-foreground: oklch(0.14 0.004 60);
+  --destructive: oklch(0.55 0.2 2);
+  --destructive-foreground: oklch(1 0 0);
 
   --border: oklch(1 0 0 / 14%);
   --input: oklch(1 0 0 / 18%);
-  --ring: oklch(0.63 0.21 27.5);
+  --ring: oklch(0.673 0.234 0.9);
 
-  --brand-red: oklch(0.63 0.21 27.5);
-  --brand-red-deep: oklch(0.52 0.2 27.5);
-  --brand-ink: oklch(0.14 0.004 60);
-  --brand-paper: oklch(0.97 0.002 60);
+  --brand-pink: oklch(0.673 0.234 0.9);
+  --brand-pink-deep: oklch(0.58 0.225 5);
+  --brand-ink: oklch(0.15 0 0);
+  --brand-paper: oklch(0.98 0 0);
 }
 
 @theme inline {
@@ -103,8 +123,8 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-brand-red: var(--brand-red);
-  --color-brand-red-deep: var(--brand-red-deep);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-pink-deep: var(--brand-pink-deep);
   --color-brand-ink: var(--brand-ink);
   --color-brand-paper: var(--brand-paper);
 
@@ -148,7 +168,7 @@
     display: block;
     width: 3rem;
     height: 4px;
-    background: var(--brand-red);
+    background: var(--brand-pink);
     margin-bottom: 1rem;
   }
 
@@ -156,7 +176,7 @@
   .hatch {
     background-image: repeating-linear-gradient(
       -45deg,
-      color-mix(in oklab, var(--brand-red) 100%, transparent) 0 1px,
+      color-mix(in oklab, var(--brand-pink) 100%, transparent) 0 1px,
       transparent 1px 9px
     );
   }
@@ -254,7 +274,7 @@ html[data-splash="seen"] .splash {
   opacity: 0.22;
   background: radial-gradient(
     circle,
-    color-mix(in oklab, var(--brand-red) 70%, transparent) 0%,
+    color-mix(in oklab, var(--brand-pink) 70%, transparent) 0%,
     transparent 70%
   );
   animation: splash-bloom-flash 900ms cubic-bezier(0.16, 1, 0.3, 1) 440ms both;
@@ -328,15 +348,15 @@ html[data-splash="seen"] .splash {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--brand-red) 9%,
-    var(--brand-red) 17%,
+    var(--brand-pink) 9%,
+    var(--brand-pink) 17%,
     transparent 20%,
     transparent 80%,
-    var(--brand-red) 83%,
-    var(--brand-red) 91%,
+    var(--brand-pink) 83%,
+    var(--brand-pink) 91%,
     transparent 100%
   );
-  filter: drop-shadow(0 0 5px color-mix(in oklab, var(--brand-red) 85%, transparent));
+  filter: drop-shadow(0 0 5px color-mix(in oklab, var(--brand-pink) 85%, transparent));
   animation: splash-seal-flash 420ms ease-out 490ms both;
 }
 
@@ -360,7 +380,7 @@ html[data-splash="seen"] .splash {
 }
 
 .splash-letter.is-accent {
-  color: var(--brand-red);
+  color: var(--brand-pink);
 }
 
 .splash-letter-inner {
@@ -373,7 +393,7 @@ html[data-splash="seen"] .splash {
   width: 3rem;
   height: 4px;
   margin-top: 1.5rem;
-  background: var(--brand-red);
+  background: var(--brand-pink);
   animation: splash-rule-in 380ms cubic-bezier(0.65, 0, 0.35, 1) 900ms both;
 }
 

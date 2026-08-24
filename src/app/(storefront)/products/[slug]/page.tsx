@@ -28,6 +28,7 @@ import {
   categoryFrom,
   relatedFrom,
 } from "@/lib/shop/catalogue";
+import { categoryImage } from "@/lib/shop/imagery";
 import { formatPrice } from "@/lib/money";
 import { FREE_DELIVERY_THRESHOLD, STORE_NAME } from "@/lib/config";
 
@@ -113,7 +114,7 @@ export default async function ProductPage({
             sizes="(min-width: 1024px) 50vw, 100vw"
             className="object-cover"
           />
-          <span className="bg-foreground text-background absolute top-4 left-4 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
+          <span className="bg-primary text-primary-foreground absolute top-4 left-4 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
             {product.brand}
           </span>
           {onSale && (
@@ -253,6 +254,28 @@ export default async function ProductPage({
           </Accordion>
         </div>
       </div>
+
+      {/* A room, not a product: the item itself is only ever shown in the
+          supplier's own photograph. */}
+      <section className="border-foreground/12 relative -mx-4 mt-4 overflow-hidden border-y lg:-mx-8">
+        <div className="relative aspect-16/9 max-h-80 w-full sm:aspect-21/9">
+          <Image
+            src={categoryImage(product.category)}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+          <div className="from-foreground/75 absolute inset-0 bg-gradient-to-r to-transparent" />
+          <div className="absolute inset-0 flex items-center px-4 lg:px-8">
+            <p className="font-display text-background max-w-sm text-2xl leading-[1] font-extrabold tracking-tight uppercase sm:text-3xl">
+              Made to be used,
+              <br />
+              not admired.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {related.length > 0 && (
         <section className="py-16 lg:py-24">

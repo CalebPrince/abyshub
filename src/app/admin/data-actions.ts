@@ -8,6 +8,8 @@ import { products as catalogue, categories } from "@/lib/products";
 import { CATALOGUE_TAG } from "@/lib/shop/catalogue";
 import { SETTINGS_TAG } from "@/lib/shop/settings";
 import { CONTENT_TAG } from "@/lib/shop/content";
+import { fetchImage, readProductPage } from "@/lib/suppliers/fetch";
+import { supplierById, supplierForUrl } from "@/lib/suppliers/registry";
 
 export type ActionState = { error: string | null; notice: string | null };
 
@@ -592,6 +594,234 @@ export async function deleteProduct(formData: FormData): Promise<void> {
     const path = image.split("/product-images/").pop();
     if (path) await supabase.storage.from("product-images").remove([path]);
   }
+
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  revalidatePath("/admin/products");
+}
+
+// ---------------------------------------------------------------------------
+// Partner imports
+// ---------------------------------------------------------------------------
+
+/**
+ * Pulls the partner's own image into our bucket. Hotlinking would leave the
+ * shop blank the day their CDN blocks referrers or reorganises.
+ */
+async function storeSupplierImage(
+  supabase: ReturnType<typeof createAdminClient>,
+  imageUrl: string,
+  slug: string
+) {
+  try {
+    const { buffer, contentType } = await fetchImage(imageUrl);
+    const extension = contentType.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
+    const path = `${slug}-${Date.now()}.${extension}`;
+
+    const { error } = await supabase.storage
+      .from("product-images")
+      .upload(path, buffer, { contentType, upsert: false });
+    if (error) return null;
+
+    return supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+  } catch {
+    // A missing picture is not a reason to lose the product.
+    return null;
+  }
+}
+
+/**
+ * Imports a product from a partner page, or refreshes one already imported.
+ *
+ * Which of the two it is comes from the supplier and their SKU, not from the
+ * name: a partner renaming a product must update the row rather than create a
+ * second copy of something already on the shelf.
+ *
+ * A new import arrives unlisted, always. Partner prices are in their own
+ * currency at their own retail, and a product that reached the shop at
+ * whatever a converter guessed would be a real order taken at the wrong money.
+ *
+ * A refresh updates their words and their picture and touches neither our
+ * price nor whether it is listed. Re-pulling a description must never quietly
+ * reprice the shop or pull a live product off it.
+ */
+export async function importProduct(
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdmin();
+  if (!adminClientAvailable()) {
+    return { error: "The database is not connected.", notice: null };
+  }
+
+  const url = text(formData, "url");
+  if (!url) return { error: "Paste the address of a product page.", notice: null };
+
+  let found;
+  try {
+    found = await readProductPage(url);
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "That page could not be read.",
+      notice: null,
+    };
+  }
+
+  if (!found.name) return { error: "That page did not name a product.", notice: null };
+
+  const supplier = supplierById(found.supplierId);
+  if (!supplier) return { error: "Unknown partner site.", notice: null };
+
+  const supabase = createAdminClient();
+
+  // Identity is the partner plus their SKU. Without a SKU there is nothing
+  // stable to match on later, so the slug stands in.
+  const existing = found.sku
+    ? (
+        await supabase
+          .from("products")
+          .select("id, slug")
+          .eq("supplier", supplier.id)
+          .eq("external_sku", found.sku)
+          .maybeSingle()
+      ).data
+    : null;
+
+  const shared = {
+    name: found.name,
+    brand: found.brand,
+    description: found.description || null,
+    category: supplier.categoryFor({
+      supplierCategory: found.supplierCategory,
+      name: found.name,
+      brand: found.brand,
+    }),
+    highlights: found.variants,
+    supplier: supplier.id,
+    source_url: found.sourceUrl,
+    external_sku: found.sku,
+    imported_at: new Date().toISOString(),
+  };
+
+  // --- refresh -------------------------------------------------------------
+  if (existing) {
+    const image = found.imageUrl
+      ? await storeSupplierImage(supabase, found.imageUrl, existing.slug)
+      : null;
+
+    const { error } = await supabase
+      .from("products")
+      // Deliberately no price and no published: a refresh is about their
+      // content, never our commercial decisions.
+      .update(image ? { ...shared, image } : shared)
+      .eq("id", existing.id);
+
+    if (error) return { error: error.message, notice: null };
+
+    revalidateTag(CATALOGUE_TAG, { expire: 0 });
+    revalidatePath("/admin/products");
+    return {
+      error: null,
+      notice: `${found.name} refreshed. Your price and listing were left alone.`,
+    };
+  }
+
+  // --- first import --------------------------------------------------------
+  const slug = slugify(found.name);
+  if (!slug) return { error: "That name does not make a usable web address.", notice: null };
+
+  const { data: clash } = await supabase
+    .from("products")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (clash) {
+    return { error: `Something already uses the address "${slug}".`, notice: null };
+  }
+
+  const givenPrice = Number(text(formData, "price"));
+  const rate = Number(text(formData, "rate"));
+
+  let price = 0;
+  if (Number.isFinite(givenPrice) && givenPrice > 0) {
+    price = Math.round(givenPrice);
+  } else if (found.listPrice && Number.isFinite(rate) && rate > 0) {
+    price = Math.round(found.listPrice * rate * 100);
+  }
+
+  const image = found.imageUrl
+    ? await storeSupplierImage(supabase, found.imageUrl, slug)
+    : null;
+
+  const { error } = await supabase.from("products").insert({
+    ...shared,
+    id: slug,
+    slug,
+    tagline: null,
+    price,
+    image,
+    in_stock: true,
+    featured: false,
+    published: false,
+  });
+
+  if (error) return { error: error.message, notice: null };
+
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  revalidatePath("/admin/products");
+
+  const reference =
+    found.listPrice && found.listCurrency
+      ? ` Their list price is ${found.listCurrency} ${found.listPrice}.`
+      : "";
+
+  return {
+    error: null,
+    notice: `${found.name} imported from ${supplier.label}, unlisted.${reference} Set your price and list it when ready.`,
+  };
+}
+
+/** Re-pulls a product from the address it was imported from. */
+export async function refreshProduct(formData: FormData): Promise<void> {
+  await requireAdmin();
+  if (!adminClientAvailable()) return;
+
+  const id = text(formData, "id");
+  if (!id) return;
+
+  const supabase = createAdminClient();
+  const { data: row } = await supabase
+    .from("products")
+    .select("source_url, slug, supplier")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!row?.source_url) return;
+
+  let found;
+  try {
+    found = await readProductPage(row.source_url as string);
+  } catch {
+    return;
+  }
+
+  const supplier = supplierForUrl(new URL(row.source_url as string));
+  if (!supplier) return;
+
+  const image = found.imageUrl
+    ? await storeSupplierImage(supabase, found.imageUrl, row.slug as string)
+    : null;
+
+  const patch: Record<string, unknown> = {
+    name: found.name,
+    brand: found.brand,
+    description: found.description || null,
+    highlights: found.variants,
+    external_sku: found.sku,
+    imported_at: new Date().toISOString(),
+  };
+  if (image) patch.image = image;
+
+  await supabase.from("products").update(patch).eq("id", id);
 
   revalidateTag(CATALOGUE_TAG, { expire: 0 });
   revalidatePath("/admin/products");

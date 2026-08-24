@@ -102,7 +102,7 @@ export function WelcomeModal() {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {/* Deliberately small on phones — a welcome should not eat the screen. */}
       <DialogContent className="max-w-[20rem] sm:max-w-md" showClose={false}>
-        <div className="bg-foreground text-background relative px-5 py-5 sm:px-6 sm:py-7">
+        <div className="bg-primary text-primary-foreground relative px-5 py-5 sm:px-6 sm:py-7">
           {/* The shared close is styled for light surfaces and vanishes on this
               black header, so this panel brings its own. */}
           <DialogClose
@@ -112,13 +112,13 @@ export function WelcomeModal() {
             <XIcon className="size-5" />
           </DialogClose>
 
-          <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
+          <p className="text-primary-foreground/75 text-[11px] font-semibold tracking-[0.24em] uppercase">
             Welcome
           </p>
           <DialogTitle className="mt-2 max-w-[85%] text-xl leading-[1] sm:text-3xl sm:leading-[0.95]">
             Buy it once.
             <br />
-            <span className="text-primary">Keep it</span> for years.
+            <span className="text-foreground">Keep it</span> for years.
           </DialogTitle>
           <DialogDescription className="text-background/70 mt-2 line-clamp-2 text-xs sm:mt-3 sm:line-clamp-none sm:text-sm">
             {STORE_NAME} stocks genuine Tupperware and our own home range —
