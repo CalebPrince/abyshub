@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { SetupNotice } from "@/components/admin/setup-notice";
 import { adminClientAvailable } from "@/lib/supabase/admin";
 import { listAdminProducts } from "@/lib/crm/queries";
-import { seedCatalogue, updateProduct } from "@/app/admin/data-actions";
+import { seedCatalogue, unpublishProduct, updateProduct } from "@/app/admin/data-actions";
+import { NewProductForm } from "@/components/admin/new-product-form";
+import { getCatalogue } from "@/lib/shop/catalogue";
 import { products as fileCatalogue } from "@/lib/products";
 import { requireAdmin } from "@/lib/admin/dal";
 
@@ -16,7 +18,10 @@ export default async function AdminProductsPage() {
   await requireAdmin();
 
   const connected = adminClientAvailable();
-  const rows = await listAdminProducts();
+  const [rows, { categories }] = await Promise.all([
+    listAdminProducts(),
+    getCatalogue(),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -50,6 +55,7 @@ export default async function AdminProductsPage() {
               <DownloadIcon /> Import catalogue from code
             </Button>
           </form>
+          <NewProductForm categories={categories} />
         </div>
       ) : (
         <>
@@ -137,12 +143,31 @@ export default async function AdminProductsPage() {
                     <td className="p-3 text-right">
                       {/* The form element itself lives here; the inputs above
                           join it by id, which keeps the table cells tidy. */}
-                      <form action={updateProduct} id={`p-${product.id}`}>
-                        <input type="hidden" name="id" value={product.id} />
-                        <Button type="submit" size="sm" variant="outline">
-                          Save
-                        </Button>
-                      </form>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <form action={updateProduct} id={`p-${product.id}`}>
+                          <input type="hidden" name="id" value={product.id} />
+                          <Button type="submit" size="sm" variant="outline">
+                            Save
+                          </Button>
+                        </form>
+                        {/* Unlisting rather than deleting: order items keep
+                            their own price snapshot, so history survives
+                            either way, but a delete also throws away the
+                            description and photograph for good. */}
+                        {product.published ? (
+                          <form action={unpublishProduct}>
+                            <input type="hidden" name="id" value={product.id} />
+                            <Button
+                              type="submit"
+                              size="sm"
+                              variant="ghost"
+                              className="text-muted-foreground"
+                            >
+                              Unlist
+                            </Button>
+                          </form>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -159,6 +184,7 @@ export default async function AdminProductsPage() {
               price edited here.
             </span>
           </form>
+          <NewProductForm categories={categories} />
         </>
       )}
     </div>
