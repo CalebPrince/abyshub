@@ -87,6 +87,13 @@ export const getCatalogue = unstable_cache(
         .order("sort_order"),
     ]);
 
+    if (productResult.error) {
+      console.error("[catalogue] failed to read products from Supabase, falling back to lib/products.ts:", productResult.error.message);
+    }
+    if (categoryResult.error) {
+      console.error("[catalogue] failed to read categories from Supabase:", categoryResult.error.message);
+    }
+
     const rows = (productResult.data ?? []) as ProductRow[];
     if (rows.length === 0) {
       return { products: fileProducts, categories: fileCategories };
