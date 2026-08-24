@@ -27,8 +27,16 @@ export const SUPABASE_URL = required(
   "NEXT_PUBLIC_SUPABASE_URL"
 );
 
+/**
+ * Supabase renamed this key from "anon" to "publishable". Both spellings are
+ * accepted so it does not matter which name the dashboard was showing on the
+ * day the variable was created. Each `process.env.X` is written out in full
+ * because Next inlines that exact expression — a loop over names would not be
+ * replaced at build time.
+ */
 export const SUPABASE_ANON_KEY = required(
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   "NEXT_PUBLIC_SUPABASE_ANON_KEY"
 );
 
