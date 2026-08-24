@@ -6,6 +6,7 @@ import { SetupNotice } from "@/components/admin/setup-notice";
 import { ProductDialog } from "@/components/admin/product-dialog";
 import { ImportProductDialog } from "@/components/admin/import-product-dialog";
 import { DeleteAllProducts } from "@/components/admin/delete-all-products";
+import { BulkImportDialog } from "@/components/admin/bulk-import-dialog";
 import { adminClientAvailable, createAdminClient } from "@/lib/supabase/admin";
 import {
   refreshProduct,
@@ -19,6 +20,13 @@ import { formatPrice } from "@/lib/money";
 import { requireAdmin } from "@/lib/admin/dal";
 
 export const metadata: Metadata = { title: "Products" };
+
+/**
+ * A sync chunk fetches four partner pages and four images before it answers.
+ * The default timeout is not enough for that, and this applies to every Server
+ * Action reached from this page.
+ */
+export const maxDuration = 60;
 
 type Row = {
   id: string;
@@ -93,6 +101,7 @@ export default async function AdminProductsPage() {
 
         {connected ? (
           <div className="flex flex-wrap gap-2">
+            <BulkImportDialog />
             <ImportProductDialog />
             <ProductDialog
               categories={categories}
