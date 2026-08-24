@@ -28,7 +28,7 @@ function Tile({ product, large = false }: { product: Product; large?: boolean })
         </span>
       ) : null}
 
-      <div className={`bg-secondary/60 relative ${large ? "aspect-square" : "aspect-square"}`}>
+      <div className={`bg-secondary/60 relative ${large ? "aspect-4/3" : "aspect-square"}`}>
         <Image
           src={product.image}
           alt={product.name}
@@ -44,7 +44,7 @@ function Tile({ product, large = false }: { product: Product; large?: boolean })
         />
       </div>
 
-      <div className="flex flex-1 flex-col justify-between gap-2 p-4">
+      <div className="flex flex-col gap-2 p-4">
         <div>
           <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase">
             {product.brand}
@@ -56,7 +56,7 @@ function Tile({ product, large = false }: { product: Product; large?: boolean })
           </p>
         </div>
 
-        <p className="flex items-baseline gap-2">
+          <p className="mt-2 flex items-baseline gap-2">
           <span className={`font-semibold ${large ? "text-lg" : "text-sm"}`}>
             {formatPrice(product.price)}
           </span>
