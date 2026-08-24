@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { MenuIcon, SearchIcon } from "lucide-react";
+import { LayoutDashboardIcon, MenuIcon, SearchIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -102,6 +102,14 @@ export function SiteHeader() {
             >
               <Link href="/products">
                 <SearchIcon className="size-5" />
+              </Link>
+            </Button>
+            {/* Sits before the theme and basket icons. Shown to everyone —
+                /admin is guarded server-side, so the link reveals a locked
+                door rather than what is behind it. */}
+            <Button asChild variant="ghost" size="icon" aria-label="Back office">
+              <Link href="/admin">
+                <LayoutDashboardIcon className="size-5" />
               </Link>
             </Button>
             <ThemeToggle />
