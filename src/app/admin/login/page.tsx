@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowLeftIcon } from "lucide-react";
@@ -16,16 +17,15 @@ export default function AdminLoginPage() {
   return (
     <div className="grid min-h-dvh place-items-center px-4 py-16">
       <div className="w-full max-w-sm">
-        <div className="mb-8 flex items-center gap-2.5">
-          <span
-            aria-hidden
-            className="bg-foreground text-background font-display grid size-9 place-items-center rounded-xl text-sm font-extrabold tracking-tighter"
-          >
-            AH
-          </span>
-          <span className="font-display text-xl leading-none font-extrabold tracking-tight uppercase">
-            Abys<span className="text-primary">Hub</span>
-          </span>
+        <div className="mb-8">
+          <Image
+            src="/brand/abys-hub-logo.png"
+            alt="Abys Hub"
+            width={1400}
+            height={776}
+            priority
+            className="h-10 w-auto object-contain"
+          />
         </div>
 
         <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">

@@ -113,7 +113,7 @@ export default async function ProductPage({
             sizes="(min-width: 1024px) 50vw, 100vw"
             className="object-cover"
           />
-          <span className="bg-foreground text-background absolute top-4 left-4 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
+          <span className="bg-primary text-primary-foreground absolute top-4 left-4 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
             {product.brand}
           </span>
           {onSale && (

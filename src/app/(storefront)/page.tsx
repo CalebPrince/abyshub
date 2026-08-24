@@ -69,15 +69,15 @@ export default async function HomePage() {
       {/* ── Hero: split black/paper, oversized type, offset product ── */}
       <section className="border-foreground/12 border-b">
         <div className="mx-auto grid max-w-[1400px] lg:grid-cols-12">
-          <div className="bg-foreground text-background flex flex-col justify-center px-4 py-16 lg:col-span-7 lg:px-12 lg:py-24">
-            <p className="text-primary mb-6 text-[11px] font-semibold tracking-[0.24em] uppercase">
+          <div className="bg-primary text-primary-foreground flex flex-col justify-center px-4 py-16 lg:col-span-7 lg:px-12 lg:py-24">
+            <p className="text-primary-foreground/75 mb-6 text-[11px] font-semibold tracking-[0.24em] uppercase">
               {copy("hero_eyebrow", "Genuine Tupperware · and more")}
             </p>
 
             <h1 className="font-display text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.92] font-extrabold tracking-[-0.03em] uppercase">
               Buy it once.
               <br />
-              <span className="text-primary">Keep it</span> for
+              <span className="text-foreground">Keep it</span> for
               <br />
               years.
             </h1>
@@ -197,7 +197,7 @@ export default async function HomePage() {
             <Link
               key={category.slug}
               href={`/products?category=${category.slug}`}
-              className="group border-foreground/12 hover:bg-foreground hover:text-background relative flex min-h-56 flex-col justify-between rounded-xl border p-6 transition-colors"
+              className="group border-foreground/12 hover:bg-primary hover:text-primary-foreground relative flex min-h-56 flex-col justify-between rounded-xl border p-6 transition-colors"
             >
               <span className="text-muted-foreground group-hover:text-background/50 font-display text-3xl font-extrabold">
                 0{index + 1}
@@ -247,9 +247,9 @@ export default async function HomePage() {
       </section>
 
       {/* ── Three ways to order ── */}
-      <section className="bg-foreground text-background">
+      <section className="bg-primary text-primary-foreground">
         <div className="mx-auto max-w-[1400px] px-4 py-16 lg:px-8 lg:py-24">
-          <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
+          <p className="text-primary-foreground/75 text-[11px] font-semibold tracking-[0.24em] uppercase">
             03 — Ordering
           </p>
           <h2 className="font-display mt-3 max-w-2xl text-4xl font-extrabold tracking-tight uppercase sm:text-5xl">
@@ -266,7 +266,7 @@ export default async function HomePage() {
                 key={route.title}
                 className="border-background/20 flex flex-col gap-4 rounded-xl border p-7"
               >
-                <route.icon className="text-primary size-7" />
+                <route.icon className="text-primary-foreground size-7" />
                 <h3 className="font-display text-xl font-extrabold tracking-tight uppercase">
                   {route.title}
                 </h3>

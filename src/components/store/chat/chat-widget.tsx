@@ -107,8 +107,8 @@ export function ChatWidget({
         aria-controls="abyshub-chat-panel"
         aria-label={isOpen ? "Close chat" : `Chat with ${ASSISTANT_NAME}`}
         className={cn(
-          "bg-primary text-primary-foreground bg-linear-to-b from-white/20 to-black/15 shadow-primary/40 hover:bg-brand-red-deep focus-visible:ring-ring/60 focus-visible:ring-offset-background fixed right-4 bottom-4 z-50 flex size-14 cursor-pointer items-center justify-center rounded-full shadow-lg transition-all hover:shadow-xl active:translate-y-px focus-visible:ring-[3px] focus-visible:ring-offset-2 focus-visible:outline-none sm:right-6 sm:bottom-6",
-          isOpen && "bg-foreground text-background hover:bg-foreground/90"
+          "bg-primary text-primary-foreground bg-linear-to-b from-white/20 to-black/15 shadow-primary/40 hover:bg-brand-pink-deep focus-visible:ring-ring/60 focus-visible:ring-offset-background fixed right-4 bottom-4 z-50 flex size-14 cursor-pointer items-center justify-center rounded-full shadow-lg transition-all hover:shadow-xl active:translate-y-px focus-visible:ring-[3px] focus-visible:ring-offset-2 focus-visible:outline-none sm:right-6 sm:bottom-6",
+          isOpen && "bg-primary text-primary-foreground hover:bg-primary/90"
         )}
       >
         {isOpen ? (
@@ -125,7 +125,7 @@ export function ChatWidget({
           aria-label={`Chat with ${ASSISTANT_NAME}`}
           className="bg-background border-foreground/15 fixed inset-x-4 bottom-22 z-50 flex max-h-[min(34rem,calc(100dvh-8rem))] flex-col overflow-hidden rounded-2xl border shadow-2xl sm:inset-x-auto sm:right-6 sm:bottom-24 sm:w-96"
         >
-          <header className="bg-foreground text-background flex items-center gap-3 px-4 py-3">
+          <header className="bg-primary text-primary-foreground flex items-center gap-3 px-4 py-3">
             <span
               aria-hidden
               className="bg-primary font-display bg-linear-to-b from-white/20 to-black/15 grid size-9 shrink-0 place-items-center rounded-full text-sm font-extrabold shadow-sm"

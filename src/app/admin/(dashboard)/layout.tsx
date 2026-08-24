@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
@@ -51,16 +52,19 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
 
   return (
     <div className="flex min-h-dvh">
-      <aside className="bg-foreground text-background hidden w-60 shrink-0 flex-col p-5 lg:flex">
+      <aside className="bg-primary text-primary-foreground hidden w-60 shrink-0 flex-col p-5 lg:flex">
         <Link href="/admin" className="mb-8 flex items-center gap-2.5">
-          <span
+          {/* The wordmark, knocked to white so it reads on the pink panel. */}
+          <Image
+            src="/brand/abys-hub-mark.png"
+            alt=""
             aria-hidden
-            className="bg-background text-foreground font-display grid size-9 place-items-center rounded-xl text-sm font-extrabold tracking-tighter"
-          >
-            AH
-          </span>
+            width={512}
+            height={512}
+            className="size-9 shrink-0 object-contain brightness-0 invert"
+          />
           <span className="font-display text-lg leading-none font-extrabold tracking-tight uppercase">
-            Back<span className="text-primary">office</span>
+            Back<span className="text-primary-foreground/70">office</span>
           </span>
         </Link>
 
@@ -108,7 +112,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
       {/* Phones get the nav as a strip rather than a drawer — the admin is a
           desk tool, and a scrollable row beats a hamburger for six links. */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="bg-foreground text-background flex gap-1 overflow-x-auto px-3 py-2 lg:hidden">
+        <div className="bg-primary text-primary-foreground flex gap-1 overflow-x-auto px-3 py-2 lg:hidden">
           {nav.map((item) => (
             <Link
               key={item.href}

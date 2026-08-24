@@ -25,11 +25,11 @@ const legalLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="bg-foreground text-background mt-auto">
+    <footer className="bg-primary text-primary-foreground mt-auto">
       <div className="mx-auto max-w-[1400px] px-4 py-16 lg:px-8">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div className="space-y-4">
-            <Logo className="[&_span:first-child]:bg-background [&_span:first-child]:text-foreground text-background" />
+            <Logo tone="paper" />
             <p className="text-background/65 max-w-xs text-sm">
               Genuine Tupperware and everyday home goods, sold by people who use
               them. Order online, on WhatsApp, or ask us for a quote.
