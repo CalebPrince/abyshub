@@ -1,4 +1,3 @@
-import { getProductById } from "@/lib/products";
 import type { CartItem } from "@/lib/types";
 
 const STORAGE_KEY = "abyshub.cart.v1";
@@ -32,8 +31,9 @@ function parseStoredCart(raw: string | null): CartItem[] {
       if (typeof productId !== "string") return [];
       if (typeof quantity !== "number" || !Number.isFinite(quantity)) return [];
       if (quantity < 1) return [];
-      // Drop lines for products that are no longer in the catalog.
-      if (!getProductById(productId)) return [];
+      // Unknown products are not filtered here any more: the catalogue is no
+      // longer a module this store can import, and resolveLines already drops
+      // anything the shop cannot price.
       return [{ productId, quantity: Math.floor(quantity) }];
     });
   } catch {

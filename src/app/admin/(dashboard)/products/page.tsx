@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DownloadIcon, TriangleAlertIcon } from "lucide-react";
+import { DownloadIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,25 +27,10 @@ export default async function AdminProductsPage() {
         Products
       </h1>
       <p className="text-muted-foreground mt-3 text-sm">
-        Prices are in minor units — 95000 is GH₵950.00.
+        Prices are in minor units — 95000 is GH₵950.00. Saving a change
+        updates the shop straight away, including the amount charged at
+        checkout.
       </p>
-
-      {/* The important caveat, stated where it cannot be missed. */}
-      <div className="border-border bg-muted/40 mt-6 flex items-start gap-3 rounded-xl border border-dashed p-4">
-        <TriangleAlertIcon className="text-primary mt-0.5 size-5 shrink-0" />
-        <div className="text-sm">
-          <p className="font-semibold">The shop is not reading these rows yet</p>
-          <p className="text-muted-foreground mt-1">
-            The storefront and the checkout still price orders from the
-            catalogue in <code className="text-xs">lib/products.ts</code>. The
-            basket resolves prices in the browser, and the charge is calculated
-            from the same file on the server, so switching the source over is a
-            change to the payment path rather than to this screen. Until that is
-            done, an edit here is stored but does not change what a customer
-            sees or pays.
-          </p>
-        </div>
-      </div>
 
       {!connected ? (
         <div className="mt-8">

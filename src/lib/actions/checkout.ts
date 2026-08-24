@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 
-import { SITE_URL } from "@/lib/config";
 import {
   generateReference,
   initializeTransaction,
@@ -10,6 +9,8 @@ import {
 } from "@/lib/paystack";
 import { calculateTotals, resolveLines } from "@/lib/totals";
 import { getCustomer } from "@/lib/account/dal";
+import { getCatalogue } from "@/lib/shop/catalogue";
+import { getShopSettings } from "@/lib/shop/settings";
 import type { CartItem } from "@/lib/types";
 
 export type CheckoutState = { error: string | null };
@@ -80,7 +81,15 @@ export async function startPaystackCheckout(
   const cart = parseCart(formData.get("cart"));
   if (!cart.ok) return { error: "We could not read your basket. Try again." };
 
-  const lines = resolveLines(cart.items);
+  // Priced from the database, not from a source file: this is the number the
+  // customer is actually charged, so it has to come from the same place the
+  // shop quoted from.
+  const [{ products }, settings] = await Promise.all([
+    getCatalogue(),
+    getShopSettings(),
+  ]);
+
+  const lines = resolveLines(cart.items, products);
   if (lines.length === 0) {
     return { error: "Your basket is empty." };
   }
@@ -92,14 +101,17 @@ export async function startPaystackCheckout(
     };
   }
 
-  const totals = calculateTotals(lines);
+  const totals = calculateTotals(lines, {
+    freeDeliveryThreshold: settings.freeDeliveryThreshold,
+    deliveryFlatRate: settings.deliveryFlatRate,
+  });
   const reference = generateReference();
 
   const result = await initializeTransaction({
     email,
     amount: totals.total,
     reference,
-    callbackUrl: `${SITE_URL}/checkout/callback`,
+    callbackUrl: `${settings.siteUrl}/checkout/callback`,
     metadata: {
       customer_name: name,
       phone,

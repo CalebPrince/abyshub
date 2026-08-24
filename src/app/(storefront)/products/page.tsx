@@ -9,7 +9,8 @@ import {
   ProductFilters,
   type SortOption,
 } from "@/components/store/product-filters";
-import { getCategoryBySlug, products } from "@/lib/products";
+import { getCatalogue, categoryFrom } from "@/lib/shop/catalogue";
+import { getPageCopy } from "@/lib/shop/content";
 import { matchesQuery } from "@/lib/search";
 import type { Product } from "@/lib/types";
 
@@ -50,7 +51,13 @@ export default async function ProductsPage({
   const sortParam = typeof params.sort === "string" ? params.sort : "featured";
   const queryParam = typeof params.q === "string" ? params.q.trim() : "";
 
-  const category = categoryParam ? getCategoryBySlug(categoryParam) : undefined;
+  const [{ products, categories }, copy] = await Promise.all([
+    getCatalogue(),
+    getPageCopy("products"),
+  ]);
+  const category = categoryParam
+    ? categoryFrom(categories, categoryParam)
+    : undefined;
 
   let results = products;
   if (category) {
@@ -80,7 +87,10 @@ export default async function ProductsPage({
             ? category.description
             : brandParam
               ? `Everything we stock from ${brandParam}.`
-              : "Genuine Tupperware alongside our own home range. Fourteen things worth owning."}
+              : copy(
+                  "body",
+                  "Genuine Tupperware alongside our own home range. Fourteen things worth owning."
+                )}
         </p>
       </header>
 

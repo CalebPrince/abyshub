@@ -8,6 +8,8 @@ import { SiteHeader } from "@/components/store/site-header";
 import { SplashScreen } from "@/components/store/splash-screen";
 import { SplashScript } from "@/components/store/splash-script";
 import { WelcomeModal } from "@/components/store/welcome-modal";
+import { getCatalogue } from "@/lib/shop/catalogue";
+import { getShopSettings } from "@/lib/shop/settings";
 
 /**
  * Everything that makes a page feel like the shop: header, basket, chat, the
@@ -18,9 +20,26 @@ import { WelcomeModal } from "@/components/store/welcome-modal";
  * (storefront) layout so `not-found.tsx` — which Next renders against the root
  * layout, outside any route group — can still be wrapped in the shop.
  */
-export function StorefrontShell({ children }: { children: React.ReactNode }) {
+export async function StorefrontShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Read once here and handed down, so every price on the page and every price
+  // in the basket comes from the same snapshot.
+  const [{ products }, settings] = await Promise.all([
+    getCatalogue(),
+    getShopSettings(),
+  ]);
+
   return (
-    <CartProvider>
+    <CartProvider
+      catalogue={products}
+      rates={{
+        freeDeliveryThreshold: settings.freeDeliveryThreshold,
+        deliveryFlatRate: settings.deliveryFlatRate,
+      }}
+    >
       {/* First, so the flag lands on <html> before the splash is parsed. */}
       <SplashScript />
       <SplashScreen />

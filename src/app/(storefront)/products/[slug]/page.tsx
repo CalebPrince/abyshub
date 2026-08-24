@@ -21,23 +21,26 @@ import { ProductCard } from "@/components/store/product-card";
 import { ProductPurchasePanel } from "@/components/store/product-purchase-panel";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
 import {
-  getCategoryBySlug,
-  getProductBySlug,
-  getRelatedProducts,
-  products,
 } from "@/lib/products";
+import {
+  getCatalogue,
+  getProducts,
+  categoryFrom,
+  relatedFrom,
+} from "@/lib/shop/catalogue";
 import { formatPrice } from "@/lib/money";
 import { FREE_DELIVERY_THRESHOLD, STORE_NAME } from "@/lib/config";
 
-export function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
+export async function generateStaticParams() {
+  // Built from the live catalogue, so a product added in the admin gets a page.
+  return (await getProducts()).map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/products/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = (await getProducts()).find((item) => item.slug === slug);
 
   if (!product) return { title: "Product not found" };
 
@@ -56,12 +59,13 @@ export default async function ProductPage({
   params,
 }: PageProps<"/products/[slug]">) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const { products, categories } = await getCatalogue();
+  const product = products.find((item) => item.slug === slug);
 
   if (!product) notFound();
 
-  const category = getCategoryBySlug(product.category);
-  const related = getRelatedProducts(product);
+  const category = categoryFrom(categories, product.category);
+  const related = relatedFrom(products, product);
   const onSale =
     product.compareAtPrice !== undefined &&
     product.compareAtPrice > product.price;
