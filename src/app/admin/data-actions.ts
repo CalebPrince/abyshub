@@ -176,35 +176,6 @@ export async function savePageContent(
 // Products
 // ---------------------------------------------------------------------------
 
-export async function updateProduct(formData: FormData): Promise<void> {
-  await requireAdmin();
-
-  const id = text(formData, "id");
-  if (!id) return;
-
-  const price = Number(text(formData, "price"));
-  const compare = text(formData, "compare_at_price");
-
-  const patch: Record<string, unknown> = {
-    in_stock: formData.get("in_stock") === "on",
-    published: formData.get("published") === "on",
-    featured: formData.get("featured") === "on",
-  };
-
-  // Prices are minor units and must stay whole. A blank or nonsense box leaves
-  // the stored price alone rather than zeroing it.
-  if (Number.isFinite(price) && price >= 0) patch.price = Math.round(price);
-  patch.compare_at_price = compare && Number.isFinite(Number(compare))
-    ? Math.round(Number(compare))
-    : null;
-
-  const supabase = createAdminClient();
-  await supabase.from("products").update(patch).eq("id", id);
-
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
-  revalidatePath("/admin/products");
-}
-
 /**
  * Copies the catalogue that currently lives in lib/products.ts into the
  * database, so the shop can start reading rows instead of a source file.
@@ -498,6 +469,129 @@ export async function unpublishProduct(formData: FormData): Promise<void> {
 
   const supabase = createAdminClient();
   await supabase.from("products").update({ published: false }).eq("id", id);
+
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  revalidatePath("/admin/products");
+}
+
+/**
+ * Full edit, including replacing the photograph.
+ *
+ * Owns every field the create form owns, so both dialogs share one set of
+ * inputs and cannot drift apart.
+ */
+export async function editProduct(
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdmin();
+  if (!adminClientAvailable()) {
+    return { error: "The database is not connected.", notice: null };
+  }
+
+  const id = text(formData, "id");
+  if (!id) return { error: "That product could not be found.", notice: null };
+
+  const name = text(formData, "name");
+  const brand = text(formData, "brand");
+  const category = text(formData, "category");
+  const price = Number(text(formData, "price"));
+
+  if (!name) return { error: "Give the product a name.", notice: null };
+  if (!brand) return { error: "Give the product a brand.", notice: null };
+  if (!category) return { error: "Pick a category.", notice: null };
+  if (!Number.isFinite(price) || price <= 0) {
+    return { error: "Enter a price in minor units, e.g. 95000.", notice: null };
+  }
+
+  const supabase = createAdminClient();
+  const compare = text(formData, "compare_at_price");
+
+  const patch: Record<string, unknown> = {
+    name,
+    brand,
+    category,
+    tagline: text(formData, "tagline") || null,
+    description: text(formData, "description") || null,
+    price: Math.round(price),
+    compare_at_price:
+      compare && Number.isFinite(Number(compare)) ? Math.round(Number(compare)) : null,
+    in_stock: formData.get("in_stock") === "on",
+    featured: formData.get("featured") === "on",
+    published: formData.get("published") === "on",
+    highlights: text(formData, "highlights")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean),
+  };
+
+  // The slug is left alone on purpose: it is the product's web address, and
+  // changing it silently breaks every link and bookmark pointing at it.
+
+  const file = formData.get("image");
+  if (file instanceof File && file.size > 0) {
+    if (!IMAGE_TYPES.includes(file.type)) {
+      return { error: "Images must be JPEG, PNG, WebP or SVG.", notice: null };
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      return { error: "That image is over 4MB.", notice: null };
+    }
+
+    const extension = file.name.includes(".") ? file.name.split(".").pop() : "png";
+    const path = `${id}-${Date.now()}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(path, file, { contentType: file.type, upsert: false });
+
+    if (uploadError) {
+      return { error: `The image did not upload: ${uploadError.message}`, notice: null };
+    }
+
+    const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
+    patch.image = pub.publicUrl;
+  }
+
+  const { error } = await supabase.from("products").update(patch).eq("id", id);
+  if (error) return { error: error.message, notice: null };
+
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  revalidatePath("/admin/products");
+  return { error: null, notice: "Saved." };
+}
+
+/**
+ * Deletes a product outright.
+ *
+ * Safe for order history: order_items snapshot the name and price they were
+ * bought at and hold no foreign key to products, so past orders still read
+ * correctly afterwards. What does go for good is the description, the
+ * highlights and the photograph — which is why the dialog asks twice, and why
+ * Unlist sits next to it for the case that is nearly always meant instead.
+ */
+export async function deleteProduct(formData: FormData): Promise<void> {
+  await requireAdmin();
+
+  const id = text(formData, "id");
+  if (!id) return;
+
+  const supabase = createAdminClient();
+
+  // Take the file with it, or the bucket accumulates images for products that
+  // no longer exist.
+  const { data: row } = await supabase
+    .from("products")
+    .select("image")
+    .eq("id", id)
+    .maybeSingle();
+
+  await supabase.from("products").delete().eq("id", id);
+
+  const image = row?.image as string | undefined;
+  if (image?.includes("/product-images/")) {
+    const path = image.split("/product-images/").pop();
+    if (path) await supabase.storage.from("product-images").remove([path]);
+  }
 
   revalidateTag(CATALOGUE_TAG, { expire: 0 });
   revalidatePath("/admin/products");

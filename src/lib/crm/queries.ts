@@ -177,29 +177,3 @@ export async function listPageContent() {
     .order("key");
   return (data ?? []) as PageContentRow[];
 }
-
-export type AdminProductRow = {
-  id: string;
-  slug: string;
-  name: string;
-  brand: string;
-  price: number;
-  compare_at_price: number | null;
-  category: string;
-  in_stock: boolean;
-  featured: boolean;
-  published: boolean;
-};
-
-export async function listAdminProducts() {
-  if (!adminClientAvailable()) return [];
-  const supabase = createAdminClient();
-  const { data } = await supabase
-    .from("products")
-    .select(
-      "id, slug, name, brand, price, compare_at_price, category, in_stock, featured, published"
-    )
-    .order("sort_order")
-    .order("name");
-  return (data ?? []) as AdminProductRow[];
-}
