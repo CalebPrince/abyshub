@@ -1,6 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +14,8 @@ import { getCatalogue, categoryFrom, brandsFrom } from "@/lib/shop/catalogue";
 import { getPageCopy } from "@/lib/shop/content";
 import { matchesQuery } from "@/lib/search";
 import type { Product } from "@/lib/types";
+
+const PRODUCTS_PER_PAGE = 20;
 
 export const metadata: Metadata = {
   title: "Everything we stock",
@@ -71,6 +74,27 @@ export default async function ProductsPage({
   }
   results = sortProducts(results, sortParam as SortOption);
 
+  const requestedPage = Number(
+    typeof params.page === "string" ? params.page : params.page?.[0]
+  );
+  const pageCount = Math.max(1, Math.ceil(results.length / PRODUCTS_PER_PAGE));
+  const page = Number.isFinite(requestedPage) && requestedPage >= 1
+    ? Math.min(Math.floor(requestedPage), pageCount)
+    : 1;
+  const firstResult = (page - 1) * PRODUCTS_PER_PAGE;
+  const visibleResults = results.slice(firstResult, firstResult + PRODUCTS_PER_PAGE);
+
+  function pageHref(nextPage: number) {
+    const nextParams = new URLSearchParams();
+    if (categoryParam) nextParams.set("category", categoryParam);
+    if (brandParam) nextParams.set("brand", brandParam);
+    if (sortParam !== "featured") nextParams.set("sort", sortParam);
+    if (queryParam) nextParams.set("q", queryParam);
+    if (nextPage > 1) nextParams.set("page", String(nextPage));
+    const query = nextParams.toString();
+    return query ? `/products?${query}` : "/products";
+  }
+
   const heading = category ? category.name : brandParam ? brandParam : "Everything";
 
   return (
@@ -120,11 +144,67 @@ export default async function ProductsPage({
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {results.map((product) => (
+          {visibleResults.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
       )}
+
+      {pageCount > 1 ? (
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-muted-foreground text-xs">
+            Showing {firstResult + 1}–{Math.min(firstResult + PRODUCTS_PER_PAGE, results.length)} of {results.length}
+          </p>
+          <nav aria-label="Product pages" className="flex items-center gap-1">
+            <Button
+              asChild={page > 1}
+              size="sm"
+              variant="ghost"
+              disabled={page === 1}
+              aria-label="Previous page"
+            >
+              {page > 1 ? (
+                <Link href={pageHref(page - 1)}>
+                  <ChevronLeftIcon />
+                </Link>
+              ) : (
+                <span><ChevronLeftIcon /></span>
+              )}
+            </Button>
+            {Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => (
+              <Button
+                key={number}
+                asChild={number !== page}
+                size="sm"
+                variant={number === page ? "default" : "ghost"}
+                className="w-9 tabular-nums"
+                aria-current={number === page ? "page" : undefined}
+              >
+                {number === page ? (
+                  <span>{number}</span>
+                ) : (
+                  <Link href={pageHref(number)}>{number}</Link>
+                )}
+              </Button>
+            ))}
+            <Button
+              asChild={page < pageCount}
+              size="sm"
+              variant="ghost"
+              disabled={page === pageCount}
+              aria-label="Next page"
+            >
+              {page < pageCount ? (
+                <Link href={pageHref(page + 1)}>
+                  <ChevronRightIcon />
+                </Link>
+              ) : (
+                <span><ChevronRightIcon /></span>
+              )}
+            </Button>
+          </nav>
+        </div>
+      ) : null}
     </div>
   );
 }
