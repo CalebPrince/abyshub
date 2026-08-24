@@ -16,11 +16,11 @@ import { SUPABASE_URL } from "@/lib/supabase/config";
  * a Client Component's props.
  */
 export function createAdminClient() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const key = secretKey();
 
   if (!SUPABASE_URL || !key) {
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_URL must be set for admin database access."
+      "The Supabase secret key (SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY) and NEXT_PUBLIC_SUPABASE_URL must be set for admin database access."
     );
   }
 
@@ -34,7 +34,20 @@ export function createAdminClient() {
   });
 }
 
+/**
+ * Supabase calls this the "secret" key now; it used to be "service_role".
+ * Accept either variable name so the value works whichever wording the
+ * dashboard was using when it was copied.
+ */
+function secretKey() {
+  return (
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+    process.env.SUPABASE_SECRET_KEY?.trim() ||
+    ""
+  );
+}
+
 /** Whether service-role access is configured, for callers that must degrade. */
 export function adminClientAvailable() {
-  return Boolean(SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+  return Boolean(SUPABASE_URL && secretKey());
 }
