@@ -54,7 +54,10 @@ export default async function HomePage() {
   return (
     <>
       {/* ── Hero: split black/paper, oversized type, offset product ── */}
-      <section className="border-foreground/12 border-b">
+      {/* A wash of the brand pink across the whole hero, well under the
+          threshold where it reads as a coloured panel — the page should feel
+          warmer here without anyone being able to say why. */}
+      <section className="border-foreground/12 from-secondary/70 border-b bg-gradient-to-br via-white to-white">
         <div className="mx-auto grid max-w-[1400px] lg:grid-cols-12">
           {/* Words on the left, an album of six on the right. One picture
               could only show one half of what the shop sells; six show both
@@ -194,7 +197,7 @@ export default async function HomePage() {
                 <p className="text-muted-foreground group-hover:text-background/70 mt-2 text-sm">
                   {category.description}
                 </p>
-                <span className="text-primary mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.14em] uppercase">
+                <span className="text-primary group-hover:text-primary-foreground mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.14em] uppercase">
                   Browse <ArrowRightIcon className="size-3.5" />
                 </span>
               </div>

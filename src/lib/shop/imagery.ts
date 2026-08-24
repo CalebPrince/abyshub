@@ -1,6 +1,10 @@
 /**
  * Lifestyle photography, mapped to the shelf it belongs to.
  *
+ * Every shelf has its own frame, and none of them appear in the hero album:
+ * a picture used twice on one page stops being photography and starts
+ * looking like a placeholder.
+ *
  * These are scene shots — a room, a person, a moment. Nothing here is a
  * product listing, because a generated picture cannot show a real product
  * honestly: asked for a specific set it invents a plausible one, and a
@@ -8,20 +12,20 @@
  * product on the site uses the supplier's own photograph instead.
  */
 const BY_CATEGORY: Record<string, string> = {
-  "food-storage": "/lifestyle/kitchen-hero.webp",
-  "kitchen-prep": "/lifestyle/serveware.webp",
-  "on-the-go": "/lifestyle/on-the-go.webp",
-  serveware: "/lifestyle/serveware.webp",
-  "home-care": "/lifestyle/pantry-portrait.webp",
-  skincare: "/lifestyle/skincare.webp",
-  "bath-body": "/lifestyle/skincare.webp",
-  makeup: "/lifestyle/makeup.webp",
-  fragrance: "/lifestyle/makeup.webp",
-  hair: "/lifestyle/skincare.webp",
-  wellness: "/lifestyle/pantry-portrait.webp",
+  "food-storage": "/categories/food-storage.webp",
+  "kitchen-prep": "/categories/kitchen-prep.webp",
+  "on-the-go": "/categories/on-the-go.webp",
+  serveware: "/categories/serveware.webp",
+  "home-care": "/categories/home-care.webp",
+  skincare: "/categories/skincare.webp",
+  "bath-body": "/categories/bath-body.webp",
+  makeup: "/categories/makeup.webp",
+  fragrance: "/categories/fragrance.webp",
+  hair: "/categories/hair.webp",
+  wellness: "/categories/wellness.webp",
 };
 
-const FALLBACK = "/lifestyle/kitchen-hero.webp";
+const FALLBACK = "/categories/food-storage.webp";
 
 export function categoryImage(slug: string) {
   return BY_CATEGORY[slug] ?? FALLBACK;
