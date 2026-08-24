@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { PlusIcon } from "lucide-react";
 
 import { SetupNotice } from "@/components/admin/setup-notice";
 import { adminClientAvailable } from "@/lib/supabase/admin";
@@ -19,6 +21,12 @@ const paymentTone: Record<string, string> = {
   refunded: "bg-muted text-muted-foreground",
 };
 
+const channelTone: Record<string, string> = {
+  card: "bg-muted text-muted-foreground",
+  whatsapp: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+  manual: "bg-muted text-muted-foreground",
+};
+
 function Pill({ value, tone }: { value: string; tone?: string }) {
   return (
     <span
@@ -37,16 +45,27 @@ export default async function AdminOrdersPage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
-        Back office
-      </p>
-      <h1 className="font-display mt-2 text-3xl leading-none font-extrabold tracking-tight uppercase lg:text-4xl">
-        Orders
-      </h1>
-      <p className="text-muted-foreground mt-3 text-sm">
-        Written by the Paystack webhook when a charge settles — not when the
-        customer returns to the site, so a closed tab still leaves a record.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
+            Back office
+          </p>
+          <h1 className="font-display mt-2 text-3xl leading-none font-extrabold tracking-tight uppercase lg:text-4xl">
+            Orders
+          </h1>
+          <p className="text-muted-foreground mt-3 max-w-xl text-sm">
+            Card orders are written by the Paystack webhook when a charge
+            settles — not when the customer returns to the site, so a closed
+            tab still leaves a record. WhatsApp orders are recorded the
+            moment staff build them, as pending until paid.
+          </p>
+        </div>
+        <Button asChild size="sm">
+          <Link href="/admin/orders/new">
+            <PlusIcon /> New WhatsApp order
+          </Link>
+        </Button>
+      </div>
 
       {!connected ? (
         <div className="mt-8">
@@ -70,6 +89,9 @@ export default async function AdminOrdersPage() {
                 Payment
               </th>
               <th className="p-3 text-[11px] font-semibold tracking-[0.14em] uppercase">
+                Channel
+              </th>
+              <th className="p-3 text-[11px] font-semibold tracking-[0.14em] uppercase">
                 Fulfilment
               </th>
               <th className="p-3 text-right text-[11px] font-semibold tracking-[0.14em] uppercase">
@@ -80,7 +102,7 @@ export default async function AdminOrdersPage() {
           <tbody className="divide-border divide-y">
             {orders.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-muted-foreground p-6 text-center">
+                <td colSpan={6} className="text-muted-foreground p-6 text-center">
                   No orders yet.
                 </td>
               </tr>
@@ -97,6 +119,9 @@ export default async function AdminOrdersPage() {
                       value={order.payment_status}
                       tone={paymentTone[order.payment_status]}
                     />
+                  </td>
+                  <td className="p-3">
+                    <Pill value={order.channel} tone={channelTone[order.channel]} />
                   </td>
                   <td className="p-3">
                     {/* A native select rather than a styled dropdown: it needs
