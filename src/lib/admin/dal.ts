@@ -64,11 +64,33 @@ export const getAdminUser = cache(async (): Promise<AdminUser | null> => {
 });
 
 /**
+ * Whether the request carries *any* valid Supabase session, staff or not.
+ *
+ * Needed to tell two different failures apart: a stranger, who should be sent
+ * to the login, and someone signed in who simply is not staff — a customer,
+ * once customer accounts exist. Sending the latter to the login produces an
+ * infinite bounce, because proxy.ts redirects signed-in users off it.
+ */
+const hasSession = cache(async () => {
+  if (!supabaseEnabled) return false;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return Boolean(user);
+});
+
+/**
  * Same, but for pages and actions that cannot continue without staff. Returns
  * the user or never returns at all.
  */
 export async function requireAdmin(): Promise<AdminUser> {
   const user = await getAdminUser();
-  if (!user) redirect("/admin/login");
-  return user;
+  if (user) return user;
+
+  // Signed in, but not staff. The login would only throw them back here, so
+  // put them somewhere that makes sense instead: the shop.
+  if (await hasSession()) redirect("/?admin=denied");
+
+  redirect("/admin/login");
 }
