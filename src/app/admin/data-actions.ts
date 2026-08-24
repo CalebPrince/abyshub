@@ -826,3 +826,69 @@ export async function refreshProduct(formData: FormData): Promise<void> {
   revalidateTag(CATALOGUE_TAG, { expire: 0 });
   revalidatePath("/admin/products");
 }
+
+/**
+ * Empties the catalogue.
+ *
+ * Owner only, and it asks for the phrase to be typed rather than clicked: a
+ * single button that wipes every product is one misclick from a shop with
+ * nothing in it, and there is no undo.
+ *
+ * Order history survives. order_items snapshot the name and price they were
+ * bought at and hold no foreign key to products, so past orders still read
+ * correctly against an empty catalogue — which is exactly why that was worth
+ * doing when the schema was written.
+ */
+export async function deleteAllProducts(
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const me = await requireOwner();
+  if (!me) {
+    return { error: "Only an owner can empty the catalogue.", notice: null };
+  }
+  if (!adminClientAvailable()) {
+    return { error: "The database is not connected.", notice: null };
+  }
+
+  if (text(formData, "confirm") !== "DELETE ALL") {
+    return { error: 'Type DELETE ALL exactly to confirm.', notice: null };
+  }
+
+  const supabase = createAdminClient();
+
+  const { data: rows, error: readError } = await supabase
+    .from("products")
+    .select("id, image");
+
+  if (readError) return { error: readError.message, notice: null };
+  if (!rows || rows.length === 0) {
+    return { error: null, notice: "The catalogue was already empty." };
+  }
+
+  // Take the uploaded pictures with them, or the bucket keeps paying for
+  // images of products that no longer exist.
+  const paths = rows
+    .map((row) => (row.image as string | null) ?? "")
+    .filter((url) => url.includes("/product-images/"))
+    .map((url) => url.split("/product-images/").pop())
+    .filter((path): path is string => Boolean(path));
+
+  if (paths.length > 0) {
+    await supabase.storage.from("product-images").remove(paths);
+  }
+
+  // Not .delete() alone: PostgREST refuses an unfiltered delete, which is a
+  // guard worth keeping. `neq` on a column no id can be matches everything
+  // while still being an explicit filter.
+  const { error } = await supabase.from("products").delete().neq("id", "");
+  if (error) return { error: error.message, notice: null };
+
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  revalidatePath("/admin/products");
+
+  return {
+    error: null,
+    notice: `${rows.length} product${rows.length === 1 ? "" : "s"} deleted, along with ${paths.length} uploaded image${paths.length === 1 ? "" : "s"}. Past orders are unaffected.`,
+  };
+}

@@ -6,16 +6,22 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SearchIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-import { categories } from "@/lib/products";
 import { cn } from "@/lib/utils";
+import type { Category } from "@/lib/types";
 
-const navLinks = [
-  { href: "/products", label: "Everything" },
-  ...categories.map((category) => ({
-    href: `/products?category=${category.slug}`,
-    label: category.name,
-  })),
-];
+/**
+ * Built from the shelves passed in rather than a hardcoded list, so a category
+ * added in the admin reaches the header without a deploy.
+ */
+function buildNav(categories: Category[]) {
+  return [
+    { href: "/products", label: "Everything" },
+    ...categories.map((category) => ({
+      href: `/products?category=${category.slug}`,
+      label: category.name,
+    })),
+  ];
+}
 
 /**
  * Everything in the header that reads the URL lives here.
@@ -26,12 +32,15 @@ const navLinks = [
  * these pieces separate lets the cart button hydrate with the rest of the page.
  */
 export function HeaderNav({
+  categories,
   variant,
   onNavigate,
 }: {
+  categories: Category[];
   variant: "desktop" | "mobile";
   onNavigate?: () => void;
 }) {
+  const navLinks = buildNav(categories);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeCategory = searchParams.get("category");

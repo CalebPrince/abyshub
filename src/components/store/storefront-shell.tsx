@@ -27,7 +27,7 @@ export async function StorefrontShell({
 }) {
   // Read once here and handed down, so every price on the page and every price
   // in the basket comes from the same snapshot.
-  const [{ products }, settings] = await Promise.all([
+  const [{ products, categories }, settings] = await Promise.all([
     getCatalogue(),
     getShopSettings(),
   ]);
@@ -43,7 +43,7 @@ export async function StorefrontShell({
       {/* First, so the flag lands on <html> before the splash is parsed. */}
       <SplashScript />
       <SplashScreen />
-      <SiteHeader />
+      <SiteHeader categories={categories} />
       <main className="flex-1">{children}</main>
       <SiteFooter />
       <CartSheet />

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SetupNotice } from "@/components/admin/setup-notice";
 import { ProductDialog } from "@/components/admin/product-dialog";
 import { ImportProductDialog } from "@/components/admin/import-product-dialog";
+import { DeleteAllProducts } from "@/components/admin/delete-all-products";
 import { adminClientAvailable, createAdminClient } from "@/lib/supabase/admin";
 import {
   refreshProduct,
@@ -69,7 +70,7 @@ function Flag({ on, label }: { on: boolean; label: string }) {
 }
 
 export default async function AdminProductsPage() {
-  await requireAdmin();
+  const me = await requireAdmin();
 
   const connected = adminClientAvailable();
   const [rows, { categories }] = await Promise.all([listRows(), getCatalogue()]);
@@ -233,15 +234,23 @@ export default async function AdminProductsPage() {
             </table>
           </div>
 
-          <form action={seedCatalogue} className="mt-4">
-            <Button type="submit" variant="ghost" size="sm">
-              <DownloadIcon /> Re-import from code
-            </Button>
-            <span className="text-muted-foreground ml-2 text-xs">
-              Overwrites every row with the values in the code, including any
-              price edited here.
-            </span>
-          </form>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <form action={seedCatalogue}>
+              <Button type="submit" variant="ghost" size="sm">
+                <DownloadIcon /> Re-import from code
+              </Button>
+              <span className="text-muted-foreground ml-2 text-xs">
+                Overwrites every row with the values in the code, including any
+                price edited here.
+              </span>
+            </form>
+
+            {/* Owners only. Staff can edit and unlist; emptying the shop is a
+                different order of decision. */}
+            {me.role === "owner" ? (
+              <DeleteAllProducts count={rows.length} />
+            ) : null}
+          </div>
         </>
       ) : null}
     </div>

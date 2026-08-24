@@ -16,6 +16,7 @@ import { AccountMenu } from "@/components/store/account-menu";
 import { CartButton } from "@/components/store/cart-button";
 import { HeaderNav, HeaderSearch } from "@/components/store/header-nav";
 import { Logo } from "@/components/store/logo";
+import type { Category } from "@/lib/types";
 import { ThemeToggle } from "@/components/store/theme-toggle";
 
 const ticker = [
@@ -25,7 +26,7 @@ const ticker = [
   "Pay by card, WhatsApp or on delivery",
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ categories }: { categories: Category[] }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const closeMenu = React.useCallback(() => setMobileOpen(false), []);
 
@@ -78,7 +79,7 @@ export function SiteHeader() {
                 <HeaderSearch variant="mobile" onSubmitted={closeMenu} />
               </React.Suspense>
               <React.Suspense fallback={null}>
-                <HeaderNav variant="mobile" onNavigate={closeMenu} />
+                <HeaderNav categories={categories} variant="mobile" onNavigate={closeMenu} />
               </React.Suspense>
             </SheetContent>
           </Sheet>
@@ -86,7 +87,7 @@ export function SiteHeader() {
           <Logo />
 
           <React.Suspense fallback={<div className="hidden lg:block" />}>
-            <HeaderNav variant="desktop" />
+            <HeaderNav categories={categories} variant="desktop" />
           </React.Suspense>
 
           <div className="ml-auto flex items-center gap-0.5">

@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { brands, categories } from "@/lib/products";
+import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const sortOptions = [
@@ -26,7 +26,16 @@ export const sortOptions = [
 
 export type SortOption = (typeof sortOptions)[number]["value"];
 
-export function ProductFilters({ resultCount }: { resultCount: number }) {
+export function ProductFilters({
+  resultCount,
+  categories,
+  brands,
+}: {
+  resultCount: number;
+  /** Passed in rather than imported, so a shelf added in the admin is filterable. */
+  categories: Category[];
+  brands: string[];
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
