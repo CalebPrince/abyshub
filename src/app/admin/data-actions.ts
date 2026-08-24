@@ -1035,7 +1035,7 @@ export async function importChunk(
       const found = await readProductPage(url);
       if (!found.name) {
         result.failed++;
-        result.problems.push(url.split("/").pop() ?? url);
+        result.problems.push(`${url.split("/").pop() ?? url} — no product name`);
         continue;
       }
 
@@ -1125,7 +1125,7 @@ export async function importChunk(
       const slug = slugify(found.name);
       if (!slug) {
         result.failed++;
-        result.problems.push(found.name);
+        result.problems.push(`${found.name} — invalid product name`);
         continue;
       }
 
@@ -1168,13 +1168,14 @@ export async function importChunk(
 
       if (error) {
         result.failed++;
-        result.problems.push(found.name);
+        result.problems.push(`${found.name} — ${error.message}`);
       } else {
         result.imported++;
       }
-    } catch {
+    } catch (error) {
       result.failed++;
-      result.problems.push(url.split("/").pop() ?? url);
+      const reason = error instanceof Error ? error.message : "unknown error";
+      result.problems.push(`${url.split("/").pop() ?? url} — ${reason}`);
     }
   }
 

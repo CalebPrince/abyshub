@@ -73,7 +73,14 @@ function jsonLdBlocks(html: string): Json[] {
     try {
       const parsed: unknown = JSON.parse(match[1].trim());
       for (const entry of Array.isArray(parsed) ? parsed : [parsed]) {
-        if (entry && typeof entry === "object") found.push(entry as Json);
+        if (!entry || typeof entry !== "object") continue;
+        const object = entry as Json;
+        found.push(object);
+        if (Array.isArray(object["@graph"])) {
+          for (const node of object["@graph"]) {
+            if (node && typeof node === "object") found.push(node as Json);
+          }
+        }
       }
     } catch {
       // One malformed block should not lose the others.
