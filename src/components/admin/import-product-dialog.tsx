@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { importProduct, type ActionState } from "@/app/admin/data-actions";
+import { SUPPLIERS } from "@/lib/suppliers/registry";
 
 export function ImportProductDialog() {
   const [open, setOpen] = React.useState(false);
@@ -41,8 +42,9 @@ export function ImportProductDialog() {
         </DialogTitle>
         <DialogDescription className="text-muted-foreground text-sm">
           Reads the name, description, photograph and specification from a
-          Tupperware product page. The picture is copied into your own storage
-          rather than linked, so it cannot vanish later.
+          partner product page. The picture is copied into your own storage
+          rather than linked, so it cannot vanish later. Importing a product
+          already on the shelf refreshes it instead of adding a second copy.
         </DialogDescription>
 
         <form action={formAction} className="mt-5 space-y-4">
@@ -53,11 +55,12 @@ export function ImportProductDialog() {
               name="url"
               type="url"
               required
-              placeholder="https://www.tupperware.com/products/…"
+              placeholder="https://…"
               className="h-10"
             />
             <p className="text-muted-foreground text-xs">
-              A single product page, not a category listing.
+              A single product page, not a category listing. Partners:{" "}
+              {SUPPLIERS.map((s) => s.label).join(", ")}.
             </p>
           </div>
 
@@ -77,7 +80,7 @@ export function ImportProductDialog() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="ip-rate">…or a USD rate</Label>
+              <Label htmlFor="ip-rate">…or a rate</Label>
               <Input
                 id="ip-rate"
                 name="rate"
@@ -86,16 +89,18 @@ export function ImportProductDialog() {
                 className="h-10"
               />
               <p className="text-muted-foreground text-xs">
-                Cedis per dollar, to work from their list price.
+                Cedis per unit of their currency, to work from their list
+                price.
               </p>
             </div>
           </div>
 
           <div className="border-border bg-muted/40 rounded-lg border p-3">
             <p className="text-muted-foreground text-xs">
-              Imports arrive <strong>unlisted</strong>. Their prices are US
-              dollars at US retail, so nothing reaches the shop until you have
-              set a cedi price and listed it yourself.
+              New imports arrive <strong>unlisted</strong>. Partner prices are
+              in their own currency at their own retail, so nothing reaches the
+              shop until you have set a cedi price and listed it yourself. A
+              refresh never changes your price or your listing.
             </p>
           </div>
 

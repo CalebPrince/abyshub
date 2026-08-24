@@ -1,0 +1,202 @@
+import "server-only";
+
+import { allowedHosts, supplierForUrl } from "@/lib/suppliers/registry";
+import type { SupplierProduct } from "@/lib/suppliers/types";
+
+/**
+ * Reads a product from a partner's own structured data.
+ *
+ * Retail pages publish a schema.org Product block for search engines — a
+ * documented, machine-readable description of the product — so this reads that
+ * rather than picking apart markup. A redesign of their page will not silently
+ * break the import, and the same code serves every partner: so far one
+ * publishes a ProductGroup with variants and another a plain Product, and both
+ * fall out of the same walk.
+ */
+
+const FETCH_TIMEOUT_MS = 20_000;
+const MAX_HTML_BYTES = 6 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+/**
+ * Guards against SSRF. Without this the import action would fetch any URL an
+ * admin pasted, including cloud metadata endpoints and anything else on the
+ * private network the server can reach and the internet cannot.
+ *
+ * The allowlist is the registry, so adding a partner opens exactly their
+ * hosts and nothing else.
+ */
+export function assertAllowedUrl(raw: string): URL {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error("That is not a valid web address.");
+  }
+
+  if (url.protocol !== "https:") {
+    throw new Error("Only https addresses can be imported.");
+  }
+  if (!allowedHosts().has(url.hostname.toLowerCase())) {
+    throw new Error(`${url.hostname} is not one of the partner sites.`);
+  }
+  return url;
+}
+
+async function fetchText(url: URL) {
+  const response = await fetch(url, {
+    headers: {
+      "user-agent": "AbysHubCatalogueImporter/1.0 (authorised reseller)",
+      accept: "text/html",
+    },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    cache: "no-store",
+  });
+
+  if (!response.ok) throw new Error(`That page returned ${response.status}.`);
+  // Redirects are followed, and a redirect can leave the allowlist.
+  assertAllowedUrl(response.url);
+
+  const text = await response.text();
+  if (text.length > MAX_HTML_BYTES) throw new Error("That page is too large to read.");
+  return text;
+}
+
+type Json = Record<string, unknown>;
+
+function jsonLdBlocks(html: string): Json[] {
+  const found: Json[] = [];
+  const pattern =
+    /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+
+  for (const match of html.matchAll(pattern)) {
+    try {
+      const parsed: unknown = JSON.parse(match[1].trim());
+      for (const entry of Array.isArray(parsed) ? parsed : [parsed]) {
+        if (entry && typeof entry === "object") found.push(entry as Json);
+      }
+    } catch {
+      // One malformed block should not lose the others.
+    }
+  }
+  return found;
+}
+
+function isProduct(node: Json) {
+  const type = node["@type"];
+  return (Array.isArray(type) ? type : [type]).some(
+    (t) => typeof t === "string" && t.includes("Product")
+  );
+}
+
+function firstString(value: unknown): string | null {
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return String(value);
+  if (Array.isArray(value)) return firstString(value[0]);
+  if (value && typeof value === "object") {
+    const inner = (value as Json).url ?? (value as Json).name;
+    return typeof inner === "string" ? inner : null;
+  }
+  return null;
+}
+
+/** Copy arrives with entities and stray markup; store it as plain text. */
+function clean(value: unknown): string {
+  if (typeof value !== "string") return "";
+  return value
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Falls back to Open Graph tags when a page publishes no Product block. */
+function openGraph(html: string, property: string) {
+  const pattern = new RegExp(
+    `<meta[^>]+property=["']${property}["'][^>]+content=["']([^"']*)["']`,
+    "i"
+  );
+  return clean(html.match(pattern)?.[1] ?? "");
+}
+
+export async function readProductPage(rawUrl: string): Promise<SupplierProduct> {
+  const url = assertAllowedUrl(rawUrl);
+  const supplier = supplierForUrl(url);
+  if (!supplier) throw new Error("That address is not one of the partner sites.");
+
+  const html = await fetchText(url);
+  const product = jsonLdBlocks(html).find(isProduct);
+
+  if (!product) {
+    // Some partners render on the client and publish only OG tags. Better a
+    // name and a picture to work from than a refusal.
+    const name = openGraph(html, "og:title");
+    if (!name) {
+      throw new Error(
+        "No product details were published on that page. Check it is a product page rather than a category listing."
+      );
+    }
+    return {
+      supplierId: supplier.id,
+      name,
+      description: openGraph(html, "og:description"),
+      brand: supplier.defaultBrand,
+      sku: null,
+      sourceUrl: url.toString(),
+      supplierCategory: null,
+      imageUrl: openGraph(html, "og:image") || null,
+      listPrice: null,
+      listCurrency: supplier.currency,
+      variants: [],
+    };
+  }
+
+  const variants = Array.isArray(product.hasVariant) ? (product.hasVariant as Json[]) : [];
+  const lead = variants[0] ?? product;
+
+  const rawOffer = lead.offers ?? product.offers;
+  const offer = (Array.isArray(rawOffer) ? rawOffer[0] : rawOffer) as Json | undefined;
+  const price = offer?.price;
+
+  return {
+    supplierId: supplier.id,
+    name: clean(product.name) || clean(lead.name) || openGraph(html, "og:title"),
+    description: clean(product.description) || openGraph(html, "og:description"),
+    // A page's own brand beats the partner default: Oriflame pages name the
+    // sub-brand, which is what a customer recognises on a product card.
+    brand: clean(firstString(product.brand)) || supplier.defaultBrand,
+    sku: firstString(lead.sku ?? product.sku),
+    sourceUrl: url.toString(),
+    supplierCategory: clean(product.category) || null,
+    imageUrl: firstString(lead.image ?? product.image) ?? openGraph(html, "og:image") ?? null,
+    listPrice:
+      price !== undefined && Number.isFinite(Number(price)) ? Number(price) : null,
+    listCurrency: firstString(offer?.priceCurrency) ?? supplier.currency,
+    variants: variants.map((v) => clean(v.name)).filter(Boolean).slice(0, 12),
+  };
+}
+
+/** Downloads a partner image so the shop serves its own copy, not a hotlink. */
+export async function fetchImage(rawUrl: string) {
+  const url = new URL(rawUrl);
+  if (url.protocol !== "https:") throw new Error("Image address must be https.");
+
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error(`Image returned ${response.status}.`);
+
+  const type = response.headers.get("content-type") ?? "";
+  if (!type.startsWith("image/")) throw new Error("That address is not an image.");
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (buffer.byteLength > MAX_IMAGE_BYTES) throw new Error("That image is too large.");
+
+  return { buffer, contentType: type.split(";")[0] };
+}

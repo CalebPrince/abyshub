@@ -6,7 +6,12 @@ import { SetupNotice } from "@/components/admin/setup-notice";
 import { ProductDialog } from "@/components/admin/product-dialog";
 import { ImportProductDialog } from "@/components/admin/import-product-dialog";
 import { adminClientAvailable, createAdminClient } from "@/lib/supabase/admin";
-import { seedCatalogue, unpublishProduct } from "@/app/admin/data-actions";
+import {
+  refreshProduct,
+  seedCatalogue,
+  unpublishProduct,
+} from "@/app/admin/data-actions";
+import { supplierById } from "@/lib/suppliers/registry";
 import { getCatalogue } from "@/lib/shop/catalogue";
 import { products as fileCatalogue } from "@/lib/products";
 import { formatPrice } from "@/lib/money";
@@ -28,6 +33,8 @@ type Row = {
   in_stock: boolean;
   featured: boolean;
   published: boolean;
+  supplier: string | null;
+  source_url: string | null;
 };
 
 /**
@@ -40,7 +47,7 @@ async function listRows(): Promise<Row[]> {
   const { data } = await supabase
     .from("products")
     .select(
-      "id, slug, name, brand, category, price, compare_at_price, tagline, description, highlights, in_stock, featured, published"
+      "id, slug, name, brand, category, price, compare_at_price, tagline, description, highlights, in_stock, featured, published, supplier, source_url"
     )
     .order("sort_order")
     .order("name");
@@ -144,6 +151,15 @@ export default async function AdminProductsPage() {
                       <p className="font-medium">{product.name}</p>
                       <p className="text-muted-foreground text-xs">
                         {product.brand} · {product.category}
+                        {product.supplier ? (
+                          <>
+                            {" · "}
+                            <span className="text-primary font-medium">
+                              {supplierById(product.supplier)?.label ??
+                                product.supplier}
+                            </span>
+                          </>
+                        ) : null}
                       </p>
                     </td>
                     <td className="p-3 text-right whitespace-nowrap">
@@ -180,6 +196,20 @@ export default async function AdminProductsPage() {
                             </Button>
                           }
                         />
+                        {product.source_url ? (
+                          <form action={refreshProduct}>
+                            <input type="hidden" name="id" value={product.id} />
+                            <Button
+                              type="submit"
+                              size="sm"
+                              variant="ghost"
+                              className="text-muted-foreground"
+                              title="Re-pull the partner's words and picture. Your price and listing are untouched."
+                            >
+                              Refresh
+                            </Button>
+                          </form>
+                        ) : null}
                         {/* Unlist stays beside it: reversible, and nearly
                             always what is actually meant by "remove". */}
                         {product.published ? (
