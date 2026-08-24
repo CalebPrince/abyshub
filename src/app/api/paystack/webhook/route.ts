@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isValidWebhookSignature } from "@/lib/paystack";
+import { recordPaidOrder } from "@/lib/crm/orders";
 
 /**
  * Paystack posts here when a charge settles. This is the authoritative signal
@@ -26,13 +27,41 @@ export async function POST(request: Request) {
 
   switch (event.event) {
     case "charge.success": {
-      const reference = event.data?.reference;
-      const amount = event.data?.amount;
+      const data = (event.data ?? {}) as Record<string, never>;
+      const reference = String(data.reference ?? "");
+      const metadata = (data.metadata ?? {}) as Record<string, never>;
+      const customer = (data.customer ?? {}) as Record<string, never>;
 
-      // TODO: persist the paid order, then email the customer and the shop.
-      // Paystack retries until it gets a 200, so make this handler idempotent
-      // (look the reference up first) once a database is wired in.
-      console.info("[paystack] charge.success", { reference, amount });
+      if (!reference) {
+        // Nothing to key on, so nothing can be made idempotent. Take the 200
+        // anyway: retrying will not conjure a reference.
+        console.error("[paystack] charge.success with no reference");
+        break;
+      }
+
+      const result = await recordPaidOrder({
+        reference,
+        email: String(customer.email ?? metadata.email ?? ""),
+        amount: Number(data.amount ?? 0),
+        currency: data.currency ? String(data.currency) : undefined,
+        paidAt: data.paid_at ? String(data.paid_at) : null,
+        name: metadata.customer_name ? String(metadata.customer_name) : undefined,
+        phone: metadata.phone ? String(metadata.phone) : undefined,
+        address: metadata.address ? String(metadata.address) : undefined,
+        city: metadata.city ? String(metadata.city) : undefined,
+        subtotal: Number(metadata.subtotal ?? 0),
+        delivery: Number(metadata.delivery ?? 0),
+        items: Array.isArray(metadata.items) ? metadata.items : [],
+        rawPayload: event,
+      });
+
+      if (!result.ok) {
+        // 500 so Paystack retries — the charge is real and we have no record
+        // of it. recordPaidOrder is idempotent, so a retry is safe.
+        console.error("[paystack] could not record order", reference, result.error);
+        return NextResponse.json({ error: "Could not record order" }, { status: 500 });
+      }
+
       break;
     }
 
