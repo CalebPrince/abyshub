@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OrderSummary } from "@/components/store/order-summary";
 import { useCart } from "@/components/store/cart-provider";
-import { startPaystackCheckout } from "@/app/checkout/actions";
+import { startPaystackCheckout } from "@/lib/actions/checkout";
 import { whatsappEnabled } from "@/lib/config";
 import { formatPrice, formatPriceExact } from "@/lib/money";
 import { buildWhatsAppOrder } from "@/lib/whatsapp-message";

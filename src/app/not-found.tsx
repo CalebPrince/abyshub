@@ -1,9 +1,13 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { StorefrontShell } from "@/components/store/storefront-shell";
 
 export default function NotFound() {
+  // Next renders this against the root layout, outside the (storefront)
+  // group, so it has to bring the shop's chrome with it.
   return (
+    <StorefrontShell>
     <div className="mx-auto flex max-w-xl flex-col items-center px-4 py-28 text-center lg:py-36">
       <p className="font-display text-primary text-7xl font-extrabold">404</p>
       <h1 className="font-display mt-4 text-3xl font-extrabold tracking-tight uppercase">
@@ -21,5 +25,6 @@ export default function NotFound() {
         </Button>
       </div>
     </div>
+    </StorefrontShell>
   );
 }
