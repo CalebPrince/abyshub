@@ -21,6 +21,8 @@ export type ShopSettings = {
   whatsappEnabled: boolean;
   freeDeliveryThreshold: number;
   deliveryFlatRate: number;
+  /** Added to every converted partner price, as whole percent. */
+  priceMarkupPercent: number;
   legal: {
     entity: string;
     address: string;
@@ -78,6 +80,10 @@ export const getShopSettings = unstable_cache(
         FREE_DELIVERY_THRESHOLD
       ),
       deliveryFlatRate: pickNumber(stored, "delivery_flat_rate", DELIVERY_FLAT_RATE),
+      // No environment fallback and no invented default: zero means the shelf
+      // price is the bare converted figure, which is at least honest about
+      // carrying no margin until someone sets one.
+      priceMarkupPercent: pickNumber(stored, "price_markup_percent", 0),
       legal: {
         entity: pick(stored, "legal_entity", LEGAL.entity),
         address: pick(stored, "business_address", LEGAL.address),

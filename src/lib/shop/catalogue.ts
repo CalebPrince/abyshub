@@ -16,6 +16,7 @@ type ProductRow = {
   slug: string;
   name: string;
   brand: string;
+  product_line: string | null;
   tagline: string | null;
   description: string | null;
   price: number;
@@ -35,6 +36,7 @@ function toProduct(row: ProductRow): Product {
     slug: row.slug,
     name: row.name,
     brand: row.brand,
+    productLine: row.product_line ?? undefined,
     tagline: row.tagline ?? "",
     description: row.description ?? "",
     price: row.price,
@@ -73,7 +75,7 @@ export const getCatalogue = unstable_cache(
       supabase
         .from("products")
         .select(
-          "id, slug, name, brand, tagline, description, price, compare_at_price, category, image, rating, review_count, in_stock, featured, highlights"
+          "id, slug, name, brand, product_line, tagline, description, price, compare_at_price, category, image, rating, review_count, in_stock, featured, highlights"
         )
         .eq("published", true)
         .order("sort_order"),
