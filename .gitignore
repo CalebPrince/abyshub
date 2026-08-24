@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Remotion video project
+/videos/*/node_modules/
+/videos/*/proof-*.jpg
+/videos/*/*-proof-*.jpg
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
