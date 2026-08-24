@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MailIcon, MessageCircleIcon } from "lucide-react";
 
 import { Logo } from "@/components/store/logo";
-import { categories } from "@/lib/products";
+import { getCategories } from "@/lib/shop/catalogue";
 import {
   CONTACT_EMAIL,
   STORE_NAME,
@@ -23,7 +23,9 @@ const legalLinks = [
   { href: "/legal/cookies", label: "Cookies" },
 ];
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const categories = await getCategories();
+
   return (
     <footer className="bg-primary text-primary-foreground mt-auto">
       <div className="mx-auto max-w-[1400px] px-4 py-16 lg:px-8">

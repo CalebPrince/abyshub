@@ -9,7 +9,7 @@ import {
   ProductFilters,
   type SortOption,
 } from "@/components/store/product-filters";
-import { getCatalogue, categoryFrom } from "@/lib/shop/catalogue";
+import { getCatalogue, categoryFrom, brandsFrom } from "@/lib/shop/catalogue";
 import { getPageCopy } from "@/lib/shop/content";
 import { matchesQuery } from "@/lib/search";
 import type { Product } from "@/lib/types";
@@ -96,7 +96,11 @@ export default async function ProductsPage({
 
       <div className="py-8">
         <React.Suspense fallback={<Skeleton className="h-28 w-full" />}>
-          <ProductFilters resultCount={results.length} />
+          <ProductFilters
+            resultCount={results.length}
+            categories={categories}
+            brands={brandsFrom(products)}
+          />
         </React.Suspense>
       </div>
 
