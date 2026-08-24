@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { TriangleAlertIcon } from "lucide-react";
-
 import { SetupNotice } from "@/components/admin/setup-notice";
 import { ContentForm, type ContentBlock } from "@/components/admin/content-form";
 import { adminClientAvailable } from "@/lib/supabase/admin";
@@ -74,21 +72,10 @@ export default async function AdminContentPage() {
         Page content
       </h1>
       <p className="text-muted-foreground mt-3 text-sm">
-        Copy for the pages that carry a sales message.
+        Copy for the pages that carry a sales message. A blank box keeps the
+        wording already written into the page, so an empty field is an unedited
+        block rather than an empty one.
       </p>
-
-      <div className="border-border bg-muted/40 mt-6 flex items-start gap-3 rounded-xl border border-dashed p-4">
-        <TriangleAlertIcon className="text-primary mt-0.5 size-5 shrink-0" />
-        <div className="text-sm">
-          <p className="font-semibold">The pages are not reading this yet</p>
-          <p className="text-muted-foreground mt-1">
-            Copy is still written into the components. These blocks are stored
-            and editable; pointing each page at them is the next step. A blank
-            box means nothing has been saved for that block, not that the page
-            is empty.
-          </p>
-        </div>
-      </div>
 
       {!connected ? (
         <div className="mt-8">

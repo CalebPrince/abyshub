@@ -8,6 +8,7 @@ import {
   MessageSquareTextIcon,
   PackageIcon,
   SettingsIcon,
+  ShieldIcon,
   StoreIcon,
   UsersIcon,
 } from "lucide-react";
@@ -38,6 +39,7 @@ const nav = [
   { href: "/admin/customers", label: "Customers", icon: UsersIcon },
   { href: "/admin/products", label: "Products", icon: PackageIcon },
   { href: "/admin/content", label: "Page content", icon: FileTextIcon },
+  { href: "/admin/users", label: "Staff", icon: ShieldIcon },
   { href: "/admin/settings", label: "Settings", icon: SettingsIcon },
 ];
 

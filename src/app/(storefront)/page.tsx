@@ -12,7 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/store/product-card";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
-import { categories, getFeaturedProducts, products } from "@/lib/products";
+import { getCatalogue, featuredFrom } from "@/lib/shop/catalogue";
+import { getPageCopy } from "@/lib/shop/content";
 import { FREE_DELIVERY_THRESHOLD, whatsappEnabled } from "@/lib/config";
 import { formatPrice } from "@/lib/money";
 
@@ -40,10 +41,28 @@ const orderRoutes = [
   },
 ];
 
-export default function HomePage() {
-  const featured = getFeaturedProducts();
-  const hero = products.find((p) => p.slug === "modular-dry-storage-set-8-piece")!;
-  const secondary = products.find((p) => p.slug === "speedy-chopper")!;
+export default async function HomePage() {
+  const [{ products, categories }, copy] = await Promise.all([
+    getCatalogue(),
+    getPageCopy("home"),
+  ]);
+  const featured = featuredFrom(products);
+
+  // These two were pinned by slug with a non-null assertion, which was safe
+  // while the catalogue was a source file. Now that a product can be
+  // unpublished from the admin, the assertion would crash the home page —
+  // so fall back to whatever is on the shelf.
+  const hero =
+    products.find((p) => p.slug === "modular-dry-storage-set-8-piece") ??
+    featured[0] ??
+    products[0];
+  const secondary =
+    products.find((p) => p.slug === "speedy-chopper") ??
+    featured[1] ??
+    products[1] ??
+    hero;
+
+  if (!hero) return null;
 
   return (
     <>
@@ -52,7 +71,7 @@ export default function HomePage() {
         <div className="mx-auto grid max-w-[1400px] lg:grid-cols-12">
           <div className="bg-foreground text-background flex flex-col justify-center px-4 py-16 lg:col-span-7 lg:px-12 lg:py-24">
             <p className="text-primary mb-6 text-[11px] font-semibold tracking-[0.24em] uppercase">
-              Genuine Tupperware · and more
+              {copy("hero_eyebrow", "Genuine Tupperware · and more")}
             </p>
 
             <h1 className="font-display text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.92] font-extrabold tracking-[-0.03em] uppercase">
@@ -64,15 +83,16 @@ export default function HomePage() {
             </h1>
 
             <p className="text-background/70 mt-7 max-w-md text-lg">
-              Airtight storage, prep tools and home goods that survive daily use
-              in a real kitchen — not the kind that cracks by the second
-              harmattan.
+              {copy(
+                "hero_body",
+                "Airtight storage, prep tools and home goods that survive daily use in a real kitchen — not the kind that cracks by the second harmattan."
+              )}
             </p>
 
             <div className="mt-9 flex flex-wrap gap-3">
               <Button asChild size="lg">
                 <Link href="/products">
-                  Shop everything <ArrowRightIcon />
+                  {copy("hero_cta", "Shop everything")} <ArrowRightIcon />
                 </Link>
               </Button>
               <Button

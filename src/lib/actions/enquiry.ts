@@ -2,6 +2,7 @@
 
 import { recordLead } from "@/lib/crm/leads";
 import { resolveLines } from "@/lib/totals";
+import { getCatalogue } from "@/lib/shop/catalogue";
 import type { CartItem } from "@/lib/types";
 
 export type EnquiryState = {
@@ -46,7 +47,8 @@ export async function submitEnquiry(
     try {
       const parsed: unknown = JSON.parse(rawCart);
       if (Array.isArray(parsed)) {
-        const lines = resolveLines(parsed as CartItem[]);
+        const { products } = await getCatalogue();
+        const lines = resolveLines(parsed as CartItem[], products);
         if (lines.length > 0) {
           basketSummary = lines
             .map((line) => `${line.product.name} x${line.quantity}`)

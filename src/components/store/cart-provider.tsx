@@ -9,7 +9,8 @@ import {
   type OrderLine,
   type OrderTotals,
 } from "@/lib/totals";
-import type { CartItem } from "@/lib/types";
+import type { DeliveryRates } from "@/lib/totals";
+import type { CartItem, Product } from "@/lib/types";
 
 type CartContextValue = {
   items: CartItem[];
@@ -27,7 +28,24 @@ type CartContextValue = {
 
 const CartContext = React.createContext<CartContextValue | null>(null);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+/**
+ * The catalogue and the delivery rates arrive as props from the server, rather
+ * than being imported here.
+ *
+ * The basket prices itself in the browser, so if this component read a
+ * hardcoded catalogue it would keep showing yesterday's prices after an edit —
+ * and disagree with the amount the server actually charges. Handing it the
+ * same data the server priced from is what keeps those two in step.
+ */
+export function CartProvider({
+  children,
+  catalogue,
+  rates,
+}: {
+  children: React.ReactNode;
+  catalogue: Product[];
+  rates: DeliveryRates;
+}) {
   const { items, hydrated } = React.useSyncExternalStore(
     cartStore.subscribe,
     cartStore.getSnapshot,
@@ -36,8 +54,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const [isOpen, setOpen] = React.useState(false);
 
-  const lines = React.useMemo(() => resolveLines(items), [items]);
-  const totals = React.useMemo(() => calculateTotals(lines), [lines]);
+  const lines = React.useMemo(
+    () => resolveLines(items, catalogue),
+    [items, catalogue]
+  );
+  const totals = React.useMemo(
+    () => calculateTotals(lines, rates),
+    [lines, rates]
+  );
 
   const itemCount = React.useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),

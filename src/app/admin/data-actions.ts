@@ -1,10 +1,13 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { requireAdmin } from "@/lib/admin/dal";
 import { createAdminClient, adminClientAvailable } from "@/lib/supabase/admin";
 import { products as catalogue, categories } from "@/lib/products";
+import { CATALOGUE_TAG } from "@/lib/shop/catalogue";
+import { SETTINGS_TAG } from "@/lib/shop/settings";
+import { CONTENT_TAG } from "@/lib/shop/content";
 
 export type ActionState = { error: string | null; notice: string | null };
 
@@ -111,6 +114,7 @@ export async function saveSettings(
     if (error) return { error: error.message, notice: null };
   }
 
+  revalidateTag(SETTINGS_TAG, { expire: 0 });
   revalidatePath("/admin/settings");
   return { error: null, notice: "Saved." };
 }
@@ -161,9 +165,10 @@ export async function savePageContent(
     if (error) return { error: error.message, notice: null };
   }
 
+  // Copy is not money, so stale-while-revalidate is fine here. The two tags
+  // below that price things expire outright instead.
+  revalidateTag(CONTENT_TAG, "max");
   revalidatePath("/admin/content");
-  // The shop reads this copy, so its pages are stale until they rebuild.
-  revalidatePath("/", "layout");
   return { error: null, notice: "Saved." };
 }
 
@@ -196,9 +201,8 @@ export async function updateProduct(formData: FormData): Promise<void> {
   const supabase = createAdminClient();
   await supabase.from("products").update(patch).eq("id", id);
 
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
   revalidatePath("/admin/products");
-  revalidatePath("/products");
-  revalidatePath("/");
 }
 
 /**
@@ -249,7 +253,115 @@ export async function seedCatalogue(): Promise<void> {
     { onConflict: "id" }
   );
 
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
   revalidatePath("/admin/products");
-  revalidatePath("/products");
-  revalidatePath("/");
+}
+
+// ---------------------------------------------------------------------------
+// Staff
+// ---------------------------------------------------------------------------
+
+const ROLES = ["owner", "staff"];
+
+/**
+ * Staff management is owner-only, and nobody may act on their own row.
+ *
+ * Both rules exist to protect the shop from a single mistake rather than to
+ * restrict anyone: without the second, an owner can demote or delete
+ * themselves and leave a back office with no way back into it.
+ */
+async function requireOwner() {
+  const me = await requireAdmin();
+  if (me.role !== "owner") return null;
+  return me;
+}
+
+export async function addStaff(
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const me = await requireOwner();
+  if (!me) return { error: "Only an owner can add staff.", notice: null };
+  if (!adminClientAvailable()) {
+    return { error: "The database is not connected.", notice: null };
+  }
+
+  const email = text(formData, "email").toLowerCase();
+  const name = text(formData, "name");
+  const password = text(formData, "password");
+  const role = text(formData, "role");
+
+  if (!email.includes("@")) {
+    return { error: "Enter a valid email address.", notice: null };
+  }
+  if (password.length < 8) {
+    return { error: "Use a password of at least 8 characters.", notice: null };
+  }
+  if (!ROLES.includes(role)) {
+    return { error: "Pick a role.", notice: null };
+  }
+
+  const supabase = createAdminClient();
+
+  // Confirmed on creation: an unconfirmed account cannot sign in, which is
+  // exactly the trap the first admin account fell into.
+  const { data, error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: name },
+  });
+
+  if (error || !data.user) {
+    return { error: error?.message ?? "That account could not be created.", notice: null };
+  }
+
+  const { error: rowError } = await supabase
+    .from("admin_users")
+    .upsert(
+      { id: data.user.id, email, full_name: name || null, role },
+      { onConflict: "id" }
+    );
+
+  if (rowError) {
+    return { error: rowError.message, notice: null };
+  }
+
+  revalidatePath("/admin/users");
+  return { error: null, notice: `${email} can now sign in.` };
+}
+
+export async function setStaffRole(formData: FormData): Promise<void> {
+  const me = await requireOwner();
+  if (!me) return;
+
+  const id = text(formData, "id");
+  const role = text(formData, "role");
+  // Changing your own role is how an owner accidentally locks themselves out.
+  if (!id || id === me.id || !ROLES.includes(role)) return;
+
+  const supabase = createAdminClient();
+  await supabase.from("admin_users").update({ role }).eq("id", id);
+
+  revalidatePath("/admin/users");
+}
+
+/**
+ * Revokes access by removing the allow-list row.
+ *
+ * The Supabase login is left alone deliberately: this is "no longer staff",
+ * not "erase this person", and deleting an auth account would orphan anything
+ * ever attributed to them. Delete the login in Supabase if that is the intent.
+ */
+export async function removeStaff(formData: FormData): Promise<void> {
+  const me = await requireOwner();
+  if (!me) return;
+
+  const id = text(formData, "id");
+  if (!id || id === me.id) return;
+
+  const supabase = createAdminClient();
+  await supabase.from("admin_users").delete().eq("id", id);
+
+  revalidatePath("/admin/users");
 }

@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { ShieldAlertIcon } from "lucide-react";
-
 import { SetupNotice } from "@/components/admin/setup-notice";
 import { SettingsForm, type SettingField } from "@/components/admin/settings-form";
 import { adminClientAvailable } from "@/lib/supabase/admin";
@@ -27,10 +25,8 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
   {
     title: "Money and delivery",
     blurb:
-      "Amounts are in minor units — 50000 is GH₵500.00. Whole numbers only, so nothing is ever held as a float.",
+      "Amounts are in minor units — 50000 is GH₵500.00. Whole numbers only, so nothing is ever held as a float. Currency and locale are not here: prices are formatted in the browser by components that never reach the server, so those two stay environment configuration — and changing the currency a shop trades in is a deployment, not a setting.",
     fields: [
-      { key: "currency", label: "Currency", placeholder: "GHS" },
-      { key: "locale", label: "Locale", placeholder: "en-GH" },
       {
         key: "free_delivery_threshold",
         label: "Free delivery over",
@@ -82,22 +78,10 @@ export default async function AdminSettingsPage() {
         Settings
       </h1>
       <p className="text-muted-foreground mt-3 text-sm">
-        Stored in the database, so changing one does not mean editing an
-        environment variable and waiting for a rebuild.
+        Stored in the database and read by the shop, so changing one does not
+        mean editing an environment variable and waiting for a rebuild. An
+        environment variable is still the fallback wherever a value is blank.
       </p>
-
-      <div className="border-border bg-muted/40 mt-6 flex items-start gap-3 rounded-xl border border-dashed p-4">
-        <ShieldAlertIcon className="text-primary mt-0.5 size-5 shrink-0" />
-        <div className="text-sm">
-          <p className="font-semibold">Environment variables still win</p>
-          <p className="text-muted-foreground mt-1">
-            Nothing here is read by the running code yet — the shop is still
-            served by its environment variables. These values are stored and
-            editable, and wiring each one across is the next step. Setting a
-            credential here does not switch payments over.
-          </p>
-        </div>
-      </div>
 
       {!connected ? (
         <div className="mt-8">
