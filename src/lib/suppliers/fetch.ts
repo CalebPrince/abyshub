@@ -113,6 +113,16 @@ function priceNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function ratingNumber(value: unknown) {
+  const parsed = priceNumber(value);
+  return parsed !== null && parsed >= 0 && parsed <= 5 ? parsed : null;
+}
+
+function countNumber(value: unknown) {
+  const parsed = priceNumber(value);
+  return parsed !== null && parsed >= 0 ? Math.floor(parsed) : null;
+}
+
 /** Copy arrives with entities and stray markup; store it as plain text. */
 function clean(value: unknown): string {
   if (typeof value !== "string") return "";
@@ -214,6 +224,8 @@ export async function readProductPage(rawUrl: string): Promise<SupplierProduct> 
       imageUrl: imageUrl(openGraph(html, "og:image")),
       listPrice: null,
       listCurrency: supplier.currency,
+      rating: null,
+      reviewCount: null,
       variants: [],
     };
   }
@@ -234,6 +246,7 @@ export async function readProductPage(rawUrl: string): Promise<SupplierProduct> 
   );
 
   const listPrice = priceNumber(price);
+  const aggregateRating = product.aggregateRating as Json | undefined;
 
   return {
     supplierId: supplier.id,
@@ -249,6 +262,10 @@ export async function readProductPage(rawUrl: string): Promise<SupplierProduct> 
     ),
     listPrice,
     listCurrency: firstString(offer?.priceCurrency) ?? supplier.currency,
+    rating: ratingNumber(aggregateRating?.ratingValue),
+    reviewCount: countNumber(
+      aggregateRating?.reviewCount ?? aggregateRating?.ratingCount
+    ),
     variants: variants.map((v) => clean(v.name)).filter(Boolean).slice(0, 12),
   };
 }

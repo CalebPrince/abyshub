@@ -48,6 +48,8 @@ export type SupplierProduct = {
   productLine: string | null;
   listPrice: number | null;
   listCurrency: string | null;
+  rating: number | null;
+  reviewCount: number | null;
   /** Colours, sizes or shades offered, when the page lists them. */
   variants: string[];
 };

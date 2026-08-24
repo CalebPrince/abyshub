@@ -711,6 +711,8 @@ export async function importProduct(
     imported_at: new Date().toISOString(),
     list_price: found.listPrice !== null ? Math.round(found.listPrice * 100) : null,
     list_currency: found.listCurrency,
+    ...(found.rating !== null ? { rating: found.rating } : {}),
+    ...(found.reviewCount !== null ? { review_count: found.reviewCount } : {}),
   };
 
   // --- refresh -------------------------------------------------------------
@@ -857,6 +859,8 @@ export async function refreshProduct(formData: FormData): Promise<void> {
     imported_at: new Date().toISOString(),
     list_price: found.listPrice !== null ? Math.round(found.listPrice * 100) : null,
     list_currency: found.listCurrency,
+    rating: found.rating,
+    review_count: found.reviewCount,
   };
   if (image) patch.image = image;
   if (recoveredPrice !== null) patch.price = recoveredPrice;
@@ -1069,6 +1073,8 @@ export async function importChunk(
         list_price:
           found.listPrice !== null ? Math.round(found.listPrice * 100) : null,
         list_currency: found.listCurrency,
+        ...(found.rating !== null ? { rating: found.rating } : {}),
+        ...(found.reviewCount !== null ? { review_count: found.reviewCount } : {}),
       };
 
       if (existing) {
