@@ -4,6 +4,7 @@ import { DownloadIcon, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SetupNotice } from "@/components/admin/setup-notice";
 import { ProductDialog } from "@/components/admin/product-dialog";
+import { ImportProductDialog } from "@/components/admin/import-product-dialog";
 import { adminClientAvailable, createAdminClient } from "@/lib/supabase/admin";
 import { seedCatalogue, unpublishProduct } from "@/app/admin/data-actions";
 import { getCatalogue } from "@/lib/shop/catalogue";
@@ -83,14 +84,17 @@ export default async function AdminProductsPage() {
         </div>
 
         {connected ? (
-          <ProductDialog
-            categories={categories}
-            trigger={
-              <Button>
-                <PlusIcon /> Add a product
-              </Button>
-            }
-          />
+          <div className="flex flex-wrap gap-2">
+            <ImportProductDialog />
+            <ProductDialog
+              categories={categories}
+              trigger={
+                <Button>
+                  <PlusIcon /> Add a product
+                </Button>
+              }
+            />
+          </div>
         ) : null}
       </div>
 

@@ -8,6 +8,11 @@ import { products as catalogue, categories } from "@/lib/products";
 import { CATALOGUE_TAG } from "@/lib/shop/catalogue";
 import { SETTINGS_TAG } from "@/lib/shop/settings";
 import { CONTENT_TAG } from "@/lib/shop/content";
+import {
+  fetchImage,
+  guessCategory,
+  readProductPage,
+} from "@/lib/crm/import-product";
 
 export type ActionState = { error: string | null; notice: string | null };
 
@@ -595,4 +600,123 @@ export async function deleteProduct(formData: FormData): Promise<void> {
 
   revalidateTag(CATALOGUE_TAG, { expire: 0 });
   revalidatePath("/admin/products");
+}
+
+// ---------------------------------------------------------------------------
+// Importing a supplier product
+// ---------------------------------------------------------------------------
+
+/**
+ * Pulls one product from a supplier product page into the catalogue.
+ *
+ * Arrives unlisted, always. An import has no Ghana price until someone sets
+ * one, and a product that reached the shop at whatever the converter guessed
+ * would be a real order at the wrong money. Listing it is a separate,
+ * deliberate act in the edit dialog.
+ */
+export async function importProduct(
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdmin();
+  if (!adminClientAvailable()) {
+    return { error: "The database is not connected.", notice: null };
+  }
+
+  const url = text(formData, "url");
+  if (!url) return { error: "Paste the address of a product page.", notice: null };
+
+  let found;
+  try {
+    found = await readProductPage(url);
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "That page could not be read.",
+      notice: null,
+    };
+  }
+
+  if (!found.name) {
+    return { error: "That page did not name a product.", notice: null };
+  }
+
+  const supabase = createAdminClient();
+  const slug = slugify(found.name);
+
+  const { data: clash } = await supabase
+    .from("products")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (clash) {
+    return { error: `${found.name} is already in the catalogue.`, notice: null };
+  }
+
+  // --- price ---------------------------------------------------------------
+  // A rate is a convenience for bulk imports, not a source of truth: it only
+  // ever produces a starting figure on an unlisted product.
+  const givenPrice = Number(text(formData, "price"));
+  const rate = Number(text(formData, "rate"));
+
+  let price = 0;
+  if (Number.isFinite(givenPrice) && givenPrice > 0) {
+    price = Math.round(givenPrice);
+  } else if (found.listPrice && Number.isFinite(rate) && rate > 0) {
+    price = Math.round(found.listPrice * rate * 100);
+  }
+
+  // --- image ---------------------------------------------------------------
+  // Copied into our own bucket rather than hotlinked: a supplier CDN can block
+  // referrers, expire a URL or simply change, and the shop should not go blank
+  // when it does.
+  let image: string | null = null;
+  if (found.imageUrl) {
+    try {
+      const { buffer, contentType } = await fetchImage(found.imageUrl);
+      const extension = contentType.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
+      const path = `${slug}-${Date.now()}.${extension}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(path, buffer, { contentType, upsert: false });
+
+      if (!uploadError) {
+        image = supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+      }
+    } catch {
+      // A missing picture is not a reason to lose the product.
+    }
+  }
+
+  const { error } = await supabase.from("products").insert({
+    id: slug,
+    slug,
+    name: found.name,
+    brand: "Tupperware",
+    tagline: null,
+    description: found.description || null,
+    price,
+    category: guessCategory(found.supplierCategory, found.name),
+    image,
+    in_stock: true,
+    featured: false,
+    published: false,
+    highlights: found.variants,
+  });
+
+  if (error) return { error: error.message, notice: null };
+
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  revalidatePath("/admin/products");
+
+  const reference =
+    found.listPrice && found.listCurrency
+      ? ` Their list price is ${found.listCurrency} ${found.listPrice}.`
+      : "";
+
+  return {
+    error: null,
+    notice: `${found.name} imported, unlisted.${reference} Set your price and list it when ready.`,
+  };
 }
