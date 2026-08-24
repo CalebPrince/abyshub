@@ -31,6 +31,8 @@ export type Product = {
   inStock: boolean;
   featured?: boolean;
   highlights: string[];
+  /** Available colours, sizes or other supplier-listed options. */
+  variants?: string[];
 };
 
 export type CartItem = {

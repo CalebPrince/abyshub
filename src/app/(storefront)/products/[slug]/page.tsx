@@ -226,6 +226,26 @@ export default async function ProductPage({
           </ul>
 
           <Accordion type="single" collapsible defaultValue="highlights">
+            {product.variants && product.variants.length > 0 ? (
+              <AccordionItem value="variants">
+                <AccordionTrigger className="font-display text-sm font-bold tracking-wide uppercase">
+                  Available options
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="text-muted-foreground space-y-2">
+                    {product.variants.map((variant) => (
+                      <li key={variant} className="flex gap-2.5">
+                        <span
+                          className="bg-primary mt-2 size-1.5 shrink-0 rounded-full"
+                          aria-hidden
+                        />
+                        {variant}
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            ) : null}
             <AccordionItem value="highlights">
               <AccordionTrigger className="font-display text-sm font-bold tracking-wide uppercase">
                 What you get

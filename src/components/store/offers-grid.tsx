@@ -28,7 +28,7 @@ function Tile({ product, large = false }: { product: Product; large?: boolean })
         </span>
       ) : null}
 
-      <div className={`bg-secondary/60 relative ${large ? "aspect-4/3" : "aspect-square"}`}>
+      <div className={`bg-secondary/60 relative ${large ? "aspect-square" : "aspect-square"}`}>
         <Image
           src={product.image}
           alt={product.name}
@@ -40,7 +40,7 @@ function Tile({ product, large = false }: { product: Product; large?: boolean })
               ? "(min-width: 1024px) 50vw, (min-width: 640px) 66vw, 100vw"
               : "(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
           }
-          className="object-contain p-5 transition-transform duration-500 group-hover:scale-[1.04]"
+          className="object-contain p-2 transition-transform duration-500 group-hover:scale-[1.04]"
         />
       </div>
 

@@ -123,6 +123,20 @@ function countNumber(value: unknown) {
   return parsed !== null && parsed >= 0 ? Math.floor(parsed) : null;
 }
 
+function optionNames(product: Json, variants: Json[]) {
+  const names = variants.map((variant) => clean(variant.name));
+  const properties = [product, ...variants]
+    .flatMap((item) => (Array.isArray(item.additionalProperty) ? item.additionalProperty : []))
+    .filter((property): property is Json => Boolean(property && typeof property === "object"))
+    .map((property) => {
+      const name = clean(property.name);
+      const value = clean(property.value);
+      return name && value ? `${name}: ${value}` : value;
+    });
+
+  return [...new Set([...names, ...properties].filter(Boolean))].slice(0, 12);
+}
+
 /** Copy arrives with entities and stray markup; store it as plain text. */
 function clean(value: unknown): string {
   if (typeof value !== "string") return "";
@@ -266,7 +280,7 @@ export async function readProductPage(rawUrl: string): Promise<SupplierProduct> 
     reviewCount: countNumber(
       aggregateRating?.reviewCount ?? aggregateRating?.ratingCount
     ),
-    variants: variants.map((v) => clean(v.name)).filter(Boolean).slice(0, 12),
+    variants: optionNames(product, variants),
   };
 }
 
