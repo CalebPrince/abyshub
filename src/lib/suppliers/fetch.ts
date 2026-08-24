@@ -124,6 +124,42 @@ function openGraph(html: string, property: string) {
   return clean(html.match(pattern)?.[1] ?? "");
 }
 
+/**
+ * Splits a partner's title into the thing and the branding in front of it.
+ *
+ * Partners write titles for search engines: "Tupperware® Modular Mates® Square
+ * 2 | Food Storage Container 11-cup" names the maker twice before it says what
+ * the object is. The card already carries the brand, so that prefix is
+ * duplication in the one place a shopper is actually trying to read.
+ *
+ * The registered marks are the seam. Everything up to the last ® or ™ is the
+ * maker and their range; what follows is the product. Only the part before
+ * the first pipe is examined, because the descriptive tail after one may name
+ * the brand again without it being a prefix.
+ */
+export function splitTitle(raw: string, brand: string) {
+  const full = clean(raw);
+  const head = full.split("|")[0];
+  const cut = Math.max(head.lastIndexOf("®"), head.lastIndexOf("™"));
+
+  let line = cut >= 0 ? full.slice(0, cut + 1).trim() : "";
+  let title = cut >= 0 ? full.slice(cut + 1) : full;
+
+  // A page that never marked its brand should still not repeat it.
+  const prefix = brand.trim().toLowerCase();
+  if (prefix && title.toLowerCase().startsWith(prefix)) {
+    line = line || brand.trim();
+    title = title.slice(prefix.length);
+  }
+
+  title = title.replace(/^[s|:,–-]+/, "").trim();
+
+  // Never trade a real name for an empty one: a product called nothing but
+  // its range keeps the range as its name.
+  if (title.length < 3) return { title: full, line: "" };
+  return { title, line };
+}
+
 export async function readProductPage(rawUrl: string): Promise<SupplierProduct> {
   const url = assertAllowedUrl(rawUrl);
   const supplier = supplierForUrl(url);
@@ -141,9 +177,12 @@ export async function readProductPage(rawUrl: string): Promise<SupplierProduct> 
         "No product details were published on that page. Check it is a product page rather than a category listing."
       );
     }
+    const og = splitTitle(name, supplier.defaultBrand);
+
     return {
       supplierId: supplier.id,
-      name,
+      name: og.title,
+      productLine: og.line || null,
       description: openGraph(html, "og:description"),
       brand: supplier.defaultBrand,
       sku: null,
@@ -163,13 +202,20 @@ export async function readProductPage(rawUrl: string): Promise<SupplierProduct> 
   const offer = (Array.isArray(rawOffer) ? rawOffer[0] : rawOffer) as Json | undefined;
   const price = offer?.price;
 
+  // A page's own brand beats the partner default: Oriflame pages name the
+  // sub-brand, which is what a customer recognises on a product card.
+  const brand = clean(firstString(product.brand)) || supplier.defaultBrand;
+  const { title, line } = splitTitle(
+    clean(product.name) || clean(lead.name) || openGraph(html, "og:title"),
+    brand
+  );
+
   return {
     supplierId: supplier.id,
-    name: clean(product.name) || clean(lead.name) || openGraph(html, "og:title"),
+    name: title,
+    productLine: line || null,
     description: clean(product.description) || openGraph(html, "og:description"),
-    // A page's own brand beats the partner default: Oriflame pages name the
-    // sub-brand, which is what a customer recognises on a product card.
-    brand: clean(firstString(product.brand)) || supplier.defaultBrand,
+    brand,
     sku: firstString(lead.sku ?? product.sku),
     sourceUrl: url.toString(),
     supplierCategory: clean(product.category) || null,

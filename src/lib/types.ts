@@ -12,6 +12,12 @@ export type Product = {
   name: string;
   /** Manufacturer, e.g. "Tupperware". Shown on cards and used as a filter. */
   brand: string;
+  /**
+   * Maker and range as the partner writes it, marks and all, e.g.
+   * "Tupperware® Modular Mates®". Display only: brand is what filtering
+   * groups by, and a few hundred ranges would group nothing.
+   */
+  productLine?: string;
   tagline: string;
   description: string;
   /** Price in minor units (cents) to avoid floating point drift. */

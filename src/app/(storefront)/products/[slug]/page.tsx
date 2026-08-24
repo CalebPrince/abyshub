@@ -135,6 +135,14 @@ export default async function ProductPage({
               </Link>
             )}
 
+            {/* Sits between the shelf and the name: the category is a link
+                in the shop's own voice, this is the maker's. */}
+            {product.productLine ? (
+              <p className="border-foreground/25 text-foreground/75 inline-flex border-b pb-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase">
+                {product.productLine}
+              </p>
+            ) : null}
+
             <h1 className="font-display text-4xl leading-[0.98] font-extrabold tracking-tight uppercase text-balance sm:text-5xl">
               {product.name}
             </h1>

@@ -25,10 +25,18 @@ type Totals = {
   refreshed: number;
   skipped: number;
   failed: number;
+  unpriced: number;
   problems: string[];
 };
 
-const EMPTY: Totals = { imported: 0, refreshed: 0, skipped: 0, failed: 0, problems: [] };
+const EMPTY: Totals = {
+  imported: 0,
+  refreshed: 0,
+  skipped: 0,
+  failed: 0,
+  unpriced: 0,
+  problems: [],
+};
 
 /**
  * Pulls a partner's whole catalogue.
@@ -85,6 +93,7 @@ export function BulkImportDialog() {
       tally.refreshed += chunk.refreshed;
       tally.skipped += chunk.skipped;
       tally.failed += chunk.failed;
+      tally.unpriced += chunk.unpriced;
       tally.problems.push(...chunk.problems);
 
       offset = chunk.offset;
@@ -165,10 +174,15 @@ export function BulkImportDialog() {
 
           <div className="border-border bg-muted/40 rounded-lg border p-3">
             <p className="text-muted-foreground text-xs">
-              New products arrive <strong>unlisted with no price</strong>.{" "}
-              {supplier ? `${supplier.label} list in ${supplier.currency}` : "Partners list in their own currency"}
-              , so nothing reaches the shop until you have priced it. A refresh
-              never changes your price or your listing.
+              {supplier
+                ? `${supplier.label} list in ${supplier.currency}, converted at today’s rate`
+                : "Partner prices are converted at today’s rate"}{" "}
+              with your import markup added, and they go{" "}
+              <strong>straight onto the shelf</strong> — unlist anything you do
+              not want from the list behind this. Set your markup in Settings
+              first: it is what every product here sells at until you edit it.
+              Anything the page did not price stays unlisted. A refresh records
+              their new price but never changes yours or your listing.
             </p>
           </div>
 
@@ -184,6 +198,7 @@ export function BulkImportDialog() {
                 {done} of {total} read · {totals.imported} added ·{" "}
                 {totals.refreshed} refreshed · {totals.skipped} skipped ·{" "}
                 {totals.failed} failed
+                {totals.unpriced > 0 ? ` · ${totals.unpriced} with no price on the page` : ""}
               </p>
             </div>
           ) : null}

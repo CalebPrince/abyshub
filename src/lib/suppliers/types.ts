@@ -44,6 +44,8 @@ export type SupplierProduct = {
   sourceUrl: string;
   supplierCategory: string | null;
   imageUrl: string | null;
+  /** The maker and range taken off the front of the title, e.g. "Tupperware® Modular Mates®". */
+  productLine: string | null;
   listPrice: number | null;
   listCurrency: string | null;
   /** Colours, sizes or shades offered, when the page lists them. */

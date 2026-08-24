@@ -61,6 +61,14 @@ export function ProductCard({
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex-1 space-y-1.5">
+          {/* The maker's range, stamped rather than badged: the brand pill
+              is already on the image, and a second pill here would read as
+              a second brand instead of the line within one. */}
+          {product.productLine ? (
+            <p className="border-foreground/25 text-foreground/70 mb-2 inline-flex border-b pb-1 text-[10px] font-semibold tracking-[0.16em] uppercase">
+              {product.productLine}
+            </p>
+          ) : null}
           <h3 className="font-display leading-tight font-bold">
             <Link
               href={`/products/${product.slug}`}

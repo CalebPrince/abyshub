@@ -33,6 +33,12 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
         placeholder: "50000",
       },
       { key: "delivery_flat_rate", label: "Delivery charge", placeholder: "3500" },
+      {
+        key: "price_markup_percent",
+        label: "Import markup",
+        hint: "Whole percent added to every partner price when it is converted to cedis at the day’s rate. Covers your margin and the gap between the mid-market rate and what moving money actually costs. 0 imports at the bare converted figure.",
+        placeholder: "35",
+      },
     ],
   },
   {
