@@ -1,0 +1,9 @@
+# Minimal config so the Supabase GitHub integration recognises this repo and
+# applies supabase/migrations on push. Local-development settings only — the
+# hosted project's own configuration is not driven from here.
+project_id = "abyshub"
+
+[db]
+# Match the major version of the hosted Postgres, or `supabase db diff` will
+# report spurious differences against a local container.
+major_version = 17

@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Products" };
 
 /**
  * Placeholder. The schema for this section already exists in
- * supabase/migrations/0001_crm_foundation.sql — only the screen is outstanding,
+ * supabase/migrations/20260824000000_crm_foundation.sql — only the screen is outstanding,
  * which is why the nav links here rather than hiding the section.
  */
 export default async function AdminProductsPage() {

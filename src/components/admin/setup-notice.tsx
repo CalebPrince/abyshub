@@ -17,7 +17,7 @@ export function SetupNotice() {
           <p className="text-muted-foreground mt-1 text-sm">
             Create a Supabase project, run{" "}
             <code className="bg-muted rounded px-1 py-0.5 text-xs">
-              supabase/migrations/0001_crm_foundation.sql
+              supabase/migrations/20260824000000_crm_foundation.sql
             </code>{" "}
             in its SQL editor, then set{" "}
             <code className="bg-muted rounded px-1 py-0.5 text-xs">

@@ -326,3 +326,38 @@ $do$;
 drop policy if exists admin_users_self_read on admin_users;
 create policy admin_users_self_read on admin_users
   for select to authenticated using (is_admin());
+
+-- ---------------------------------------------------------------------------
+-- Data API privileges
+--
+-- PostgREST needs *two* things to allow a read: a GRANT on the table and an
+-- RLS policy that permits the row. The policies above are only half of it.
+--
+-- These grants are written out explicitly so the migration does not depend on
+-- the project's "automatically expose new tables" setting — which should be
+-- left off, so that access is something this file states rather than something
+-- a dashboard toggle decides.
+-- ---------------------------------------------------------------------------
+
+-- The storefront, in the browser, with the anon key. Read-only and only the
+-- four tables it actually renders from. No insert, update or delete anywhere.
+grant select on products, categories, page_content, settings to anon;
+
+-- Signed-in staff. The row-level policies still gate every one of these on
+-- is_admin(), so a grant alone opens nothing.
+grant select, insert, update, delete on
+  customers, orders, order_items, leads, lead_notes,
+  products, categories, page_content, settings
+to authenticated;
+
+grant select on admin_users to authenticated;
+
+-- The server-side service role. It bypasses RLS, so this is the only grant
+-- standing between it and the data — including secure_settings, which
+-- deliberately appears in no other grant in this file.
+grant all on all tables in schema public to service_role;
+grant all on all sequences in schema public to service_role;
+
+-- Belt and braces: revoke any blanket access the API roles may have picked up
+-- on the credentials table. anon and authenticated must never read it.
+revoke all on secure_settings from anon, authenticated;
