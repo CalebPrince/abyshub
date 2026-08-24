@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/lib/types";
 
+const HEADER_CATEGORY_LIMIT = 6;
+
 /**
  * Built from the shelves passed in rather than a hardcoded list, so a category
  * added in the admin reaches the header without a deploy.
@@ -16,7 +18,7 @@ import type { Category } from "@/lib/types";
 function buildNav(categories: Category[]) {
   return [
     { href: "/products", label: "Everything" },
-    ...categories.map((category) => ({
+    ...categories.slice(0, HEADER_CATEGORY_LIMIT).map((category) => ({
       href: `/products?category=${category.slug}`,
       label: category.name,
     })),
@@ -73,7 +75,7 @@ export function HeaderNav({
   }
 
   return (
-    <nav className="hidden items-center gap-6 lg:flex">
+    <nav className="hidden min-w-0 flex-1 items-center gap-4 overflow-hidden lg:flex">
       {navLinks.map((link) => (
         <Link
           key={link.href}
