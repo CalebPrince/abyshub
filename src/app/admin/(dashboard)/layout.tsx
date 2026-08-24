@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import {
   ClipboardListIcon,
+  FileTextIcon,
   LayoutDashboardIcon,
   LogOutIcon,
   MessageSquareTextIcon,
@@ -36,6 +37,7 @@ const nav = [
   { href: "/admin/enquiries", label: "Enquiries", icon: MessageSquareTextIcon },
   { href: "/admin/customers", label: "Customers", icon: UsersIcon },
   { href: "/admin/products", label: "Products", icon: PackageIcon },
+  { href: "/admin/content", label: "Page content", icon: FileTextIcon },
   { href: "/admin/settings", label: "Settings", icon: SettingsIcon },
 ];
 

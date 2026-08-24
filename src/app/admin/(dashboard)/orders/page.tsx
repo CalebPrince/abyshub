@@ -5,8 +5,12 @@ import { adminClientAvailable } from "@/lib/supabase/admin";
 import { listOrders } from "@/lib/crm/queries";
 import { formatPrice } from "@/lib/money";
 import { requireAdmin } from "@/lib/admin/dal";
+import { setFulfilmentStatus } from "@/app/admin/data-actions";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Orders" };
+
+const FULFILMENT = ["new", "packing", "dispatched", "delivered", "cancelled"];
 
 const paymentTone: Record<string, string> = {
   paid: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
@@ -95,7 +99,29 @@ export default async function AdminOrdersPage() {
                     />
                   </td>
                   <td className="p-3">
-                    <Pill value={order.fulfilment_status} />
+                    {/* A native select rather than a styled dropdown: it needs
+                        to submit inside a form, and this works without JS. */}
+                    <form
+                      action={setFulfilmentStatus}
+                      className="flex items-center gap-1.5"
+                    >
+                      <input type="hidden" name="id" value={order.id} />
+                      <select
+                        name="status"
+                        defaultValue={order.fulfilment_status}
+                        aria-label={`Fulfilment status for ${order.reference}`}
+                        className="border-input bg-background h-8 rounded-md border px-2 text-xs capitalize"
+                      >
+                        {FULFILMENT.map((value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                      <Button type="submit" size="sm" variant="outline" className="h-8">
+                        Set
+                      </Button>
+                    </form>
                   </td>
                   <td className="p-3 text-right font-semibold whitespace-nowrap">
                     {formatPrice(order.total)}

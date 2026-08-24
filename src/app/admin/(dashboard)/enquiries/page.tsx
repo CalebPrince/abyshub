@@ -4,8 +4,12 @@ import { SetupNotice } from "@/components/admin/setup-notice";
 import { adminClientAvailable } from "@/lib/supabase/admin";
 import { listLeads } from "@/lib/crm/queries";
 import { requireAdmin } from "@/lib/admin/dal";
+import { setLeadStage } from "@/app/admin/data-actions";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Enquiries" };
+
+const STAGES = ["new", "contacted", "quoted", "won", "lost"];
 
 const stageTone: Record<string, string> = {
   new: "bg-primary/10 text-primary",
@@ -76,6 +80,28 @@ export default async function AdminEnquiriesPage() {
                   Basket: {lead.basket_summary}
                 </p>
               ) : null}
+
+              <form
+                action={setLeadStage}
+                className="mt-3 flex flex-wrap items-center gap-1.5"
+              >
+                <input type="hidden" name="id" value={lead.id} />
+                <select
+                  name="stage"
+                  defaultValue={lead.stage}
+                  aria-label={`Stage for ${lead.name}`}
+                  className="border-input bg-background h-8 rounded-md border px-2 text-xs capitalize"
+                >
+                  {STAGES.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+                <Button type="submit" size="sm" variant="outline" className="h-8">
+                  Move
+                </Button>
+              </form>
             </article>
           ))
         )}
