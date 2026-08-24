@@ -7,6 +7,7 @@ import {
   MessageSquareTextIcon,
   PackageIcon,
   SettingsIcon,
+  StoreIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -73,6 +74,16 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
         </nav>
 
         <div className="border-background/15 mt-6 border-t pt-4">
+          {/* Grouped with sign out rather than with the nav above: both are
+              ways out of the back office, not sections of it. */}
+          <Link
+            href="/"
+            className="text-background/70 hover:bg-background/10 hover:text-background mb-3 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+          >
+            <StoreIcon className="size-4" />
+            Visit website
+          </Link>
+
           <p className="truncate text-sm font-semibold">
             {user.fullName ?? user.email}
           </p>
@@ -104,6 +115,13 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
               {item.label}
             </Link>
           ))}
+          <Link
+            href="/"
+            className="text-background/75 hover:text-background flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap uppercase"
+          >
+            <StoreIcon className="size-3.5" />
+            Visit website
+          </Link>
         </div>
 
         <main className="min-w-0 flex-1 px-4 py-8 lg:px-8 lg:py-10">{children}</main>

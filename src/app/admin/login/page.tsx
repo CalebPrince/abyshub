@@ -1,5 +1,7 @@
 import * as React from "react";
+import Link from "next/link";
 import type { Metadata } from "next";
+import { ArrowLeftIcon } from "lucide-react";
 
 import { LoginForm } from "@/app/admin/login/login-form";
 import { STORE_NAME } from "@/lib/config";
@@ -43,6 +45,14 @@ export default function AdminLoginPage() {
         <React.Suspense fallback={null}>
           <LoginForm />
         </React.Suspense>
+
+        <Link
+          href="/"
+          className="text-muted-foreground hover:text-foreground mt-6 inline-flex items-center gap-1.5 text-sm transition-colors"
+        >
+          <ArrowLeftIcon className="size-4" />
+          Return to website
+        </Link>
       </div>
     </div>
   );
