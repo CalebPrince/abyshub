@@ -199,6 +199,13 @@
   .animate-marquee {
     animation: none;
   }
+
+  /* <Reveal> drives its fade/lift with an inline style, which needs
+     `!important` to override — a plain rule loses to the inline style. */
+  [data-reveal] {
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 /* ---------------------------------------------------------------------------
