@@ -10,6 +10,7 @@ import { SETTINGS_TAG } from "@/lib/shop/settings";
 import { CONTENT_TAG } from "@/lib/shop/content";
 import { fetchImage, readProductPage } from "@/lib/suppliers/fetch";
 import { supplierById, supplierForUrl } from "@/lib/suppliers/registry";
+import { discoverProductUrls } from "@/lib/suppliers/discover";
 
 export type ActionState = { error: string | null; notice: string | null };
 
@@ -891,4 +892,185 @@ export async function deleteAllProducts(
     error: null,
     notice: `${rows.length} product${rows.length === 1 ? "" : "s"} deleted, along with ${paths.length} uploaded image${paths.length === 1 ? "" : "s"}. Past orders are unaffected.`,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Bulk sync
+// ---------------------------------------------------------------------------
+
+export type ChunkResult = {
+  error: string | null;
+  total: number;
+  offset: number;
+  done: boolean;
+  imported: number;
+  refreshed: number;
+  skipped: number;
+  failed: number;
+  /** Names of anything that failed, so a run does not end in silence. */
+  problems: string[];
+};
+
+/** Small enough that a chunk finishes well inside the page's maxDuration. */
+const CHUNK = 4;
+
+/**
+ * Imports one slice of a partner's catalogue.
+ *
+ * Chunked on purpose. Four hundred products means four hundred page fetches
+ * and four hundred image downloads; that cannot happen inside one request, and
+ * a job queue is a lot of machinery for something run a handful of times a
+ * year. The browser drives the loop instead, calling this until `done`, which
+ * also means progress is visible and the run can be abandoned halfway without
+ * leaving anything half-written — each product is its own transaction.
+ *
+ * `mode` decides what to do with products already on the shelf: skip them, or
+ * re-pull their words and pictures. Neither touches our price or our listing.
+ */
+export async function importChunk(
+  supplierId: string,
+  offset: number,
+  mode: "new" | "refresh"
+): Promise<ChunkResult> {
+  const base: ChunkResult = {
+    error: null, total: 0, offset, done: true,
+    imported: 0, refreshed: 0, skipped: 0, failed: 0, problems: [],
+  };
+
+  await requireAdmin();
+  if (!adminClientAvailable()) {
+    return { ...base, error: "The database is not connected." };
+  }
+
+  const supplier = supplierById(supplierId);
+  if (!supplier) return { ...base, error: "Unknown partner." };
+
+  let urls: string[];
+  try {
+    urls = await discoverProductUrls(supplierId);
+  } catch (error) {
+    return {
+      ...base,
+      error: error instanceof Error ? error.message : "Could not read their catalogue.",
+    };
+  }
+
+  if (urls.length === 0) {
+    return { ...base, error: `${supplier.label} publishes no catalogue to read.` };
+  }
+
+  const slice = urls.slice(offset, offset + CHUNK);
+  const result: ChunkResult = {
+    ...base,
+    total: urls.length,
+    offset: offset + slice.length,
+    done: offset + slice.length >= urls.length,
+  };
+
+  const supabase = createAdminClient();
+
+  for (const url of slice) {
+    try {
+      const found = await readProductPage(url);
+      if (!found.name) {
+        result.failed++;
+        result.problems.push(url.split("/").pop() ?? url);
+        continue;
+      }
+
+      const existing = found.sku
+        ? (
+            await supabase
+              .from("products")
+              .select("id, slug")
+              .eq("supplier", supplier.id)
+              .eq("external_sku", found.sku)
+              .maybeSingle()
+          ).data
+        : null;
+
+      if (existing && mode === "new") {
+        result.skipped++;
+        continue;
+      }
+
+      const shared = {
+        name: found.name,
+        brand: found.brand,
+        description: found.description || null,
+        category: supplier.categoryFor({
+          supplierCategory: found.supplierCategory,
+          name: found.name,
+          brand: found.brand,
+        }),
+        highlights: found.variants,
+        supplier: supplier.id,
+        source_url: found.sourceUrl,
+        external_sku: found.sku,
+        imported_at: new Date().toISOString(),
+      };
+
+      if (existing) {
+        const image = found.imageUrl
+          ? await storeSupplierImage(supabase, found.imageUrl, existing.slug as string)
+          : null;
+        // No price, no published: a refresh is their content, not our trading.
+        await supabase
+          .from("products")
+          .update(image ? { ...shared, image } : shared)
+          .eq("id", existing.id);
+        result.refreshed++;
+        continue;
+      }
+
+      const slug = slugify(found.name);
+      if (!slug) {
+        result.failed++;
+        result.problems.push(found.name);
+        continue;
+      }
+
+      const { data: clash } = await supabase
+        .from("products")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (clash) {
+        result.skipped++;
+        continue;
+      }
+
+      const image = found.imageUrl
+        ? await storeSupplierImage(supabase, found.imageUrl, slug)
+        : null;
+
+      const { error } = await supabase.from("products").insert({
+        ...shared,
+        id: slug,
+        slug,
+        tagline: null,
+        // Unlisted with no price: their money is not our money, and nothing
+        // reaches the shop until someone prices it.
+        price: 0,
+        image,
+        in_stock: true,
+        featured: false,
+        published: false,
+      });
+
+      if (error) {
+        result.failed++;
+        result.problems.push(found.name);
+      } else {
+        result.imported++;
+      }
+    } catch {
+      result.failed++;
+      result.problems.push(url.split("/").pop() ?? url);
+    }
+  }
+
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  revalidatePath("/admin/products");
+  return result;
 }

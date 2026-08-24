@@ -17,6 +17,7 @@ export const SUPPLIERS: Supplier[] = [
     blurb:
       "Airtight food storage, prep tools and serveware, with the lifetime seal warranty intact.",
     currency: "USD",
+    sitemapUrl: "https://www.tupperware.com/sitemap.xml",
     categoryFor: ({ supplierCategory, name }) =>
       matchCategory(
         `${supplierCategory ?? ""} ${name}`,
