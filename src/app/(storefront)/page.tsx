@@ -101,9 +101,9 @@ export default async function HomePage() {
 
             <dl className="border-foreground/12 mt-8 grid max-w-lg grid-cols-3 gap-6 border-t pt-6">
               {[
-                ["14", "products in stock"],
-                ["5", "shelves to browse"],
-                ["3", "ways to order"],
+                [String(products.filter((product) => product.inStock).length), "products in stock"],
+                [String(categories.length), "shelves to browse"],
+                [String(orderRoutes.length), "ways to order"],
               ].map(([value, label]) => (
                 <div key={label}>
                   <dt className="font-display text-2xl font-extrabold">

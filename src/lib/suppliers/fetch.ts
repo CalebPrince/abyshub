@@ -17,6 +17,7 @@ import type { SupplierProduct } from "@/lib/suppliers/types";
 const FETCH_TIMEOUT_MS = 20_000;
 const MAX_HTML_BYTES = 6 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_FETCH_ATTEMPTS = 4;
 
 /**
  * Guards against SSRF. Without this the import action would fetch any URL an
@@ -43,13 +44,31 @@ export function assertAllowedUrl(raw: string): URL {
   return url;
 }
 
+async function fetchWithRetry(url: URL, init: RequestInit) {
+  for (let attempt = 0; attempt < MAX_FETCH_ATTEMPTS; attempt++) {
+    const response = await fetch(url, {
+      ...init,
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    const retryable = [429, 502, 503, 504].includes(response.status);
+    if (!retryable || attempt === MAX_FETCH_ATTEMPTS - 1) return response;
+
+    const retryAfter = Number(response.headers.get("retry-after"));
+    const delay = Number.isFinite(retryAfter) && retryAfter > 0
+      ? Math.min(retryAfter * 1000, 10_000)
+      : 1_000 * 2 ** attempt;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+
+  throw new Error("The supplier request could not be completed.");
+}
+
 async function fetchText(url: URL) {
-  const response = await fetch(url, {
+  const response = await fetchWithRetry(url, {
     headers: {
       "user-agent": "AbysHubCatalogueImporter/1.0 (authorised reseller)",
       accept: "text/html",
     },
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     cache: "no-store",
   });
 
@@ -296,10 +315,7 @@ export async function fetchImage(rawUrl: string) {
   const url = new URL(rawUrl);
   if (url.protocol !== "https:") throw new Error("Image address must be https.");
 
-  const response = await fetch(url, {
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    cache: "no-store",
-  });
+  const response = await fetchWithRetry(url, { cache: "no-store" });
   if (!response.ok) throw new Error(`Image returned ${response.status}.`);
 
   const type = response.headers.get("content-type") ?? "";
