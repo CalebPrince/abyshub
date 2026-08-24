@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
-import { submitEnquiry } from "@/app/enquiry/actions";
+import { submitEnquiry } from "@/lib/actions/enquiry";
 import { STORE_NAME, whatsappEnabled } from "@/lib/config";
 import type { ChatMessage } from "@/lib/chat/types";
 

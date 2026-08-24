@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/components/store/cart-provider";
-import { submitEnquiry } from "@/app/enquiry/actions";
+import { submitEnquiry } from "@/lib/actions/enquiry";
 import { cn } from "@/lib/utils";
 
 export function EnquiryForm() {

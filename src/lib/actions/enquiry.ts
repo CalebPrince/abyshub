@@ -1,6 +1,6 @@
 "use server";
 
-import { CONTACT_EMAIL } from "@/lib/config";
+import { recordLead } from "@/lib/crm/leads";
 import { resolveLines } from "@/lib/totals";
 import type { CartItem } from "@/lib/types";
 
@@ -58,16 +58,28 @@ export async function submitEnquiry(
     }
   }
 
-  // TODO: send this to your inbox (Resend, Postmark, Paystack-adjacent CRM…)
-  // or write it to a database. Logging keeps the flow honest until then.
-  console.info("[enquiry] new enquiry", {
+  const saved = await recordLead({
     name,
     email,
     phone,
     details: fullDetails,
     basketSummary,
-    forwardTo: CONTACT_EMAIL,
+    // The chat handoff attaches a note; the enquiry page does not.
+    source: note ? "chat" : "enquiry",
   });
+
+  if (!saved.ok) {
+    // Log loudly — this is a real lead that did not land in the CRM — but do
+    // not tell the customer their message failed when it is our filing that
+    // broke. The details are still in the log to be recovered.
+    console.error("[enquiry] could not record lead", saved.error, {
+      name,
+      email,
+      phone,
+      details: fullDetails,
+      basketSummary,
+    });
+  }
 
   return {
     status: "sent",
