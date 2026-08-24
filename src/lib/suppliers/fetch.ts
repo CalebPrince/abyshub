@@ -100,6 +100,19 @@ function firstString(value: unknown): string | null {
   return null;
 }
 
+function priceNumber(value: unknown) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value !== "string") return null;
+  const match = value.trim().match(/-?\d[\d,]*(?:\.\d+)?/);
+  if (!match) return null;
+
+  const parsed = Number(match[0].replace(/,/g, ""));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 /** Copy arrives with entities and stray markup; store it as plain text. */
 function clean(value: unknown): string {
   if (typeof value !== "string") return "";
@@ -168,6 +181,16 @@ export async function readProductPage(rawUrl: string): Promise<SupplierProduct> 
   const html = await fetchText(url);
   const product = jsonLdBlocks(html).find(isProduct);
 
+  function imageUrl(raw: string | null) {
+    if (!raw) return null;
+    try {
+      const image = new URL(raw, url);
+      return image.protocol === "https:" ? image.toString() : null;
+    } catch {
+      return null;
+    }
+  }
+
   if (!product) {
     // Some partners render on the client and publish only OG tags. Better a
     // name and a picture to work from than a refusal.
@@ -188,7 +211,7 @@ export async function readProductPage(rawUrl: string): Promise<SupplierProduct> 
       sku: null,
       sourceUrl: url.toString(),
       supplierCategory: null,
-      imageUrl: openGraph(html, "og:image") || null,
+      imageUrl: imageUrl(openGraph(html, "og:image")),
       listPrice: null,
       listCurrency: supplier.currency,
       variants: [],
@@ -210,6 +233,8 @@ export async function readProductPage(rawUrl: string): Promise<SupplierProduct> 
     brand
   );
 
+  const listPrice = priceNumber(price);
+
   return {
     supplierId: supplier.id,
     name: title,
@@ -219,9 +244,10 @@ export async function readProductPage(rawUrl: string): Promise<SupplierProduct> 
     sku: firstString(lead.sku ?? product.sku),
     sourceUrl: url.toString(),
     supplierCategory: clean(product.category) || null,
-    imageUrl: firstString(lead.image ?? product.image) ?? openGraph(html, "og:image") ?? null,
-    listPrice:
-      price !== undefined && Number.isFinite(Number(price)) ? Number(price) : null,
+    imageUrl: imageUrl(
+      firstString(lead.image ?? product.image) ?? openGraph(html, "og:image")
+    ),
+    listPrice,
     listCurrency: firstString(offer?.priceCurrency) ?? supplier.currency,
     variants: variants.map((v) => clean(v.name)).filter(Boolean).slice(0, 12),
   };

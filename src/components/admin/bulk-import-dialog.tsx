@@ -179,10 +179,11 @@ export function BulkImportDialog() {
                 : "Partner prices are converted at today’s rate"}{" "}
               with your import markup added, and they go{" "}
               <strong>straight onto the shelf</strong> — unlist anything you do
-              not want from the list behind this. Set your markup in Settings
-              first: it is what every product here sells at until you edit it.
-              Anything the page did not price stays unlisted. A refresh records
-              their new price but never changes yours or your listing.
+              not want from the list behind this. Set your markup in Settings first:
+              it is what every product here sells at until you edit it. Anything
+              the page did not price stays visible at zero until you set a shop
+              price. A refresh records their new price but never changes yours
+              or your listing.
             </p>
           </div>
 

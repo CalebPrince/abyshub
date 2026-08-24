@@ -215,6 +215,7 @@ export default async function AdminProductsPage({
                             alt=""
                             width={44}
                             height={44}
+                            unoptimized
                             className="border-border size-11 shrink-0 rounded-md border object-cover"
                           />
                         ) : (

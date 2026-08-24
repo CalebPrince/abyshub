@@ -97,9 +97,8 @@ export function ImportProductDialog() {
 
           <div className="border-border bg-muted/40 rounded-lg border p-3">
             <p className="text-muted-foreground text-xs">
-              New imports arrive <strong>unlisted</strong>. Partner prices are
-              in their own currency at their own retail, so nothing reaches the
-              shop until you have set a cedi price and listed it yourself. A
+              New imports arrive <strong>listed</strong>. If the page has no
+              price, set your cedi price before customers can place an order. A
               refresh never changes your price or your listing.
             </p>
           </div>

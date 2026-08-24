@@ -645,8 +645,8 @@ async function storeSupplierImage(
  * critical path — it is what every imported product is sold at until someone
  * edits it — so it is worth being right before a sync, not after.
  *
- * A product no page priced stays unlisted, because GH₵0.00 is an order
- * someone can place.
+ * A product with no page price is still listed so it appears in the product
+ * list, and staff can set its shop price from there.
  *
  * A refresh updates their words and their picture and touches neither our
  * price nor whether it is listed. Re-pulling a description must never quietly
@@ -783,8 +783,9 @@ export async function importProduct(
     image,
     in_stock: true,
     featured: false,
-    // Listed on arrival unless nothing priced it. See importChunk.
-    published: price > 0,
+    // Imports should appear in the catalogue immediately, even when staff
+    // still need to resolve a missing price.
+    published: true,
   });
 
   if (error) return { error: error.message, notice: null };
@@ -797,10 +798,7 @@ export async function importProduct(
       ? ` They list it at ${found.listCurrency} ${found.listPrice}.`
       : "";
   const ours = price > 0 ? ` Priced at ${formatPrice(price)} — edit it if that is not right.` : "";
-  const listed =
-    price > 0
-      ? " and listed"
-      : ", unlisted because nothing on the page priced it";
+  const listed = " and listed";
 
   return {
     error: null,
@@ -819,7 +817,7 @@ export async function refreshProduct(formData: FormData): Promise<void> {
   const supabase = createAdminClient();
   const { data: row } = await supabase
     .from("products")
-    .select("source_url, slug, supplier")
+    .select("source_url, slug, supplier, price, published")
     .eq("id", id)
     .maybeSingle();
 
@@ -839,6 +837,16 @@ export async function refreshProduct(formData: FormData): Promise<void> {
     ? await storeSupplierImage(supabase, found.imageUrl, row.slug as string)
     : null;
 
+  const legacy = Number(row.price) <= 0;
+  let recoveredPrice: number | null = null;
+  if (legacy && found.listPrice !== null) {
+    const { priceMarkupPercent } = await getShopSettings();
+    const rate = await rateToShopCurrency(found.listCurrency ?? supplier.currency);
+    if (rate !== null) {
+      recoveredPrice = toShopMinorUnits(found.listPrice, rate, priceMarkupPercent);
+    }
+  }
+
   const patch: Record<string, unknown> = {
     name: found.name,
     brand: found.brand,
@@ -847,8 +855,12 @@ export async function refreshProduct(formData: FormData): Promise<void> {
     highlights: found.variants,
     external_sku: found.sku,
     imported_at: new Date().toISOString(),
+    list_price: found.listPrice !== null ? Math.round(found.listPrice * 100) : null,
+    list_currency: found.listCurrency,
   };
   if (image) patch.image = image;
+  if (recoveredPrice !== null) patch.price = recoveredPrice;
+  if (legacy) patch.published = true;
 
   await supabase.from("products").update(patch).eq("id", id);
 
@@ -1089,7 +1101,9 @@ export async function importChunk(
             //
             // A priced product that someone unlisted stays unlisted: derived
             // is only ever set when there was no price to begin with.
-            ...(derived > 0 ? { price: derived, published: true } : {}),
+            ...(unpricedRow
+              ? { ...(derived > 0 ? { price: derived } : {}), published: true }
+              : {}),
           })
           .eq("id", existing.id);
 
@@ -1120,8 +1134,8 @@ export async function importChunk(
         : null;
 
       // Their price, at today's rate, plus the owner's markup. A default to
-      // work from, not a decision: the product still arrives unlisted, so
-      // nobody is ever charged a figure a converter chose.
+      // Their price, at today's rate, plus the owner's markup. A zero price
+      // remains visible in the product list for staff to resolve.
       const price =
         found.listPrice !== null
           ? toShopMinorUnits(found.listPrice, rate, priceMarkupPercent)
@@ -1139,10 +1153,7 @@ export async function importChunk(
         featured: false,
         // Listed on arrival, so a sync fills the shop rather than a queue of
         // things to approve. Unlisting is per product and one click.
-        //
-        // Except with no price. A page that published no figure would go up
-        // at GH₵0.00, and that is an order someone can actually place.
-        published: price > 0,
+        published: true,
       });
 
       if (error) {
