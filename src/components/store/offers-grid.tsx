@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
 
 import { formatPrice } from "@/lib/money";
+import { Reveal } from "@/components/store/reveal";
 import type { Product } from "@/lib/types";
 
 function discount(product: Product) {
@@ -18,9 +19,7 @@ function Tile({ product, large = false }: { product: Product; large?: boolean })
   return (
     <Link
       href={`/products/${product.slug}`}
-      className={`group border-border bg-card relative flex flex-col overflow-hidden rounded-2xl border transition-shadow hover:shadow-lg ${
-        large ? "sm:col-span-2 sm:row-span-2" : ""
-      }`}
+      className="group border-border bg-card relative flex h-full flex-col overflow-hidden rounded-2xl border transition-shadow hover:shadow-lg"
     >
       {off ? (
         <span className="bg-primary text-primary-foreground absolute top-3 left-3 z-10 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase">
@@ -93,7 +92,7 @@ export function OffersGrid({ products }: { products: Product[] }) {
 
   return (
     <section className="mx-auto max-w-[1400px] px-4 py-16 lg:px-8 lg:py-24">
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
             While they last
@@ -109,12 +108,16 @@ export function OffersGrid({ products }: { products: Product[] }) {
         >
           See everything <ArrowRightIcon className="size-4" />
         </Link>
-      </div>
+      </Reveal>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        <Tile product={lead} large />
-        {others.map((product) => (
-          <Tile key={product.id} product={product} />
+        <Reveal className="h-full sm:col-span-2 sm:row-span-2">
+          <Tile product={lead} large />
+        </Reveal>
+        {others.map((product, index) => (
+          <Reveal key={product.id} delay={Math.min((index + 1) * 70, 300)} className="h-full">
+            <Tile product={product} />
+          </Reveal>
         ))}
       </div>
     </section>

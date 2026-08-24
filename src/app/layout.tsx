@@ -52,6 +52,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           splash moved into the (storefront) group so the admin can render
           without them — see components/store/storefront-shell.tsx. */}
       <body className="flex min-h-full flex-col">
+        {/* <Reveal> hides content until its IntersectionObserver fires, which
+            never happens without JavaScript — this is the escape hatch. */}
+        <noscript>
+          <style>{"[data-reveal] { opacity: 1 !important; transform: none !important; }"}</style>
+        </noscript>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

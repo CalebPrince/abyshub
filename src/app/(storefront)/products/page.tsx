@@ -6,6 +6,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductCard } from "@/components/store/product-card";
+import { Reveal } from "@/components/store/reveal";
 import {
   ProductFilters,
   type SortOption,
@@ -99,24 +100,26 @@ export default async function ProductsPage({
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-12 lg:px-8 lg:py-16">
-      <header className="border-foreground/12 border-b pb-10">
-        <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
-          {category ? "Shelf" : brandParam ? "Brand" : "The shop"}
-        </p>
-        <h1 className="font-display mt-3 text-4xl font-extrabold tracking-tight uppercase sm:text-6xl">
-          {heading}
-        </h1>
-        <p className="text-muted-foreground mt-4 max-w-xl">
-          {category
-            ? category.description
-            : brandParam
-              ? `Everything we stock from ${brandParam}.`
-              : copy(
-                  "body",
-                  "Genuine Tupperware alongside our own home range. Fourteen things worth owning."
-                )}
-        </p>
-      </header>
+      <Reveal>
+        <header className="border-foreground/12 border-b pb-10">
+          <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
+            {category ? "Shelf" : brandParam ? "Brand" : "The shop"}
+          </p>
+          <h1 className="font-display mt-3 text-4xl font-extrabold tracking-tight uppercase sm:text-6xl">
+            {heading}
+          </h1>
+          <p className="text-muted-foreground mt-4 max-w-xl">
+            {category
+              ? category.description
+              : brandParam
+                ? `Everything we stock from ${brandParam}.`
+                : copy(
+                    "body",
+                    "Genuine Tupperware alongside our own home range. Fourteen things worth owning."
+                  )}
+          </p>
+        </header>
+      </Reveal>
 
       <div className="py-8">
         <React.Suspense fallback={<Skeleton className="h-28 w-full" />}>
@@ -144,8 +147,10 @@ export default async function ProductsPage({
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visibleResults.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {visibleResults.map((product, index) => (
+            <Reveal key={product.id} delay={(index % 4) * 60} className="h-full">
+              <ProductCard product={product} className="h-full" />
+            </Reveal>
           ))}
         </div>
       )}
