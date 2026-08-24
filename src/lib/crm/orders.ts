@@ -94,7 +94,11 @@ export async function recordPaidOrder(input: PaidOrderInput) {
         total,
         currency: input.currency || "GHS",
         payment_status: "paid",
-        channel: "card",
+        // No `channel` here on purpose: the column defaults to 'card' on a
+        // fresh insert, which is right for a real card checkout, but writing
+        // it here would also run on the conflict-update — silently flipping
+        // a WhatsApp-originated pending order back to "card" the moment it's
+        // paid. Leaving it out means an existing row's channel survives.
         paid_at: input.paidAt ?? new Date().toISOString(),
         raw_payload: input.rawPayload as never,
       },
@@ -145,6 +149,98 @@ export async function recordPaidOrder(input: PaidOrderInput) {
         })
         .eq("id", customerId);
     }
+  }
+
+  return { ok: true as const, orderId: order.id };
+}
+
+export type PendingOrderInput = {
+  reference: string;
+  email: string;
+  name?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  subtotal: number;
+  delivery: number;
+  total: number;
+  currency?: string;
+  items: { id: string; name: string; quantity: number; unitPrice: number }[];
+};
+
+/**
+ * Writes an order staff built by hand from a WhatsApp conversation, before
+ * any money has moved — `payment_status` starts at 'pending' and `channel`
+ * at 'whatsapp'. The Paystack webhook later upserts onto the same
+ * `reference` once the customer pays, via recordPaidOrder above; that write
+ * deliberately leaves `channel` alone so this order stays tagged 'whatsapp'
+ * rather than being reclassified as 'card'.
+ */
+export async function createPendingOrder(input: PendingOrderInput) {
+  if (!adminClientAvailable()) {
+    return { ok: false as const, error: "Supabase service role is not configured." };
+  }
+
+  const supabase = createAdminClient();
+  const email = input.email.trim().toLowerCase();
+
+  let customerId: string | null = null;
+
+  if (email) {
+    const { data: customer } = await supabase
+      .from("customers")
+      .upsert(
+        {
+          email,
+          name: input.name || null,
+          phone: input.phone || null,
+          last_seen_at: new Date().toISOString(),
+        },
+        { onConflict: "email" }
+      )
+      .select("id")
+      .maybeSingle();
+
+    customerId = customer?.id ?? null;
+  }
+
+  const { data: order, error } = await supabase
+    .from("orders")
+    .upsert(
+      {
+        reference: input.reference,
+        customer_id: customerId,
+        email,
+        name: input.name || null,
+        phone: input.phone || null,
+        address: input.address || null,
+        city: input.city || null,
+        subtotal: toInt(input.subtotal),
+        delivery: toInt(input.delivery),
+        total: toInt(input.total),
+        currency: input.currency || "GHS",
+        payment_status: "pending",
+        channel: "whatsapp",
+      },
+      { onConflict: "reference" }
+    )
+    .select("id")
+    .maybeSingle();
+
+  if (error || !order) {
+    return { ok: false as const, error: error?.message ?? "Order was not written." };
+  }
+
+  const lines = input.items.map((item) => ({
+    order_id: order.id,
+    product_id: item.id,
+    name: item.name,
+    unit_price: toInt(item.unitPrice),
+    quantity: Math.max(toInt(item.quantity, 1), 1),
+  }));
+
+  if (lines.length > 0) {
+    await supabase.from("order_items").insert(lines);
   }
 
   return { ok: true as const, orderId: order.id };
