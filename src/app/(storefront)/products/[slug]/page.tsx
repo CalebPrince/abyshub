@@ -18,10 +18,9 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/store/product-card";
+import { ProductDescriptionTabs } from "@/components/store/product-description-tabs";
 import { ProductPurchasePanel } from "@/components/store/product-purchase-panel";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
-import {
-} from "@/lib/products";
 import {
   getCatalogue,
   getProducts,
@@ -185,9 +184,10 @@ export default async function ProductPage({
             </div>
           </div>
 
-          <p className="text-muted-foreground text-pretty">
-            {product.description}
-          </p>
+          <ProductDescriptionTabs
+            tagline={product.tagline}
+            description={product.description}
+          />
 
           <div className="flex items-center gap-2 text-sm">
             <span
