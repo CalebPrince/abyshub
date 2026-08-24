@@ -13,6 +13,8 @@ export const SUPPLIERS: Supplier[] = [
     label: "Tupperware",
     hosts: ["tupperware.com", "www.tupperware.com"],
     defaultBrand: "Tupperware",
+    blurb:
+      "Airtight food storage, prep tools and serveware, with the lifetime seal warranty intact.",
     currency: "USD",
     categoryFor: ({ supplierCategory, name }) =>
       matchCategory(
@@ -35,6 +37,8 @@ export const SUPPLIERS: Supplier[] = [
     // more useful on a product card than the parent company, so the page wins
     // and this is only the fallback.
     defaultBrand: "Oriflame",
+    blurb:
+      "Swedish skincare, cosmetics and fragrance, sourced through the authorised network.",
     currency: "NGN",
     sitemapUrl: "https://ng.oriflame.com/SiteMap/SiteMapXmlCatalog",
     categoryFor: ({ supplierCategory, name }) =>

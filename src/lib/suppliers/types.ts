@@ -13,6 +13,15 @@ export type Supplier = {
   hosts: string[];
   /** Fallback when the page does not name a brand of its own. */
   defaultBrand: string;
+  /** One line for the partners section. */
+  blurb?: string;
+  /**
+   * Path to an official logo in /public, once one has been supplied through
+   * the partner portal. Absent means the partners section sets the name as a
+   * wordmark instead — better than a fabricated mark or a hotlink to whatever
+   * seasonal asset the partner happens to be serving today.
+   */
+  logo?: string;
   /** The currency their listed prices are in — never ours. */
   currency: string;
   /**
