@@ -9,6 +9,7 @@ import {
   paystackConfigured,
 } from "@/lib/paystack";
 import { calculateTotals, resolveLines } from "@/lib/totals";
+import { getCustomer } from "@/lib/account/dal";
 import type { CartItem } from "@/lib/types";
 
 export type CheckoutState = { error: string | null };
@@ -56,6 +57,14 @@ export async function startPaystackCheckout(
       error:
         "Card payment is not switched on yet. Order on WhatsApp or send an enquiry instead.",
     };
+  }
+
+  // The page already turned anonymous visitors away, but a Server Action is a
+  // public endpoint — anything reachable by a form post has to check for
+  // itself rather than trust that a page did.
+  const customer = await getCustomer();
+  if (!customer) {
+    return { error: "Please sign in to complete your order." };
   }
 
   const email = requiredText(formData, "email");
