@@ -1,41 +1,98 @@
 import type { Metadata } from "next";
-import { DownloadIcon } from "lucide-react";
+import { DownloadIcon, PlusIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SetupNotice } from "@/components/admin/setup-notice";
-import { adminClientAvailable } from "@/lib/supabase/admin";
-import { listAdminProducts } from "@/lib/crm/queries";
-import { seedCatalogue, unpublishProduct, updateProduct } from "@/app/admin/data-actions";
-import { NewProductForm } from "@/components/admin/new-product-form";
+import { ProductDialog } from "@/components/admin/product-dialog";
+import { adminClientAvailable, createAdminClient } from "@/lib/supabase/admin";
+import { seedCatalogue, unpublishProduct } from "@/app/admin/data-actions";
 import { getCatalogue } from "@/lib/shop/catalogue";
 import { products as fileCatalogue } from "@/lib/products";
+import { formatPrice } from "@/lib/money";
 import { requireAdmin } from "@/lib/admin/dal";
 
 export const metadata: Metadata = { title: "Products" };
+
+type Row = {
+  id: string;
+  slug: string;
+  name: string;
+  brand: string;
+  category: string;
+  price: number;
+  compare_at_price: number | null;
+  tagline: string | null;
+  description: string | null;
+  highlights: string[] | null;
+  in_stock: boolean;
+  featured: boolean;
+  published: boolean;
+};
+
+/**
+ * Every field the edit dialog needs, fetched up front. With a catalogue this
+ * size that is cheaper than a round trip each time a dialog opens.
+ */
+async function listRows(): Promise<Row[]> {
+  if (!adminClientAvailable()) return [];
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("products")
+    .select(
+      "id, slug, name, brand, category, price, compare_at_price, tagline, description, highlights, in_stock, featured, published"
+    )
+    .order("sort_order")
+    .order("name");
+  return (data ?? []) as Row[];
+}
+
+function Flag({ on, label }: { on: boolean; label: string }) {
+  return (
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase ${
+        on
+          ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+          : "bg-muted text-muted-foreground"
+      }`}
+    >
+      {label}
+    </span>
+  );
+}
 
 export default async function AdminProductsPage() {
   await requireAdmin();
 
   const connected = adminClientAvailable();
-  const [rows, { categories }] = await Promise.all([
-    listAdminProducts(),
-    getCatalogue(),
-  ]);
+  const [rows, { categories }] = await Promise.all([listRows(), getCatalogue()]);
 
   return (
     <div className="mx-auto max-w-6xl">
-      <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
-        Back office
-      </p>
-      <h1 className="font-display mt-2 text-3xl leading-none font-extrabold tracking-tight uppercase lg:text-4xl">
-        Products
-      </h1>
-      <p className="text-muted-foreground mt-3 text-sm">
-        Prices are in minor units — 95000 is GH₵950.00. Saving a change
-        updates the shop straight away, including the amount charged at
-        checkout.
-      </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
+            Back office
+          </p>
+          <h1 className="font-display mt-2 text-3xl leading-none font-extrabold tracking-tight uppercase lg:text-4xl">
+            Products
+          </h1>
+          <p className="text-muted-foreground mt-3 text-sm">
+            Saving a change updates the shop straight away, including the amount
+            charged at checkout.
+          </p>
+        </div>
+
+        {connected ? (
+          <ProductDialog
+            categories={categories}
+            trigger={
+              <Button>
+                <PlusIcon /> Add a product
+              </Button>
+            }
+          />
+        ) : null}
+      </div>
 
       {!connected ? (
         <div className="mt-8">
@@ -43,7 +100,7 @@ export default async function AdminProductsPage() {
         </div>
       ) : null}
 
-      {rows.length === 0 ? (
+      {connected && rows.length === 0 ? (
         <div className="border-border mt-8 rounded-xl border p-8 text-center">
           <p className="font-semibold">Nothing imported yet</p>
           <p className="text-muted-foreground mx-auto mt-1 max-w-md text-sm">
@@ -55,31 +112,23 @@ export default async function AdminProductsPage() {
               <DownloadIcon /> Import catalogue from code
             </Button>
           </form>
-          <NewProductForm categories={categories} />
         </div>
-      ) : (
+      ) : null}
+
+      {rows.length > 0 ? (
         <>
           <div className="border-border mt-8 overflow-x-auto rounded-xl border">
-            <table className="w-full min-w-[52rem] text-sm">
+            <table className="w-full min-w-[46rem] text-sm">
               <thead className="bg-muted/50 text-muted-foreground">
                 <tr className="text-left">
                   <th className="p-3 text-[11px] font-semibold tracking-[0.14em] uppercase">
                     Product
                   </th>
-                  <th className="p-3 text-[11px] font-semibold tracking-[0.14em] uppercase">
+                  <th className="p-3 text-right text-[11px] font-semibold tracking-[0.14em] uppercase">
                     Price
                   </th>
                   <th className="p-3 text-[11px] font-semibold tracking-[0.14em] uppercase">
-                    Was
-                  </th>
-                  <th className="p-3 text-center text-[11px] font-semibold tracking-[0.14em] uppercase">
-                    In stock
-                  </th>
-                  <th className="p-3 text-center text-[11px] font-semibold tracking-[0.14em] uppercase">
-                    Listed
-                  </th>
-                  <th className="p-3 text-center text-[11px] font-semibold tracking-[0.14em] uppercase">
-                    Featured
+                    Status
                   </th>
                   <th className="p-3" />
                 </tr>
@@ -87,73 +136,48 @@ export default async function AdminProductsPage() {
               <tbody className="divide-border divide-y">
                 {rows.map((product) => (
                   <tr key={product.id}>
-                    {/* One form per row: a single form around the table would
-                        submit every product on every save. */}
                     <td className="p-3">
                       <p className="font-medium">{product.name}</p>
                       <p className="text-muted-foreground text-xs">
                         {product.brand} · {product.category}
                       </p>
                     </td>
-                    <td className="p-3">
-                      <Input
-                        form={`p-${product.id}`}
-                        name="price"
-                        defaultValue={product.price}
-                        inputMode="numeric"
-                        className="h-9 w-24"
-                      />
+                    <td className="p-3 text-right whitespace-nowrap">
+                      <span className="font-semibold">
+                        {formatPrice(product.price)}
+                      </span>
+                      {product.compare_at_price ? (
+                        <span className="text-muted-foreground ml-2 text-xs line-through">
+                          {formatPrice(product.compare_at_price)}
+                        </span>
+                      ) : null}
                     </td>
                     <td className="p-3">
-                      <Input
-                        form={`p-${product.id}`}
-                        name="compare_at_price"
-                        defaultValue={product.compare_at_price ?? ""}
-                        inputMode="numeric"
-                        className="h-9 w-24"
-                      />
+                      <div className="flex flex-wrap gap-1">
+                        <Flag
+                          on={product.published}
+                          label={product.published ? "Listed" : "Unlisted"}
+                        />
+                        <Flag
+                          on={product.in_stock}
+                          label={product.in_stock ? "In stock" : "Out"}
+                        />
+                        {product.featured ? <Flag on label="Featured" /> : null}
+                      </div>
                     </td>
-                    <td className="p-3 text-center">
-                      <input
-                        form={`p-${product.id}`}
-                        type="checkbox"
-                        name="in_stock"
-                        defaultChecked={product.in_stock}
-                        className="accent-primary size-4"
-                      />
-                    </td>
-                    <td className="p-3 text-center">
-                      <input
-                        form={`p-${product.id}`}
-                        type="checkbox"
-                        name="published"
-                        defaultChecked={product.published}
-                        className="accent-primary size-4"
-                      />
-                    </td>
-                    <td className="p-3 text-center">
-                      <input
-                        form={`p-${product.id}`}
-                        type="checkbox"
-                        name="featured"
-                        defaultChecked={product.featured}
-                        className="accent-primary size-4"
-                      />
-                    </td>
-                    <td className="p-3 text-right">
-                      {/* The form element itself lives here; the inputs above
-                          join it by id, which keeps the table cells tidy. */}
+                    <td className="p-3">
                       <div className="flex items-center justify-end gap-1.5">
-                        <form action={updateProduct} id={`p-${product.id}`}>
-                          <input type="hidden" name="id" value={product.id} />
-                          <Button type="submit" size="sm" variant="outline">
-                            Save
-                          </Button>
-                        </form>
-                        {/* Unlisting rather than deleting: order items keep
-                            their own price snapshot, so history survives
-                            either way, but a delete also throws away the
-                            description and photograph for good. */}
+                        <ProductDialog
+                          categories={categories}
+                          product={product}
+                          trigger={
+                            <Button size="sm" variant="outline">
+                              Edit
+                            </Button>
+                          }
+                        />
+                        {/* Unlist stays beside it: reversible, and nearly
+                            always what is actually meant by "remove". */}
                         {product.published ? (
                           <form action={unpublishProduct}>
                             <input type="hidden" name="id" value={product.id} />
@@ -184,9 +208,8 @@ export default async function AdminProductsPage() {
               price edited here.
             </span>
           </form>
-          <NewProductForm categories={categories} />
         </>
-      )}
+      ) : null}
     </div>
   );
 }
