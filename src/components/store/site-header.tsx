@@ -12,6 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { AccountMenu } from "@/components/store/account-menu";
 import { CartButton } from "@/components/store/cart-button";
 import { HeaderNav, HeaderSearch } from "@/components/store/header-nav";
 import { Logo } from "@/components/store/logo";
@@ -112,6 +113,7 @@ export function SiteHeader() {
                 <LayoutDashboardIcon className="size-5" />
               </Link>
             </Button>
+            <AccountMenu />
             <ThemeToggle />
             <CartButton />
           </div>
