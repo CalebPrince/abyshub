@@ -365,3 +365,140 @@ export async function removeStaff(formData: FormData): Promise<void> {
 
   revalidatePath("/admin/users");
 }
+
+// ---------------------------------------------------------------------------
+// Creating and removing products
+// ---------------------------------------------------------------------------
+
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+
+/** "8-piece Storage Set!" -> "8-piece-storage-set" */
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\w\s-]/g, "")
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+export async function createProduct(
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdmin();
+  if (!adminClientAvailable()) {
+    return { error: "The database is not connected.", notice: null };
+  }
+
+  const name = text(formData, "name");
+  const brand = text(formData, "brand");
+  const category = text(formData, "category");
+  const price = Number(text(formData, "price"));
+
+  if (!name) return { error: "Give the product a name.", notice: null };
+  if (!brand) return { error: "Give the product a brand.", notice: null };
+  if (!category) return { error: "Pick a category.", notice: null };
+  if (!Number.isFinite(price) || price <= 0) {
+    return { error: "Enter a price in minor units, e.g. 95000.", notice: null };
+  }
+
+  const slug = slugify(text(formData, "slug") || name);
+  if (!slug) return { error: "That name does not make a usable web address.", notice: null };
+
+  const supabase = createAdminClient();
+
+  // Checked before the upload, so a rejected product does not leave an orphan
+  // file behind in the bucket.
+  const { data: clash } = await supabase
+    .from("products")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (clash) {
+    return { error: `Something already uses the address "${slug}".`, notice: null };
+  }
+
+  // --- the picture ---------------------------------------------------------
+  let image = "";
+  const file = formData.get("image");
+
+  if (file instanceof File && file.size > 0) {
+    if (!IMAGE_TYPES.includes(file.type)) {
+      return { error: "Images must be JPEG, PNG, WebP or SVG.", notice: null };
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      return { error: "That image is over 4MB.", notice: null };
+    }
+
+    const extension = file.name.includes(".") ? file.name.split(".").pop() : "png";
+    // Prefixed with the time so re-uploading for the same product does not
+    // collide with a cached copy of the previous one.
+    const path = `${slug}-${Date.now()}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(path, file, { contentType: file.type, upsert: false });
+
+    if (uploadError) {
+      return { error: `The image did not upload: ${uploadError.message}`, notice: null };
+    }
+
+    const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
+    image = pub.publicUrl;
+  }
+
+  const compare = text(formData, "compare_at_price");
+
+  const { error } = await supabase.from("products").insert({
+    // Text primary key, and the slug is already unique, so it doubles as the id.
+    id: slug,
+    slug,
+    name,
+    brand,
+    tagline: text(formData, "tagline") || null,
+    description: text(formData, "description") || null,
+    price: Math.round(price),
+    compare_at_price:
+      compare && Number.isFinite(Number(compare)) ? Math.round(Number(compare)) : null,
+    category,
+    image: image || null,
+    in_stock: formData.get("in_stock") === "on",
+    featured: formData.get("featured") === "on",
+    published: formData.get("published") === "on",
+    highlights: text(formData, "highlights")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean),
+  });
+
+  if (error) return { error: error.message, notice: null };
+
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  revalidatePath("/admin/products");
+  return { error: null, notice: `${name} is in the catalogue.` };
+}
+
+/**
+ * Unlists a product rather than deleting it.
+ *
+ * Order items keep their own snapshot of name and price, so a delete would not
+ * corrupt order history — but it would still throw away the description and
+ * photograph for good, and "we do not sell this any more" is what is almost
+ * always meant. Unpublishing takes it off the shop immediately.
+ */
+export async function unpublishProduct(formData: FormData): Promise<void> {
+  await requireAdmin();
+
+  const id = text(formData, "id");
+  if (!id) return;
+
+  const supabase = createAdminClient();
+  await supabase.from("products").update({ published: false }).eq("id", id);
+
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  revalidatePath("/admin/products");
+}
