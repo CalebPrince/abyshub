@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 
 import { requireAdmin } from "@/lib/admin/dal";
 import { createAdminClient, adminClientAvailable } from "@/lib/supabase/admin";
@@ -562,7 +562,8 @@ export async function editProduct(
   const { error } = await supabase.from("products").update(patch).eq("id", id);
   if (error) return { error: error.message, notice: null };
 
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  updateTag(CATALOGUE_TAG);
+  revalidatePath("/");
   revalidatePath("/admin/products");
   return { error: null, notice: "Saved." };
 }
