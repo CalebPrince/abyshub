@@ -563,7 +563,6 @@ export async function editProduct(
   if (error) return { error: error.message, notice: null };
 
   updateTag(CATALOGUE_TAG);
-  revalidatePath("/");
   revalidatePath("/admin/products");
   return { error: null, notice: "Saved." };
 }

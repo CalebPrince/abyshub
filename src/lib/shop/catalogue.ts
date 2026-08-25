@@ -62,9 +62,8 @@ function toProduct(row: ProductRow): Product {
  * nothing at all.
  *
  * Cached and tagged rather than fetched per request, so the storefront can
- * still be rendered statically. Editing a product in the admin calls
- * revalidateTag(CATALOGUE_TAG), which is what makes a price change appear
- * without waiting for the revalidate window.
+ * still be rendered statically. Product mutations invalidate CATALOGUE_TAG,
+ * so unchanged catalogue pages never regenerate on a timer.
  */
 export const getCatalogue = unstable_cache(
   async (): Promise<{ products: Product[]; categories: Category[] }> => {
@@ -115,7 +114,7 @@ export const getCatalogue = unstable_cache(
     };
   },
   ["shop-catalogue"],
-  { tags: [CATALOGUE_TAG], revalidate: 300 }
+  { tags: [CATALOGUE_TAG] }
 );
 
 export async function getProducts() {

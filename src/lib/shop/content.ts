@@ -31,7 +31,7 @@ const loadContent = unstable_cache(
     return map;
   },
   ["shop-content"],
-  { tags: [CONTENT_TAG], revalidate: 300 }
+  { tags: [CONTENT_TAG] }
 );
 
 /** Returns a lookup for one page: `copy("hero_heading", "Buy it once.")`. */
