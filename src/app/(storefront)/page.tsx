@@ -260,7 +260,7 @@ export default async function HomePage() {
             </div>
             <Button asChild variant="outline">
               <Link href="/products">
-                See all 14 <ArrowRightIcon />
+                See all {products.length} <ArrowRightIcon />
               </Link>
             </Button>
           </Reveal>
