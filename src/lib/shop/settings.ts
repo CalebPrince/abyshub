@@ -93,7 +93,7 @@ export const getShopSettings = unstable_cache(
     };
   },
   ["shop-settings"],
-  { tags: [SETTINGS_TAG], revalidate: 300 }
+  { tags: [SETTINGS_TAG] }
 );
 
 /**
