@@ -136,21 +136,7 @@ export async function findProductBySlug(slug: string) {
  * ask for featured or related items without caring where the rows came from.
  */
 export function featuredFrom(products: Product[], limit = 6) {
-  const featured = products.filter((product) => product.featured);
-
-  // A freshly imported catalogue has no featured flags. Keep the homepage
-  // useful until staff curate it by falling back to the strongest in-stock
-  // products instead of rendering an empty section.
-  const candidates = featured.length > 0
-    ? featured
-    : products
-        .filter((product) => product.inStock)
-        .toSorted(
-          (a, b) =>
-            b.rating - a.rating || b.reviewCount - a.reviewCount
-        );
-
-  return candidates.slice(0, limit);
+  return products.filter((product) => product.featured).slice(0, limit);
 }
 
 export function relatedFrom(products: Product[], product: Product, limit = 4) {
