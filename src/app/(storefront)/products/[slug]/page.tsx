@@ -29,7 +29,8 @@ import {
 } from "@/lib/shop/catalogue";
 import { categoryImage } from "@/lib/shop/imagery";
 import { formatPrice } from "@/lib/money";
-import { FREE_DELIVERY_THRESHOLD, STORE_NAME } from "@/lib/config";
+import { FREE_DELIVERY_THRESHOLD } from "@/lib/config";
+import { buildWhatsAppProductEnquiry } from "@/lib/whatsapp-message";
 
 export async function generateStaticParams() {
   // Built from the live catalogue, so a product added in the admin gets a page.
@@ -202,7 +203,7 @@ export default async function ProductPage({
           <ProductPurchasePanel product={product} />
 
           <WhatsAppLink
-            message={`Hello ${STORE_NAME}, is the ${product.name} (${product.brand}) available?`}
+            message={buildWhatsAppProductEnquiry(product)}
             className="block"
           >
             <Button variant="outline" className="w-full sm:w-auto">
