@@ -32,22 +32,36 @@ export const metadata: Metadata = {
     "Browse genuine Tupperware and Abys Home goods — food storage, kitchen prep, lunch sets, serveware and home care.",
 };
 
+/**
+ * Whatever else a sort mode compares by, a sold-out item never outranks an
+ * available one — with most of the catalogue sitting unconfirmed for Ghana,
+ * sorting on price or name alone would bury the handful actually buyable
+ * under pages of "Sold out" tiles.
+ */
+function byAvailability(a: Product, b: Product) {
+  return Number(b.inStock) - Number(a.inStock);
+}
+
 function sortProducts(list: Product[], sort: SortOption): Product[] {
   const sorted = [...list];
 
   switch (sort) {
     case "price-asc":
-      return sorted.sort((a, b) => a.price - b.price);
+      return sorted.sort((a, b) => byAvailability(a, b) || a.price - b.price);
     case "price-desc":
-      return sorted.sort((a, b) => b.price - a.price);
+      return sorted.sort((a, b) => byAvailability(a, b) || b.price - a.price);
     case "rating":
-      return sorted.sort((a, b) => b.rating - a.rating);
+      return sorted.sort((a, b) => byAvailability(a, b) || b.rating - a.rating);
     case "name":
-      return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      return sorted.sort(
+        (a, b) => byAvailability(a, b) || a.name.localeCompare(b.name)
+      );
     case "featured":
     default:
       return sorted.sort(
-        (a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured))
+        (a, b) =>
+          byAvailability(a, b) ||
+          Number(Boolean(b.featured)) - Number(Boolean(a.featured))
       );
   }
 }
