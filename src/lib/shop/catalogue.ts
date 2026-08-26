@@ -72,19 +72,36 @@ export const getCatalogue = unstable_cache(
     }
 
     const supabase = createAdminClient();
-    const [productResult, categoryResult] = await Promise.all([
-      supabase
-        .from("products")
-        .select(
-          "id, slug, name, brand, product_line, tagline, description, price, compare_at_price, category, image, rating, review_count, in_stock, featured, highlights, variants"
-        )
-        .eq("published", true)
-        .order("sort_order"),
-      supabase
-        .from("categories")
-        .select("slug, name, description, gradient")
-        .order("sort_order"),
-    ]);
+
+    // Supabase has intermittently rejected the service key during a build
+    // with "JWT issued at future" — a clock-skew hiccup on their end that
+    // clears itself within a second or two. Retrying here is the difference
+    // between that one bad moment and a static homepage stuck on the
+    // fallback catalogue until the next deploy.
+    async function fetchCatalogue(attempt = 1) {
+      const result = await Promise.all([
+        supabase
+          .from("products")
+          .select(
+            "id, slug, name, brand, product_line, tagline, description, price, compare_at_price, category, image, rating, review_count, in_stock, featured, highlights, variants"
+          )
+          .eq("published", true)
+          .order("sort_order"),
+        supabase
+          .from("categories")
+          .select("slug, name, description, gradient")
+          .order("sort_order"),
+      ]);
+
+      const [productResult] = result;
+      if (productResult.error && attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+        return fetchCatalogue(attempt + 1);
+      }
+      return result;
+    }
+
+    const [productResult, categoryResult] = await fetchCatalogue();
 
     if (productResult.error) {
       console.error("[catalogue] failed to read products from Supabase, falling back to lib/products.ts:", productResult.error.message);
