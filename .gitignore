@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# supabase CLI's local link/session state
+/supabase/.temp
+
 # Remotion video project
 /videos/*/node_modules/
 /videos/*/proof-*.jpg

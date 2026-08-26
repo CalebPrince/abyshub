@@ -18,6 +18,14 @@ import type { Product } from "@/lib/types";
 
 const PRODUCTS_PER_PAGE = 20;
 
+/** First and last always, and a step either side of where you are. */
+function pageWindow(page: number, pageCount: number) {
+  const wanted = [1, page - 1, page, page + 1, pageCount];
+  return [...new Set(wanted)]
+    .filter((n) => n >= 1 && n <= pageCount)
+    .sort((a, b) => a - b);
+}
+
 export const metadata: Metadata = {
   title: "Everything we stock",
   description:
@@ -176,21 +184,26 @@ export default async function ProductsPage({
                 <span><ChevronLeftIcon /></span>
               )}
             </Button>
-            {Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => (
-              <Button
-                key={number}
-                asChild={number !== page}
-                size="sm"
-                variant={number === page ? "default" : "ghost"}
-                className="w-9 tabular-nums"
-                aria-current={number === page ? "page" : undefined}
-              >
-                {number === page ? (
-                  <span>{number}</span>
-                ) : (
-                  <Link href={pageHref(number)}>{number}</Link>
-                )}
-              </Button>
+            {pageWindow(page, pageCount).map((number, index, shown) => (
+              <span key={number} className="flex items-center gap-1">
+                {/* A gap in the run means pages were left out. */}
+                {index > 0 && number - shown[index - 1] > 1 ? (
+                  <span className="text-muted-foreground px-1 text-xs">…</span>
+                ) : null}
+                <Button
+                  asChild={number !== page}
+                  size="sm"
+                  variant={number === page ? "default" : "ghost"}
+                  className="w-9 tabular-nums"
+                  aria-current={number === page ? "page" : undefined}
+                >
+                  {number === page ? (
+                    <span>{number}</span>
+                  ) : (
+                    <Link href={pageHref(number)}>{number}</Link>
+                  )}
+                </Button>
+              </span>
             ))}
             <Button
               asChild={page < pageCount}
