@@ -93,8 +93,10 @@ export const getCatalogue = unstable_cache(
           .order("sort_order"),
       ]);
 
-      const [productResult] = result;
-      if (productResult.error && attempt < 3) {
+      const [productResult, categoryResult] = result;
+      // The same auth hiccup can hit either query independently, so either
+      // one erroring is worth a retry — not just the products half.
+      if ((productResult.error || categoryResult.error) && attempt < 3) {
         await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
         return fetchCatalogue(attempt + 1);
       }
