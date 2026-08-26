@@ -133,9 +133,20 @@ export async function findProductBySlug(slug: string) {
  * The helpers in lib/products.ts operate on the hardcoded array. These are the
  * same shapes against whatever catalogue is actually in force, so a page can
  * ask for featured or related items without caring where the rows came from.
+ *
+ * Never surfaces something sold out — a "moving fast" shelf that links to a
+ * sold-out product undoes the whole point of tracking stock. Featured items
+ * lead, and anything still available fills the rest at random so the section
+ * is never half empty while most of the catalogue sits unconfirmed for Ghana.
  */
 export function featuredFrom(products: Product[], limit = 6) {
-  return products.filter((product) => product.featured).slice(0, limit);
+  const available = products.filter((product) => product.inStock);
+  const featured = available.filter((product) => product.featured);
+  if (featured.length >= limit) return featured.slice(0, limit);
+
+  const rest = available.filter((product) => !product.featured);
+  const filler = [...rest].sort(() => Math.random() - 0.5);
+  return [...featured, ...filler].slice(0, limit);
 }
 
 export function relatedFrom(products: Product[], product: Product, limit = 4) {

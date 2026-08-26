@@ -13,7 +13,7 @@ function discount(product: Product) {
   );
 }
 
-function Tile({ product, large = false }: { product: Product; large?: boolean }) {
+function Tile({ product }: { product: Product }) {
   const off = discount(product);
 
   return (
@@ -27,19 +27,13 @@ function Tile({ product, large = false }: { product: Product; large?: boolean })
         </span>
       ) : null}
 
-      <div className={`bg-secondary/60 relative ${large ? "aspect-4/3" : "aspect-square"}`}>
+      <div className="bg-secondary/60 relative aspect-4/3 overflow-hidden">
         <Image
           src={product.image}
           alt={product.name}
           fill
-          // The large tile is roughly half the row on desktop and the small
-          // ones a quarter, so the browser is told that rather than guessing.
-          sizes={
-            large
-              ? "(min-width: 1024px) 50vw, (min-width: 640px) 66vw, 100vw"
-              : "(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-          }
-          className="object-contain p-2 transition-transform duration-500 group-hover:scale-[1.04]"
+          sizes="(min-width: 1280px) 20vw, (min-width: 768px) 33vw, 50vw"
+          className="object-contain p-3 transition-transform duration-500 group-hover:scale-[1.04]"
         />
       </div>
 
@@ -48,15 +42,13 @@ function Tile({ product, large = false }: { product: Product; large?: boolean })
           <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase">
             {product.brand}
           </p>
-          <p
-            className={`mt-1 font-semibold ${large ? "text-base sm:text-lg" : "line-clamp-2 text-sm"}`}
-          >
+          <p className="mt-1 line-clamp-2 text-sm font-semibold">
             {product.name}
           </p>
         </div>
 
-          <p className="mt-2 flex items-baseline gap-2">
-          <span className={`font-semibold ${large ? "text-lg" : "text-sm"}`}>
+        <p className="mt-2 flex items-baseline gap-2">
+          <span className="text-sm font-semibold">
             {formatPrice(product.price)}
           </span>
           {product.compareAtPrice ? (
@@ -73,22 +65,26 @@ function Tile({ product, large = false }: { product: Product; large?: boolean })
 /**
  * The offers block.
  *
- * One tall tile carrying the best saving with a bed of smaller ones around it,
- * rather than an even row: an equal grid reads as a search result, while the
- * asymmetry gives the eye somewhere to land first.
- *
- * Discounted stock leads, and featured items fill the rest so the block is
- * never half empty on a week with few offers.
+ * Never shows something sold out — a "while they last" tile that can't
+ * actually be bought is worse than an empty slot. Discounted stock leads,
+ * featured items fill next, and anything still available tops up the rest
+ * at random so the block isn't half empty while most of the catalogue sits
+ * unconfirmed for Ghana.
  */
 export function OffersGrid({ products }: { products: Product[] }) {
-  const discounted = products.filter((p) => discount(p) !== null);
-  const rest = products.filter((p) => discount(p) === null);
+  const available = products.filter((p) => p.inStock);
+  const discounted = available.filter((p) => discount(p) !== null);
+  const featured = available.filter((p) => discount(p) === null && p.featured);
+  const rest = available.filter((p) => discount(p) === null && !p.featured);
 
-  // Five tiles: one large plus four, which fills the four-column row exactly.
-  const chosen = [...discounted, ...rest].slice(0, 5);
+  const picked = [...discounted, ...featured];
+  const filler =
+    picked.length < 5 ? [...rest].sort(() => Math.random() - 0.5) : [];
+
+  // A compact five-item shelf keeps modest source images close to their useful
+  // display size instead of stretching one product across half the page.
+  const chosen = [...picked, ...filler].slice(0, 5);
   if (chosen.length === 0) return null;
-
-  const [lead, ...others] = chosen;
 
   return (
     <section className="mx-auto max-w-[1400px] px-4 py-16 lg:px-8 lg:py-24">
@@ -110,12 +106,9 @@ export function OffersGrid({ products }: { products: Product[] }) {
         </Link>
       </Reveal>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        <Reveal className="h-full sm:col-span-2 sm:row-span-2">
-          <Tile product={lead} large />
-        </Reveal>
-        {others.map((product, index) => (
-          <Reveal key={product.id} delay={Math.min((index + 1) * 70, 300)} className="h-full">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-5">
+        {chosen.map((product, index) => (
+          <Reveal key={product.id} delay={Math.min(index * 70, 280)} className="h-full">
             <Tile product={product} />
           </Reveal>
         ))}
