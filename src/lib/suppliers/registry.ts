@@ -18,6 +18,16 @@ export const SUPPLIERS: Supplier[] = [
       "Airtight food storage, prep tools and serveware, with the lifetime seal warranty intact.",
     currency: "USD",
     sitemapUrl: "https://www.tupperware.com/sitemap.xml",
+    // Barantus Sales is the sole authorised Tupperware distributor for Ghana,
+    // but they have no catalogue website — only social media. That has to be
+    // checked by eye, product by product.
+    ghanaCheck: {
+      note: "Barantus Sales is the authorised Ghana distributor. They sell through social media, not a website, so stock has to be checked by eye.",
+      links: [
+        { label: "Tupperware Ghana — Instagram", url: "https://www.instagram.com/tupperware_ghana/" },
+        { label: "Tupperware Ghana — Facebook", url: "https://www.facebook.com/tupperwareghana/" },
+      ],
+    },
     categoryFor: ({ supplierCategory, name }) =>
       matchCategory(
         `${supplierCategory ?? ""} ${name}`,
@@ -44,6 +54,15 @@ export const SUPPLIERS: Supplier[] = [
       "Swedish skincare, cosmetics and fragrance, sourced through the authorised network.",
     currency: "NGN",
     sitemapUrl: "https://ng.oriflame.com/SiteMap/SiteMapXmlCatalog",
+    // Oriflame closed its official Ghana operation on 30 September 2023 —
+    // gh.oriflame.com now shows a closure notice and points Ghana enquiries
+    // at Nigeria customer service. Nothing pulled from ng.oriflame.com is
+    // sold through an official Ghana channel any more, so every import needs
+    // a real source before it can be trusted as available.
+    ghanaCheck: {
+      note: "Oriflame Ghana closed on 30 Sept 2023 (gh.oriflame.com shows a closure notice). Nothing here has an official Ghana channel — confirm through whatever supply you actually use before listing it as available.",
+      links: [{ label: "Oriflame Ghana closure notice", url: "https://gh.oriflame.com/" }],
+    },
     categoryFor: ({ supplierCategory, name }) =>
       matchCategory(
         `${supplierCategory ?? ""} ${name}`,

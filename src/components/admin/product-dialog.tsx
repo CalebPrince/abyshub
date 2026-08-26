@@ -235,7 +235,7 @@ export function ProductDialog({
           <div className="mt-4 flex flex-wrap gap-4">
             {[
               { name: "published", label: "Listed", value: product?.published ?? true },
-              { name: "in_stock", label: "In stock", value: product?.in_stock ?? true },
+              { name: "in_stock", label: "Available in Ghana", value: product?.in_stock ?? true },
               { name: "featured", label: "Featured", value: product?.featured ?? false },
             ].map((box) => (
               <label className="flex items-center gap-2 text-sm" key={box.name}>

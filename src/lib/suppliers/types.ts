@@ -30,6 +30,16 @@ export type Supplier = {
    * have to go looking.
    */
   sitemapUrl?: string;
+  /**
+   * Neither partner publishes a Ghana-specific stock feed we can pull from —
+   * their pages describe their own market, not ours. This is where to look
+   * instead, so "is this actually available in Ghana" is a quick check
+   * rather than a guess every time a product is imported.
+   */
+  ghanaCheck: {
+    note: string;
+    links?: { label: string; url: string }[];
+  };
   /** Maps their wording onto one of our category slugs. */
   categoryFor(input: { supplierCategory: string | null; name: string; brand: string }): string;
 };
