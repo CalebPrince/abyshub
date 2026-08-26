@@ -785,7 +785,12 @@ export async function importProduct(
     tagline: null,
     price,
     image,
-    in_stock: true,
+    // A partner's own page says nothing about Ghana — neither brand
+    // publishes a feed for it (see each supplier's `ghanaCheck`). Marking
+    // every import out of stock by default means nothing goes in front of a
+    // customer as buyable until someone has actually confirmed it, the same
+    // way an unpriced import stays visible at zero rather than a guessed price.
+    in_stock: false,
     featured: false,
     // Imports should appear in the catalogue immediately, even when staff
     // still need to resolve a missing price.
@@ -806,7 +811,7 @@ export async function importProduct(
 
   return {
     error: null,
-    notice: `${found.name} imported from ${supplier.label}, ${listed}.${reference}${ours}`,
+    notice: `${found.name} imported from ${supplier.label}, ${listed}.${reference}${ours} Marked out of stock until you confirm it is actually available in Ghana.`,
   };
 }
 
@@ -873,6 +878,51 @@ export async function refreshProduct(formData: FormData): Promise<void> {
 
   revalidateTag(CATALOGUE_TAG, { expire: 0 });
   revalidatePath("/admin/products");
+}
+
+/**
+ * Sets Ghana availability for every product from one partner at once.
+ *
+ * A scrape has no opinion on this — see each supplier's `ghanaCheck` in
+ * suppliers/registry.ts — so this exists for the moment staff have actually
+ * checked the real channel (a distributor's Instagram, a confirmed supply)
+ * and want that verdict applied across the whole partner rather than one
+ * product at a time.
+ */
+export async function setGhanaAvailability(
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdmin();
+  if (!adminClientAvailable()) {
+    return { error: "The database is not connected.", notice: null };
+  }
+
+  const supplier = supplierById(text(formData, "supplier"));
+  if (!supplier) return { error: "Choose a partner.", notice: null };
+
+  const available = text(formData, "available") === "yes";
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("products")
+    .update({ in_stock: available })
+    .eq("supplier", supplier.id)
+    .select("id");
+
+  if (error) return { error: error.message, notice: null };
+
+  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  revalidatePath("/admin/products");
+
+  const count = data?.length ?? 0;
+  const plural = count === 1 ? "product" : "products";
+  return {
+    error: null,
+    notice: available
+      ? `${count} ${supplier.label} ${plural} marked available in Ghana.`
+      : `${count} ${supplier.label} ${plural} marked unconfirmed (out of stock).`,
+  };
 }
 
 /**
@@ -1159,7 +1209,10 @@ export async function importChunk(
         tagline: null,
         price,
         image,
-        in_stock: true,
+        // See the single-import path above: neither partner's page says
+        // anything about Ghana, so a sync cannot mark a product buyable —
+        // only confirming it, per the supplier's `ghanaCheck`, can.
+        in_stock: false,
         featured: false,
         // Listed on arrival, so a sync fills the shop rather than a queue of
         // things to approve. Unlisting is per product and one click.

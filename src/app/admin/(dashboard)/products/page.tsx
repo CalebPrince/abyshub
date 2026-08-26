@@ -10,6 +10,7 @@ import { ProductDialog } from "@/components/admin/product-dialog";
 import { ImportProductDialog } from "@/components/admin/import-product-dialog";
 import { DeleteAllProducts } from "@/components/admin/delete-all-products";
 import { BulkImportDialog } from "@/components/admin/bulk-import-dialog";
+import { BulkAvailabilityDialog } from "@/components/admin/bulk-availability-dialog";
 import { adminClientAvailable, createAdminClient } from "@/lib/supabase/admin";
 import {
   refreshProduct,
@@ -150,6 +151,7 @@ export default async function AdminProductsPage({
         {connected ? (
           <div className="flex flex-wrap gap-2">
             <BulkImportDialog />
+            <BulkAvailabilityDialog />
             <ImportProductDialog />
             <ProductDialog
               categories={categories}
@@ -264,7 +266,7 @@ export default async function AdminProductsPage({
                         />
                         <Flag
                           on={product.in_stock}
-                          label={product.in_stock ? "In stock" : "Out"}
+                          label={product.in_stock ? "Available (GH)" : "Out of stock"}
                         />
                         {product.featured ? <Flag on label="Featured" /> : null}
                       </div>

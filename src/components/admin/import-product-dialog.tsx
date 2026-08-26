@@ -95,12 +95,34 @@ export function ImportProductDialog() {
             </div>
           </div>
 
-          <div className="border-border bg-muted/40 rounded-lg border p-3">
+          <div className="border-border bg-muted/40 rounded-lg border p-3 space-y-2">
             <p className="text-muted-foreground text-xs">
-              New imports arrive <strong>listed</strong>. If the page has no
-              price, set your cedi price before customers can place an order. A
-              refresh never changes your price or your listing.
+              New imports arrive <strong>listed but out of stock</strong> — a
+              partner&apos;s page says nothing about Ghana, so mark it in stock
+              yourself once you have actually confirmed it is available here.
+              If the page has no price, set your cedi price too. A refresh
+              never changes your price, your listing, or that stock decision.
             </p>
+            <ul className="text-muted-foreground text-xs">
+              {SUPPLIERS.map((s) => (
+                <li key={s.id}>
+                  <strong>{s.label}:</strong> {s.ghanaCheck.note}
+                  {s.ghanaCheck.links?.map((link) => (
+                    <React.Fragment key={link.url}>
+                      {" · "}
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary font-medium underline underline-offset-2"
+                      >
+                        {link.label}
+                      </a>
+                    </React.Fragment>
+                  ))}
+                </li>
+              ))}
+            </ul>
           </div>
 
           {state.error ? (

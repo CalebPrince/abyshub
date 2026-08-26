@@ -178,14 +178,38 @@ export function BulkImportDialog() {
                 ? `${supplier.label} list in ${supplier.currency}, converted at today’s rate`
                 : "Partner prices are converted at today’s rate"}{" "}
               with your import markup added, and they go{" "}
-              <strong>straight onto the shelf</strong> — unlist anything you do
-              not want from the list behind this. Set your markup in Settings first:
-              it is what every product here sells at until you edit it. Anything
-              the page did not price stays visible at zero until you set a shop
-              price. A refresh records their new price but never changes yours
-              or your listing.
+              <strong>straight onto the shelf, marked out of stock</strong> —
+              neither partner&apos;s page says anything about Ghana, so new imports
+              wait for you to confirm one is actually available before it can
+              sell. Set your markup in Settings first: it is what every product
+              here sells at until you edit it. Anything the page did not price
+              stays visible at zero until you set a shop price. A refresh
+              records their new price but never changes yours, your listing, or
+              your stock decision.
             </p>
           </div>
+
+          {supplier ? (
+            <div className="border-border bg-muted/40 rounded-lg border p-3">
+              <p className="text-xs font-semibold">Checking what&apos;s in stock in Ghana</p>
+              <p className="text-muted-foreground mt-1 text-xs">{supplier.ghanaCheck.note}</p>
+              {supplier.ghanaCheck.links?.length ? (
+                <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                  {supplier.ghanaCheck.links.map((link) => (
+                    <a
+                      key={link.url}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary font-medium underline underline-offset-2"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           {(running || finished || total > 0) && !error ? (
             <div className="space-y-2">
@@ -215,6 +239,9 @@ export function BulkImportDialog() {
             <p className="flex items-start gap-2 text-sm text-emerald-700 dark:text-emerald-400">
               <CheckCircle2Icon className="mt-0.5 size-4 shrink-0" />
               Finished. {totals.imported} added, {totals.refreshed} refreshed.
+              {totals.imported > 0
+                ? ` The ${totals.imported} new ${totals.imported === 1 ? "one is" : "ones are"} marked out of stock until confirmed available in Ghana.`
+                : ""}
             </p>
           ) : null}
 
