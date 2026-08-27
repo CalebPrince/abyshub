@@ -19,10 +19,10 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8">
           <Image
-            src="/brand/abys-hub-logo.png"
+            src="/brand/abyshub.png"
             alt="Abys Hub"
-            width={1400}
-            height={776}
+            width={3508}
+            height={2481}
             priority
             className="h-10 w-auto object-contain"
           />

@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
  * single flat pink on transparency, so it sits correctly on white and on the
  * pink blocks alike without a second asset.
  *
- * `compact` drops back to the standalone "A" mark for tight spaces — the full
- * wordmark is wide, and squeezing script lettering into a 36px box turns it
- * into an illegible smudge.
+ * `compact` renders the same wordmark file at a small fixed height — there is
+ * no separate square mark for tight spaces, so it letterboxes rather than
+ * cropping.
  */
 export function Logo({
   className,
@@ -36,10 +36,10 @@ export function Logo({
       className={cn("group flex items-center", className)}
     >
       <Image
-        src={compact ? "/brand/abys-hub-mark.png" : "/brand/abys-hub-logo.png"}
+        src="/brand/abyshub.png"
         alt="Abys Hub"
-        width={compact ? 512 : 1400}
-        height={compact ? 512 : 613}
+        width={3508}
+        height={2481}
         // The header is on every page and this is above the fold on all of
         // them, so it should not wait its turn behind the product images.
         priority

@@ -370,29 +370,22 @@ html[data-splash="seen"] .splash {
 /* --- Wordmark, rule, tagline --------------------------------------------- */
 
 .splash-word {
-  display: flex;
+  display: block;
   margin-top: 1.75rem;
-  color: var(--brand-paper);
-  font-family: var(--font-display), var(--font-body), ui-sans-serif, sans-serif;
-  font-size: clamp(2.5rem, 12vw, 4.25rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 0.95;
-  text-transform: uppercase;
-}
-
-.splash-letter {
-  display: inline-block;
   overflow: hidden;
 }
 
-.splash-letter.is-accent {
-  color: var(--brand-pink);
+.splash-word-inner {
+  display: block;
+  animation: splash-reveal-in 520ms cubic-bezier(0.22, 1, 0.36, 1) 620ms both;
 }
 
-.splash-letter-inner {
-  display: inline-block;
-  animation: splash-letter-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+/* The real hand-lettered mark, not type standing in for it. Sized by eye
+   against the seal above it rather than matched to the old type block. */
+.splash-logo-image {
+  display: block;
+  width: clamp(11rem, 52vw, 18rem);
+  height: auto;
 }
 
 /* The house rule, drawn rather than dropped in. */
@@ -502,7 +495,7 @@ html[data-splash="seen"] .splash {
   }
 }
 
-@keyframes splash-letter-in {
+@keyframes splash-reveal-in {
   from {
     opacity: 0;
     transform: translateY(105%);
@@ -531,7 +524,7 @@ html[data-splash="seen"] .splash {
   .splash-bloom,
   .splash-half,
   .splash-seal,
-  .splash-letter-inner,
+  .splash-word-inner,
   .splash-rule,
   .splash-tag {
     animation: none;

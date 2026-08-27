@@ -56,11 +56,11 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
         <Link href="/admin" className="mb-8 flex items-center gap-2.5">
           {/* The wordmark, knocked to white so it reads on the pink panel. */}
           <Image
-            src="/brand/abys-hub-mark.png"
+            src="/brand/abyshub.png"
             alt=""
             aria-hidden
-            width={512}
-            height={512}
+            width={3508}
+            height={2481}
             className="size-9 shrink-0 object-contain brightness-0 invert"
           />
           <span className="font-display text-lg leading-none font-extrabold tracking-tight uppercase">

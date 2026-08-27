@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import * as React from "react";
 
 /**
@@ -15,15 +16,6 @@ const REDUCED_RUN_MS = 1100;
 
 /** Matches the fast-forward fade the `is-skipping` class applies. */
 const SKIP_MS = 260;
-
-/**
- * The wordmark, split the way the header splits it: paper "ABYS", red "HUB",
- * then flattened to letters so each can be revealed on its own beat.
- */
-const letters = [
-  ...[..."ABYS"].map((char) => ({ char, accent: false })),
-  ...[..."HUB"].map((char) => ({ char, accent: true })),
-].map((letter, i) => ({ ...letter, delay: 620 + i * 38 }));
 
 export function SplashScreen() {
   const [done, setDone] = React.useState(false);
@@ -87,21 +79,18 @@ export function SplashScreen() {
           <span className="splash-seal" />
         </div>
 
-        <p className="splash-word">
-          {letters.map((letter, i) => (
-            <span
-              className={letter.accent ? "splash-letter is-accent" : "splash-letter"}
-              key={`${letter.char}-${i}`}
-            >
-              <span
-                className="splash-letter-inner"
-                style={{ animationDelay: `${letter.delay}ms` }}
-              >
-                {letter.char}
-              </span>
-            </span>
-          ))}
-        </p>
+        <span className="splash-word">
+          <span className="splash-word-inner">
+            <Image
+              src="/brand/abyshub.png"
+              alt="Abys Hub"
+              width={3508}
+              height={2481}
+              priority
+              className="splash-logo-image"
+            />
+          </span>
+        </span>
 
         <span className="splash-rule" />
         <p className="splash-tag">Genuine Tupperware &amp; home goods</p>
