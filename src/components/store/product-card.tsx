@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { AddToCartButton } from "@/components/store/add-to-cart-button";
+import { ProductImage } from "@/components/store/product-image";
 import { formatPrice } from "@/lib/money";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -32,7 +32,7 @@ export function ProductCard({
         href={`/products/${product.slug}`}
         className="relative block aspect-square overflow-hidden"
       >
-        <Image
+        <ProductImage
           src={product.image}
           alt={product.name}
           fill

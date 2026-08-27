@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/store/product-card";
 import { ProductDescriptionTabs } from "@/components/store/product-description-tabs";
+import { ProductImage } from "@/components/store/product-image";
 import { ProductPurchasePanel } from "@/components/store/product-purchase-panel";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
 import {
@@ -106,7 +107,7 @@ export default async function ProductPage({
 
       <div className="border-foreground/12 grid overflow-hidden rounded-2xl border lg:grid-cols-2">
         <div className="border-foreground/12 relative aspect-square border-b lg:sticky lg:top-32 lg:self-start lg:border-b-0">
-          <Image
+          <ProductImage
             src={product.image}
             alt={product.name}
             fill
