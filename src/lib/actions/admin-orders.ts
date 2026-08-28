@@ -151,7 +151,7 @@ export async function createWhatsAppOrder(
     return { error: result.error, notice: null, authorizationUrl: null };
   }
 
-  if (!paystackConfigured()) {
+  if (!(await paystackConfigured())) {
     return {
       error: null,
       notice:

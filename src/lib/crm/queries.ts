@@ -48,6 +48,60 @@ export async function listOrders(limit = 50) {
   return (data ?? []) as OrderRow[];
 }
 
+export type PaymentRow = {
+  id: string;
+  reference: string;
+  email: string;
+  name: string | null;
+  total: number;
+  currency: string;
+  channel: string;
+  payment_status: string;
+  paid_at: string;
+};
+
+/**
+ * Settled Paystack transactions, newest first.
+ *
+ * Filtered on `paid_at` rather than `channel`: a WhatsApp order paid through
+ * a Paystack link stays tagged `channel = 'whatsapp'` (see recordPaidOrder),
+ * but it is still money Paystack moved, so it belongs here. `paid_at` is only
+ * ever set by that same webhook write, which makes it the honest signal for
+ * "this actually went through Paystack" regardless of how the order started.
+ */
+export async function listPayments(limit = 50) {
+  if (!adminClientAvailable()) return [];
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("orders")
+    .select("id, reference, email, name, total, currency, channel, payment_status, paid_at")
+    .not("paid_at", "is", null)
+    .order("paid_at", { ascending: false })
+    .limit(limit);
+  return (data ?? []) as PaymentRow[];
+}
+
+export type PaymentsSummary = {
+  count: number;
+  revenue: number;
+  averageOrder: number;
+};
+
+export async function getPaymentsSummary(): Promise<PaymentsSummary> {
+  if (!adminClientAvailable()) return { count: 0, revenue: 0, averageOrder: 0 };
+
+  const supabase = createAdminClient();
+  const { data } = await supabase.from("orders").select("total").not("paid_at", "is", null);
+  const rows = data ?? [];
+  const revenue = rows.reduce((sum, row) => sum + (Number(row.total) || 0), 0);
+
+  return {
+    count: rows.length,
+    revenue,
+    averageOrder: rows.length > 0 ? Math.round(revenue / rows.length) : 0,
+  };
+}
+
 export async function listLeads(limit = 50) {
   if (!adminClientAvailable()) return [];
   const supabase = createAdminClient();

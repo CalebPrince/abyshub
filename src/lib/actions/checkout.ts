@@ -53,7 +53,7 @@ export async function startPaystackCheckout(
   _previous: CheckoutState,
   formData: FormData
 ): Promise<CheckoutState> {
-  if (!paystackConfigured()) {
+  if (!(await paystackConfigured())) {
     return {
       error:
         "Card payment is not switched on yet. Order on WhatsApp or send an enquiry instead.",
