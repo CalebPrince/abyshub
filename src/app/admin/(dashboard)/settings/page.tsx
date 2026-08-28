@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { CreditCardIcon } from "lucide-react";
 import { SetupNotice } from "@/components/admin/setup-notice";
 import { SettingsForm, type SettingField } from "@/components/admin/settings-form";
 import { adminClientAvailable } from "@/lib/supabase/admin";
@@ -23,25 +25,6 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
     ],
   },
   {
-    title: "Money and delivery",
-    blurb:
-      "Amounts are in minor units — 50000 is GH₵500.00. Whole numbers only, so nothing is ever held as a float. Currency and locale are not here: prices are formatted in the browser by components that never reach the server, so those two stay environment configuration — and changing the currency a shop trades in is a deployment, not a setting.",
-    fields: [
-      {
-        key: "free_delivery_threshold",
-        label: "Free delivery over",
-        placeholder: "50000",
-      },
-      { key: "delivery_flat_rate", label: "Delivery charge", placeholder: "3500" },
-      {
-        key: "price_markup_percent",
-        label: "Import markup",
-        hint: "Whole percent added to every partner price when it is converted to cedis at the day’s rate. Covers your margin and the gap between the mid-market rate and what moving money actually costs. 0 imports at the bare converted figure.",
-        placeholder: "35",
-      },
-    ],
-  },
-  {
     title: "Legal",
     blurb: "Printed on the terms, privacy and cookie pages.",
     fields: [
@@ -56,9 +39,8 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
 const secrets = {
   title: "Credentials",
   blurb:
-    "Held in a table no browser key can read — only the server can. Existing values are never shown here, not even to you: this form can set a credential, not reveal one.",
+    "Held in a table no browser key can read — only the server can. Existing values are never shown here, not even to you: this form can set a credential, not reveal one. The Paystack secret key lives on the Payments page, next to the pricing tiers it charges against.",
   fields: [
-    { key: "paystack_secret_key", label: "Paystack secret key", hint: "sk_live_… or sk_test_…" },
     { key: "smtp_host", label: "SMTP host" },
     { key: "smtp_user", label: "SMTP username" },
     { key: "smtp_password", label: "SMTP password" },
@@ -88,6 +70,19 @@ export default async function AdminSettingsPage() {
         mean editing an environment variable and waiting for a rebuild. An
         environment variable is still the fallback wherever a value is blank.
       </p>
+
+      <Link
+        href="/admin/payments"
+        className="border-border bg-card hover:border-primary/40 mt-6 flex items-center gap-3 rounded-xl border p-4 text-sm transition-colors"
+      >
+        <CreditCardIcon className="text-primary size-5 shrink-0" />
+        <span>
+          <span className="font-semibold">Delivery charges and Paystack</span>{" "}
+          <span className="text-muted-foreground">
+            moved to the Payments page — pricing tiers next to the transactions they charge.
+          </span>
+        </span>
+      </Link>
 
       {!connected ? (
         <div className="mt-8">

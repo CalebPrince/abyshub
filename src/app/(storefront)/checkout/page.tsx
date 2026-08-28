@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function CheckoutPage() {
   // Sends them to sign in and back here afterwards.
   await requireCustomer("/checkout");
+  const paystackReady = await paystackConfigured();
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-12 lg:px-8 lg:py-16">
@@ -25,7 +26,7 @@ export default async function CheckoutPage() {
         Almost yours
       </h1>
 
-      <CheckoutForm paystackReady={paystackConfigured()} />
+      <CheckoutForm paystackReady={paystackReady} />
     </div>
   );
 }

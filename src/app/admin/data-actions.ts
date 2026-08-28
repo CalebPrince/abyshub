@@ -122,6 +122,7 @@ export async function saveSettings(
 
   revalidateTag(SETTINGS_TAG, { expire: 0 });
   revalidatePath("/admin/settings");
+  revalidatePath("/admin/payments");
   return { error: null, notice: "Saved." };
 }
 
@@ -135,6 +136,7 @@ export async function clearSecret(formData: FormData): Promise<void> {
   await supabase.from("secure_settings").update({ value: null }).eq("key", key);
 
   revalidatePath("/admin/settings");
+  revalidatePath("/admin/payments");
 }
 
 // ---------------------------------------------------------------------------

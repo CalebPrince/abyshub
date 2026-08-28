@@ -1,19 +1,24 @@
 import "server-only";
 
 import { CURRENCY } from "@/lib/config";
+import { getSecret } from "@/lib/shop/settings";
 
 const PAYSTACK_API = "https://api.paystack.co";
 
 /**
- * The secret key never leaves the server. Read it lazily so the app still
- * builds and runs (in enquiry/WhatsApp-only mode) when it is not configured.
+ * The secret key never leaves the server. Database first, environment
+ * variable second — the same rule every other setting in the shop follows —
+ * so the key an admin types into the Payments page is the one actually
+ * charged against, without needing a redeploy. Read lazily so the app still
+ * builds and runs (in enquiry/WhatsApp-only mode) when neither is set.
  */
-function secretKey(): string | undefined {
-  return process.env.PAYSTACK_SECRET_KEY;
+async function secretKey(): Promise<string | undefined> {
+  const key = await getSecret("paystack_secret_key", process.env.PAYSTACK_SECRET_KEY);
+  return key || undefined;
 }
 
-export function paystackConfigured(): boolean {
-  return Boolean(secretKey());
+export async function paystackConfigured(): Promise<boolean> {
+  return Boolean(await secretKey());
 }
 
 type InitializeArgs = {
@@ -36,7 +41,7 @@ export async function initializeTransaction({
   callbackUrl,
   metadata,
 }: InitializeArgs): Promise<InitializeResult> {
-  const key = secretKey();
+  const key = await secretKey();
   if (!key) return { ok: false, error: "Paystack is not configured." };
 
   try {
@@ -98,7 +103,7 @@ export type VerifyResult =
 export async function verifyTransaction(
   reference: string
 ): Promise<VerifyResult> {
-  const key = secretKey();
+  const key = await secretKey();
   if (!key) return { ok: false, error: "Paystack is not configured." };
 
   try {
@@ -156,7 +161,7 @@ export async function isValidWebhookSignature(
   rawBody: string,
   signature: string | null
 ): Promise<boolean> {
-  const key = secretKey();
+  const key = await secretKey();
   if (!key || !signature) return false;
 
   const { createHmac, timingSafeEqual } = await import("node:crypto");
