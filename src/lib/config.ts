@@ -54,6 +54,12 @@ export const SITE_URL = env(
   "http://localhost:3000"
 );
 
+/** Safe browser-facing Paystack identifier. This is not the secret key. */
+export const PAYSTACK_PUBLIC_KEY = env(
+  process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+  ""
+);
+
 export const STORE_NAME = "Abys Hub";
 
 /** The name the chat assistant introduces herself by. */

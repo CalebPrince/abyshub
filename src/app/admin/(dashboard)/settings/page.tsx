@@ -17,6 +17,12 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
       { key: "site_url", label: "Site URL", placeholder: "https://abyshub.com" },
       { key: "contact_email", label: "Contact email", placeholder: "orders@abyshub.com" },
       {
+        key: "resend_from_email",
+        label: "Resend sender email",
+        hint: "Must use a domain verified in Resend, for example Abys Hub <orders@abyshub.com>.",
+        placeholder: "Abys Hub <orders@abyshub.com>",
+      },
+      {
         key: "whatsapp_number",
         label: "WhatsApp number",
         hint: "Digits only, with country code. Blank hides WhatsApp ordering.",
@@ -39,11 +45,13 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
 const secrets = {
   title: "Credentials",
   blurb:
-    "Held in a table no browser key can read — only the server can. Existing values are never shown here, not even to you: this form can set a credential, not reveal one. The Paystack secret key lives on the Payments page, next to the pricing tiers it charges against.",
+    "Held in a table no browser key can read — only the server can. Order notifications use Resend and are delivered to the Contact email above. The Paystack secret key remains on the Payments page.",
   fields: [
-    { key: "smtp_host", label: "SMTP host" },
-    { key: "smtp_user", label: "SMTP username" },
-    { key: "smtp_password", label: "SMTP password" },
+    {
+      key: "resend_api_key",
+      label: "Resend API key",
+      hint: "Create a sending-access key in Resend. It begins re_.",
+    },
   ] as SettingField[],
 };
 

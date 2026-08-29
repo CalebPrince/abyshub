@@ -8,6 +8,7 @@ import { listPayments, getPaymentsSummary, listSettings } from "@/lib/crm/querie
 import { formatPrice } from "@/lib/money";
 import { paystackConfigured } from "@/lib/paystack";
 import { requireAdmin } from "@/lib/admin/dal";
+import { getShopSettings } from "@/lib/shop/settings";
 
 export const metadata: Metadata = { title: "Payments" };
 
@@ -18,6 +19,19 @@ const channelTone: Record<string, string> = {
 };
 
 const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
+  {
+    title: "Paystack public key",
+    blurb:
+      "Safe to use in the browser. Use the live key from Paystack now that the account is approved.",
+    fields: [
+      {
+        key: "paystack_public_key",
+        label: "Public key",
+        hint: "Use pk_live_… for live payments or pk_test_… while testing.",
+        placeholder: "pk_live_…",
+      },
+    ],
+  },
   {
     title: "Pricing tiers",
     blurb:
@@ -62,12 +76,15 @@ export default async function AdminPaymentsPage() {
   await requireAdmin();
 
   const connected = adminClientAvailable();
-  const [configured, payments, summary, { settings, secretsSet }] = await Promise.all([
-    paystackConfigured(),
-    listPayments(50),
-    getPaymentsSummary(),
-    listSettings(),
-  ]);
+  const [configured, payments, summary, shopSettings, { settings, secretsSet }] =
+    await Promise.all([
+      paystackConfigured(),
+      listPayments(50),
+      getPaymentsSummary(),
+      getShopSettings(),
+      listSettings(),
+    ]);
+  const webhookUrl = `${shopSettings.siteUrl.replace(/\/$/, "")}/api/paystack/webhook`;
 
   const values = Object.fromEntries(
     settings.map((row) => [row.key, row.value ?? ""])
@@ -84,6 +101,7 @@ export default async function AdminPaymentsPage() {
       <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
         Back office
       </p>
+
       <h1 className="font-display mt-2 text-3xl leading-none font-extrabold tracking-tight uppercase lg:text-4xl">
         Payments
       </h1>
@@ -94,6 +112,18 @@ export default async function AdminPaymentsPage() {
         Paystack is asked to charge; change one and the very next checkout
         uses it.
       </p>
+
+      <div className="border-border bg-card mt-6 rounded-xl border p-4">
+        <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase">
+          Paystack webhook URL
+        </p>
+        <code className="mt-2 block overflow-x-auto text-sm font-semibold select-all">
+          {webhookUrl}
+        </code>
+        <p className="text-muted-foreground mt-2 text-xs">
+          Add this under Settings → API Keys &amp; Webhooks in your Paystack dashboard.
+        </p>
+      </div>
 
       {!connected ? (
         <div className="mt-8">

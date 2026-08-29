@@ -19,6 +19,8 @@ export type PaidOrderInput = {
   phone?: string;
   address?: string;
   city?: string;
+  fulfilmentMethod?: "delivery" | "pickup";
+  collectionCode?: string;
   subtotal?: number;
   delivery?: number;
   items: PaystackItem[];
@@ -89,6 +91,8 @@ export async function recordPaidOrder(input: PaidOrderInput) {
         phone: input.phone || null,
         address: input.address || null,
         city: input.city || null,
+        fulfilment_method: input.fulfilmentMethod ?? "delivery",
+        collection_code: input.collectionCode || null,
         subtotal: subtotal || Math.max(total - delivery, 0),
         delivery,
         total,

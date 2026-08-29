@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import {
   generateReference,
+  generateCollectionCode,
   initializeTransaction,
   paystackConfigured,
 } from "@/lib/paystack";
@@ -73,9 +74,24 @@ export async function startPaystackCheckout(
   const phone = requiredText(formData, "phone");
   const address = requiredText(formData, "address");
   const city = requiredText(formData, "city");
+  const fulfilmentMethod = requiredText(formData, "fulfilment_method");
 
-  if (!email.includes("@") || !name || !phone || !address || !city) {
-    return { error: "Fill in every field so we know where to deliver." };
+  if (fulfilmentMethod !== "delivery" && fulfilmentMethod !== "pickup") {
+    return { error: "Choose pickup or delivery to continue." };
+  }
+
+  if (
+    !email.includes("@") ||
+    !name ||
+    !phone ||
+    (fulfilmentMethod === "delivery" && (!address || !city))
+  ) {
+    return {
+      error:
+        fulfilmentMethod === "delivery"
+          ? "Fill in every delivery field so we know where to bring your order."
+          : "Enter your name, phone number and email to continue.",
+    };
   }
 
   const cart = parseCart(formData.get("cart"));
@@ -101,11 +117,16 @@ export async function startPaystackCheckout(
     };
   }
 
-  const totals = calculateTotals(lines, {
+  const calculatedTotals = calculateTotals(lines, {
     freeDeliveryThreshold: settings.freeDeliveryThreshold,
     deliveryFlatRate: settings.deliveryFlatRate,
   });
+  const totals =
+    fulfilmentMethod === "pickup"
+      ? { ...calculatedTotals, delivery: 0, total: calculatedTotals.subtotal }
+      : calculatedTotals;
   const reference = generateReference();
+  const collectionCode = await generateCollectionCode();
 
   const result = await initializeTransaction({
     email,
@@ -117,6 +138,8 @@ export async function startPaystackCheckout(
       phone,
       address,
       city,
+      fulfilment_method: fulfilmentMethod,
+      collection_code: collectionCode,
       // Kept small on purpose — Paystack metadata is not an order database.
       items: lines.map((line) => ({
         id: line.productId,
