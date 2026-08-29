@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PlusIcon } from "lucide-react";
 
 import { SetupNotice } from "@/components/admin/setup-notice";
+import { RecoverOrderForm } from "@/components/admin/recover-order-form";
 import { adminClientAvailable } from "@/lib/supabase/admin";
 import { listOrders } from "@/lib/crm/queries";
 import { formatPrice } from "@/lib/money";
@@ -157,6 +158,8 @@ export default async function AdminOrdersPage() {
           </tbody>
         </table>
       </div>
+
+      {connected ? <RecoverOrderForm /> : null}
     </div>
   );
 }

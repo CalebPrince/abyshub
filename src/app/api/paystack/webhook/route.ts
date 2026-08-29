@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isValidWebhookSignature } from "@/lib/paystack";
-import { recordPaidOrder, type PaidOrderInput } from "@/lib/crm/orders";
+import { paidOrderFromPaystack, recordPaidOrder } from "@/lib/crm/orders";
 import {
   sendCustomerOrderConfirmation,
   sendPaidOrderNotification,
@@ -43,26 +43,17 @@ export async function POST(request: Request) {
         break;
       }
 
-      const paidOrder: PaidOrderInput = {
-        reference,
-        email: String(customer.email ?? metadata.email ?? ""),
-        amount: Number(data.amount ?? 0),
-        currency: data.currency ? String(data.currency) : undefined,
-        paidAt: data.paid_at ? String(data.paid_at) : null,
-        name: metadata.customer_name ? String(metadata.customer_name) : undefined,
-        phone: metadata.phone ? String(metadata.phone) : undefined,
-        address: metadata.address ? String(metadata.address) : undefined,
-        city: metadata.city ? String(metadata.city) : undefined,
-        fulfilmentMethod:
-          metadata.fulfilment_method === "pickup" ? "pickup" : "delivery",
-        collectionCode: metadata.collection_code
-          ? String(metadata.collection_code)
-          : undefined,
-        subtotal: Number(metadata.subtotal ?? 0),
-        delivery: Number(metadata.delivery ?? 0),
-        items: Array.isArray(metadata.items) ? metadata.items : [],
-        rawPayload: event,
-      };
+      const paidOrder = paidOrderFromPaystack(
+        {
+          reference,
+          email: String(customer.email ?? metadata.email ?? ""),
+          amount: Number(data.amount ?? 0),
+          currency: data.currency ? String(data.currency) : null,
+          paidAt: data.paid_at ? String(data.paid_at) : null,
+          metadata,
+        },
+        event
+      );
       const result = await recordPaidOrder(paidOrder);
 
       if (!result.ok) {
