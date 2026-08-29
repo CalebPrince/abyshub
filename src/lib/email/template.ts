@@ -127,7 +127,15 @@ export function emailShell({
                 <p style="margin:0;color:#ffffff;font-size:11px;font-weight:bold;letter-spacing:2.4px;text-transform:uppercase">${escapeHtml(headerEyebrow)}</p>
                 <p style="margin:8px 0 0;color:#ffffff;font-family:${DISPLAY_FONT};font-size:27px;font-weight:900;letter-spacing:-0.5px;text-transform:uppercase">${escapeHtml(heading)}</p>
               </td>
-              <td align="right" style="color:#ffffff;font-size:30px;line-height:1">&#10003;</td>
+              <!-- The receipt page's ringed tick. Drawn with a border rather
+                   than an icon: Gmail strips inline SVG, and a hosted PNG
+                   would be a broken-image gap wherever images are blocked.
+                   Outlook renders the ring square, which is a fair trade. -->
+              <td align="right" width="48" style="width:48px">
+                <table role="presentation" cellpadding="0" cellspacing="0" align="right" style="border:2px solid #ffffff;border-radius:24px">
+                  <tr><td align="center" valign="middle" width="40" height="40" style="width:40px;height:40px;color:#ffffff;font-size:21px;line-height:40px">&#10003;</td></tr>
+                </table>
+              </td>
             </tr>
           </table>
         </td></tr>
