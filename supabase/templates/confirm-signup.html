@@ -1,0 +1,57 @@
+<!--
+  Paste into Supabase → Authentication → Emails → "Confirm signup".
+
+  Kept here so the dashboard's copy is not the only one: template editors are
+  easy to overwrite and impossible to diff.
+
+  Deliberately static, and deliberately a near-duplicate of the shell in
+  src/lib/email/template.ts. Supabase renders this on its own servers with Go
+  templating and cannot reach our settings, so the palette and the contact
+  details are literals. Change them here and in template.ts together.
+
+  {{ .ConfirmationURL }} is Supabase's — it points at their verify endpoint,
+  which bounces to /auth/callback with the one-time code.
+-->
+<div style="background:#f4f4f5;padding:24px 0;font-family:Arial,Helvetica,sans-serif;color:#111111">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr><td align="center">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background:#ffffff;border-radius:16px;overflow:hidden">
+
+        <tr><td style="background:#d6015f;padding:30px 28px">
+          <p style="margin:0;color:#ffffff;font-size:11px;font-weight:bold;letter-spacing:2.4px;text-transform:uppercase">Abys Hub</p>
+          <p style="margin:8px 0 0;color:#ffffff;font-family:'Arial Black','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:27px;font-weight:900;letter-spacing:-0.5px;text-transform:uppercase">Confirm your email</p>
+        </td></tr>
+
+        <tr><td style="padding:30px 28px 0">
+          <p style="margin:0;font-size:15px;line-height:1.6">
+            Thanks for creating an account. Confirm this address and your order
+            history, saved delivery details and faster checkout are ready to use.
+          </p>
+        </td></tr>
+
+        <tr><td style="padding:28px 28px 0" align="center">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#d6015f;color:#ffffff;text-decoration:none;font-size:13px;font-weight:bold;letter-spacing:0.6px;padding:14px 34px;border-radius:999px">Confirm my email</a>
+        </td></tr>
+
+        <tr><td style="padding:26px 28px 0">
+          <p style="margin:0;color:#6b6b6b;font-size:12px;line-height:1.6">
+            If the button does not work, copy this into your browser:<br>
+            <a href="{{ .ConfirmationURL }}" style="color:#d6015f;word-break:break-all">{{ .ConfirmationURL }}</a>
+          </p>
+          <p style="margin:16px 0 0;color:#6b6b6b;font-size:12px;line-height:1.6">
+            Open it in the same browser you signed up from. If you did not
+            create an account with us, ignore this email and nothing happens.
+          </p>
+        </td></tr>
+
+        <tr><td style="padding:28px 28px 30px" align="center">
+          <p style="margin:0;color:#6b6b6b;font-size:12px;line-height:1.6;border-top:1px solid #e8dfe3;padding-top:20px">
+            Abys Hub &middot; <a href="mailto:hello@abyshub.com" style="color:#d6015f;text-decoration:none">hello@abyshub.com</a><br>
+            <a href="https://abyshub.com" style="color:#6b6b6b;text-decoration:none">abyshub.com</a>
+          </p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</div>
