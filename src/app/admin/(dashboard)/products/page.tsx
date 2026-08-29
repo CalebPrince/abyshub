@@ -11,6 +11,11 @@ import { ImportProductDialog } from "@/components/admin/import-product-dialog";
 import { DeleteAllProducts } from "@/components/admin/delete-all-products";
 import { BulkImportDialog } from "@/components/admin/bulk-import-dialog";
 import { BulkAvailabilityDialog } from "@/components/admin/bulk-availability-dialog";
+import {
+  ProductStatusFilter,
+  isStatusFilter,
+  type StatusFilter,
+} from "@/components/admin/product-status-filter";
 import { adminClientAvailable, createAdminClient } from "@/lib/supabase/admin";
 import {
   refreshProduct,
@@ -62,17 +67,29 @@ const PER_PAGE = 20;
  * that is cheaper than a round trip each time a dialog opens, and the count
  * is asked for in the same query rather than a second one.
  */
-async function listRows(page: number): Promise<{ rows: Row[]; total: number }> {
+async function listRows(
+  page: number,
+  status: StatusFilter
+): Promise<{ rows: Row[]; total: number }> {
   if (!adminClientAvailable()) return { rows: [], total: 0 };
   const supabase = createAdminClient();
 
-  const from = (page - 1) * PER_PAGE;
-  const { data, count } = await supabase
+  let query = supabase
     .from("products")
     .select(
       "id, slug, name, brand, category, image, product_line, price, compare_at_price, tagline, description, highlights, in_stock, featured, published, supplier, source_url",
       { count: "exact" }
-    )
+    );
+
+  // Same four states the Status column already shows per row — this just
+  // narrows the table to one of them instead of making someone scan for it.
+  if (status === "featured") query = query.eq("featured", true);
+  else if (status === "available") query = query.eq("in_stock", true);
+  else if (status === "out-of-stock") query = query.eq("in_stock", false);
+  else if (status === "unlisted") query = query.eq("published", false);
+
+  const from = (page - 1) * PER_PAGE;
+  const { data, count } = await query
     // Featured products lead the list — they are the ones staff have
     // actively vouched for (a fixed photo, a checked price), so whoever is
     // scanning the table for something to review should hit those first
@@ -97,8 +114,12 @@ function pageWindow(page: number, pageCount: number) {
     .sort((a, b) => a - b);
 }
 
-function pageHref(page: number) {
-  return page <= 1 ? "/admin/products" : `/admin/products?page=${page}`;
+function pageHref(page: number, status: StatusFilter) {
+  const params = new URLSearchParams();
+  if (status !== "all") params.set("status", status);
+  if (page > 1) params.set("page", String(page));
+  const query = params.toString();
+  return query ? `/admin/products?${query}` : "/admin/products";
 }
 
 function Flag({ on, label }: { on: boolean; label: string }) {
@@ -126,8 +147,11 @@ export default async function AdminProductsPage({
   const asked = Number(Array.isArray(params.page) ? params.page[0] : params.page);
   const wanted = Number.isFinite(asked) && asked >= 1 ? Math.floor(asked) : 1;
 
+  const rawStatus = Array.isArray(params.status) ? params.status[0] : params.status;
+  const status: StatusFilter = rawStatus && isStatusFilter(rawStatus) ? rawStatus : "all";
+
   const [{ rows, total }, { categories }] = await Promise.all([
-    listRows(wanted),
+    listRows(wanted, status),
     getCatalogue(),
   ]);
 
@@ -176,7 +200,7 @@ export default async function AdminProductsPage({
         </div>
       ) : null}
 
-      {connected && total === 0 ? (
+      {connected && status === "all" && total === 0 ? (
         <div className="border-border mt-8 rounded-xl border p-8 text-center">
           <p className="font-semibold">Nothing imported yet</p>
           <p className="text-muted-foreground mx-auto mt-1 max-w-md text-sm">
@@ -191,9 +215,27 @@ export default async function AdminProductsPage({
         </div>
       ) : null}
 
+      {connected && (status !== "all" || total > 0) ? (
+        <div className="mt-8">
+          <ProductStatusFilter total={total} />
+        </div>
+      ) : null}
+
+      {connected && status !== "all" && total === 0 ? (
+        <div className="border-border mt-4 rounded-xl border border-dashed p-8 text-center">
+          <p className="font-semibold">No products match this filter</p>
+          <Link
+            href="/admin/products"
+            className="text-primary mt-2 inline-block text-sm font-medium underline underline-offset-2"
+          >
+            Clear it
+          </Link>
+        </div>
+      ) : null}
+
       {total > 0 ? (
         <>
-          <div className="border-border mt-8 overflow-x-auto rounded-xl border">
+          <div className="border-border mt-4 overflow-x-auto rounded-xl border">
             <table className="w-full min-w-[46rem] text-sm">
               <thead className="bg-muted/50 text-muted-foreground">
                 <tr className="text-left">
@@ -339,7 +381,7 @@ export default async function AdminProductsPage({
                   aria-label="Previous page"
                 >
                   {page > 1 ? (
-                    <Link href={pageHref(page - 1)}>
+                    <Link href={pageHref(page - 1, status)}>
                       <ChevronLeftIcon />
                     </Link>
                   ) : (
@@ -362,7 +404,7 @@ export default async function AdminProductsPage({
                       className="w-9 tabular-nums"
                       aria-current={n === page ? "page" : undefined}
                     >
-                      {n === page ? <span>{n}</span> : <Link href={pageHref(n)}>{n}</Link>}
+                      {n === page ? <span>{n}</span> : <Link href={pageHref(n, status)}>{n}</Link>}
                     </Button>
                   </span>
                 ))}
@@ -375,7 +417,7 @@ export default async function AdminProductsPage({
                   aria-label="Next page"
                 >
                   {page < pageCount ? (
-                    <Link href={pageHref(page + 1)}>
+                    <Link href={pageHref(page + 1, status)}>
                       <ChevronRightIcon />
                     </Link>
                   ) : (
