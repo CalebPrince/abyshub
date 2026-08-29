@@ -73,7 +73,11 @@ export const getShopSettings = unstable_cache(
     const whatsappNumber = pick(stored, "whatsapp_number", WHATSAPP_NUMBER);
 
     return {
-      siteUrl: pick(stored, "site_url", SITE_URL),
+      // Trailing slash stripped here rather than at each call site: this is a
+      // value someone types into a form, and every consumer concatenates a
+      // path onto it. One "https://abyshub.com/" otherwise becomes a payment
+      // callback and a confirmation link with "//" in them.
+      siteUrl: pick(stored, "site_url", SITE_URL).replace(/\/+$/, ""),
       contactEmail: pick(stored, "contact_email", CONTACT_EMAIL),
       whatsappNumber,
       whatsappEnabled: whatsappNumber.length > 0,
