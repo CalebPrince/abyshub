@@ -68,7 +68,7 @@ export const ASSISTANT_NAME = "Lisa";
 /** Order totals, all in minor units of CURRENCY (pesewas). */
 export const FREE_DELIVERY_THRESHOLD = envNumber(
   process.env.NEXT_PUBLIC_FREE_DELIVERY_THRESHOLD,
-  50000
+  100000
 );
 
 export const DELIVERY_FLAT_RATE = envNumber(

@@ -35,13 +35,13 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
   {
     title: "Pricing tiers",
     blurb:
-      "What Paystack charges the customer, before their card ever sees a checkout page. Amounts are in minor units — 50000 is GH₵500.00 — and whole numbers only, so nothing is ever held as a float.",
+      "What Paystack charges the customer, before their card ever sees a checkout page. Amounts are in minor units — 100000 is GH₵1,000.00 — and whole numbers only, so nothing is ever held as a float.",
     fields: [
       {
         key: "free_delivery_threshold",
         label: "Free delivery over",
         hint: "Orders at or above this subtotal skip the delivery charge entirely.",
-        placeholder: "50000",
+        placeholder: "100000",
       },
       {
         key: "delivery_flat_rate",
