@@ -1,8 +1,6 @@
 import {
   ASSISTANT_NAME,
   CONTACT_EMAIL,
-  DELIVERY_FLAT_RATE,
-  FREE_DELIVERY_THRESHOLD,
   STORE_NAME,
 } from "@/lib/config";
 import { formatPrice } from "@/lib/money";
@@ -90,9 +88,9 @@ const rules: Rule[] = [
   {
     id: "delivery",
     test: /\b(deliver|delivery|shipping|ship|postage|dispatch|how long|when will|arrive)\b/,
-    reply: () => ({
-      text: `Delivery is ${formatPrice(DELIVERY_FLAT_RATE)}, and free once your basket passes ${formatPrice(
-        FREE_DELIVERY_THRESHOLD
+    reply: (context) => ({
+      text: `Delivery is ${formatPrice(context.rates.deliveryFlatRate)}, and free once your basket passes ${formatPrice(
+        context.rates.freeDeliveryThreshold
       )}. Orders confirmed before 3pm go out the same working day.`,
       quickReplies: ["How can I pay?", "What's in stock?", "Talk to a person"],
     }),

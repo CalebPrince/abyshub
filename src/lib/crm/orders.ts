@@ -27,6 +27,20 @@ export type PaidOrderInput = {
   rawPayload: unknown;
 };
 
+/**
+ * Stand-in domain for WhatsApp customers who only ever gave a phone number.
+ * Nothing is deliverable here, so anything that sends mail has to check.
+ */
+export const PLACEHOLDER_EMAIL_DOMAIN = "abyshub.orders";
+
+/** False for a blank, malformed, or synthesized address. */
+export function isReachableEmail(email: string | undefined | null): boolean {
+  const trimmed = email?.trim().toLowerCase() ?? "";
+  return (
+    trimmed.includes("@") && !trimmed.endsWith(`@${PLACEHOLDER_EMAIL_DOMAIN}`)
+  );
+}
+
 function toInt(value: unknown, fallback = 0) {
   const n = typeof value === "string" ? Number(value) : value;
   return typeof n === "number" && Number.isFinite(n) ? Math.round(n) : fallback;
@@ -169,6 +183,7 @@ export type PendingOrderInput = {
   delivery: number;
   total: number;
   currency?: string;
+  collectionCode?: string;
   items: { id: string; name: string; quantity: number; unitPrice: number }[];
 };
 
@@ -223,6 +238,7 @@ export async function createPendingOrder(input: PendingOrderInput) {
         delivery: toInt(input.delivery),
         total: toInt(input.total),
         currency: input.currency || "GHS",
+        collection_code: input.collectionCode || null,
         payment_status: "pending",
         channel: "whatsapp",
       },

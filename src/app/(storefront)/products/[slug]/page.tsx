@@ -30,7 +30,7 @@ import {
 } from "@/lib/shop/catalogue";
 import { categoryImage } from "@/lib/shop/imagery";
 import { formatPrice } from "@/lib/money";
-import { FREE_DELIVERY_THRESHOLD } from "@/lib/config";
+import { getShopSettings } from "@/lib/shop/settings";
 import { buildWhatsAppProductEnquiry } from "@/lib/whatsapp-message";
 
 export async function generateStaticParams() {
@@ -61,7 +61,10 @@ export default async function ProductPage({
   params,
 }: PageProps<"/products/[slug]">) {
   const { slug } = await params;
-  const { products, categories } = await getCatalogue();
+  const [{ products, categories }, settings] = await Promise.all([
+    getCatalogue(),
+    getShopSettings(),
+  ]);
   const product = products.find((item) => item.slug === slug);
 
   if (!product) notFound();
@@ -273,7 +276,8 @@ export default async function ProductPage({
               <AccordionContent className="text-muted-foreground space-y-2">
                 <p>
                   Orders confirmed before 3pm go out the same working day.
-                  Delivery is free over {formatPrice(FREE_DELIVERY_THRESHOLD)}.
+                  Delivery is free over{" "}
+                  {formatPrice(settings.freeDeliveryThreshold)}.
                 </p>
                 <p>
                   Anything faulty is replaced. Tupperware seals carry the

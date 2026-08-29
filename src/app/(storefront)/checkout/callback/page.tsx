@@ -176,18 +176,24 @@ function Receipt({
         </header>
 
         <div className="space-y-8 p-7 sm:p-10">
-          <div className="bg-muted/60 border-foreground/10 rounded-xl border p-6 text-center">
-            <PackageCheckIcon className="text-primary mx-auto size-7" />
-            <p className="text-muted-foreground mt-3 text-xs font-semibold tracking-[0.18em] uppercase">
-              Show this code on {fulfilmentMethod}
-            </p>
-            <p className="font-display mt-2 text-4xl font-black tracking-[0.18em] sm:text-5xl">
-              {collectionCode ?? reference.slice(-8).toUpperCase()}
-            </p>
-            <p className="text-muted-foreground mt-3 text-xs">
-              Keep this code private. Staff will ask for it before handing over your order.
-            </p>
-          </div>
+          {/* Only ever the real code. Deriving one from the reference used to
+              fill this space for orders that have none — which reads as
+              reassuring and is worse than useless: staff are handed no such
+              code to check it against. */}
+          {collectionCode ? (
+            <div className="bg-muted/60 border-foreground/10 rounded-xl border p-6 text-center">
+              <PackageCheckIcon className="text-primary mx-auto size-7" />
+              <p className="text-muted-foreground mt-3 text-xs font-semibold tracking-[0.18em] uppercase">
+                Show this code on {fulfilmentMethod}
+              </p>
+              <p className="font-display mt-2 text-4xl font-black tracking-[0.18em] sm:text-5xl">
+                {collectionCode}
+              </p>
+              <p className="text-muted-foreground mt-3 text-xs">
+                Keep this code private. Staff will ask for it before handing over your order.
+              </p>
+            </div>
+          ) : null}
 
           <div className="grid gap-6 text-sm sm:grid-cols-2">
             <div>

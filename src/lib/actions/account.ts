@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, adminClientAvailable } from "@/lib/supabase/admin";
 import { supabaseEnabled } from "@/lib/supabase/config";
-import { SITE_URL } from "@/lib/config";
+import { getShopSettings } from "@/lib/shop/settings";
 
 export type AccountState = { error: string | null; notice: string | null };
 
@@ -46,6 +46,12 @@ export async function register(
   }
 
   const supabase = await createClient();
+  // The shop's origin, not the raw environment variable: an owner who corrects
+  // the address in admin Settings expects their emails to follow. Checkout
+  // already reads it from here, and the two drifting apart is how confirmation
+  // links end up pointing somewhere payments do not.
+  const { siteUrl } = await getShopSettings();
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -53,7 +59,7 @@ export async function register(
       data: { full_name: name },
       // Not /account directly: the link arrives with a one-time code that
       // /auth/callback has to trade for a session first.
-      emailRedirectTo: `${SITE_URL}/auth/callback?next=%2Faccount`,
+      emailRedirectTo: `${siteUrl}/auth/callback?next=%2Faccount`,
     },
   });
 
@@ -119,8 +125,10 @@ export async function requestPasswordReset(
   }
 
   const supabase = await createClient();
+  const { siteUrl } = await getShopSettings();
+
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${SITE_URL}/auth/callback?next=%2Faccount%2Freset`,
+    redirectTo: `${siteUrl}/auth/callback?next=%2Faccount%2Freset`,
   });
 
   // Always the same answer, whether or not the address has an account —

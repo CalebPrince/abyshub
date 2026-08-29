@@ -1,3 +1,4 @@
+import type { DeliveryRates } from "@/lib/totals";
 import type { Product } from "@/lib/types";
 
 export type ChatRole = "assistant" | "user";
@@ -24,6 +25,8 @@ export type ChatContext = {
   basket: string[];
   /** Whether a WhatsApp number is configured. */
   whatsappEnabled: boolean;
+  /** The shop's live delivery rates, so quoted figures match checkout. */
+  rates: DeliveryRates;
 };
 
 /**

@@ -19,7 +19,8 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FREE_DELIVERY_THRESHOLD, STORE_NAME } from "@/lib/config";
+import { useCart } from "@/components/store/cart-provider";
+import { STORE_NAME } from "@/lib/config";
 import { formatPrice } from "@/lib/money";
 
 /**
@@ -29,25 +30,30 @@ import { formatPrice } from "@/lib/money";
  */
 const SEEN_KEY = "abyshub.welcome.v1";
 
-const points = [
-  {
-    icon: BadgeCheckIcon,
-    title: "Genuine stock",
-    body: "Tupperware through authorised channels, warranty intact.",
-  },
-  {
-    icon: TruckIcon,
-    title: "Free delivery",
-    body: `On every basket over ${formatPrice(FREE_DELIVERY_THRESHOLD)}, nationwide.`,
-  },
-  {
-    icon: CreditCardIcon,
-    title: "Three ways to pay",
-    body: "Card at checkout, WhatsApp, or ask us for a quote.",
-  },
-];
+/** Built per render: the threshold is a shop setting, not a constant. */
+function buildPoints(freeDeliveryThreshold: number) {
+  return [
+    {
+      icon: BadgeCheckIcon,
+      title: "Genuine stock",
+      body: "Tupperware through authorised channels, warranty intact.",
+    },
+    {
+      icon: TruckIcon,
+      title: "Free delivery",
+      body: `On every basket over ${formatPrice(freeDeliveryThreshold)}, nationwide.`,
+    },
+    {
+      icon: CreditCardIcon,
+      title: "Three ways to pay",
+      body: "Card at checkout, WhatsApp, or ask us for a quote.",
+    },
+  ];
+}
 
 export function WelcomeModal() {
+  const { rates } = useCart();
+  const points = buildPoints(rates.freeDeliveryThreshold);
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {

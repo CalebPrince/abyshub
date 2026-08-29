@@ -1,10 +1,11 @@
 "use server";
 
 import { requireAdmin } from "@/lib/admin/dal";
-import { createPendingOrder } from "@/lib/crm/orders";
+import { createPendingOrder, PLACEHOLDER_EMAIL_DOMAIN } from "@/lib/crm/orders";
 import { getCatalogue } from "@/lib/shop/catalogue";
 import { getShopSettings } from "@/lib/shop/settings";
 import {
+  generateCollectionCode,
   generateReference,
   initializeTransaction,
   paystackConfigured,
@@ -95,7 +96,7 @@ export async function createWhatsAppOrder(
   // blocking the order on a detail the customer never gave.
   if (!email) {
     const digits = phone.replace(/\D/g, "");
-    email = `wa${digits}@abyshub.orders`;
+    email = `wa${digits}@${PLACEHOLDER_EMAIL_DOMAIN}`;
   } else if (!email.includes("@")) {
     return {
       error: "That email doesn't look right — leave it blank instead.",
@@ -133,6 +134,10 @@ export async function createWhatsAppOrder(
 
   const settings = await getShopSettings();
   const reference = generateReference();
+  // Staff verify this on handover exactly as they would for a card order.
+  // Without it the receipt page invents something from the reference that
+  // matches nothing anyone else can see.
+  const collectionCode = await generateCollectionCode();
 
   const result = await createPendingOrder({
     reference,
@@ -144,6 +149,7 @@ export async function createWhatsAppOrder(
     subtotal,
     delivery,
     total,
+    collectionCode,
     items,
   });
 
@@ -169,6 +175,7 @@ export async function createWhatsAppOrder(
       customer_name: name,
       phone,
       channel: "whatsapp",
+      collection_code: collectionCode,
       items: items.map((item) => ({
         id: item.id,
         name: item.name,
