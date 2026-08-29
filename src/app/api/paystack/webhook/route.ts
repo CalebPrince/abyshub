@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { isValidWebhookSignature } from "@/lib/paystack";
-import { recordPaidOrder } from "@/lib/crm/orders";
+import { recordPaidOrder, type PaidOrderInput } from "@/lib/crm/orders";
+import { sendPaidOrderNotification } from "@/lib/email/order-notification";
 
 /**
  * Paystack posts here when a charge settles. This is the authoritative signal
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
         break;
       }
 
-      const result = await recordPaidOrder({
+      const paidOrder: PaidOrderInput = {
         reference,
         email: String(customer.email ?? metadata.email ?? ""),
         amount: Number(data.amount ?? 0),
@@ -49,17 +50,34 @@ export async function POST(request: Request) {
         phone: metadata.phone ? String(metadata.phone) : undefined,
         address: metadata.address ? String(metadata.address) : undefined,
         city: metadata.city ? String(metadata.city) : undefined,
+        fulfilmentMethod:
+          metadata.fulfilment_method === "pickup" ? "pickup" : "delivery",
+        collectionCode: metadata.collection_code
+          ? String(metadata.collection_code)
+          : undefined,
         subtotal: Number(metadata.subtotal ?? 0),
         delivery: Number(metadata.delivery ?? 0),
         items: Array.isArray(metadata.items) ? metadata.items : [],
         rawPayload: event,
-      });
+      };
+      const result = await recordPaidOrder(paidOrder);
 
       if (!result.ok) {
         // 500 so Paystack retries — the charge is real and we have no record
         // of it. recordPaidOrder is idempotent, so a retry is safe.
         console.error("[paystack] could not record order", reference, result.error);
         return NextResponse.json({ error: "Could not record order" }, { status: 500 });
+      }
+
+      const notification = await sendPaidOrderNotification(paidOrder);
+      if (!notification.ok) {
+        // The payment and order are already safely recorded. Email is an
+        // alert, so a mail-provider outage must not reject a settled payment.
+        console.error(
+          "[resend] could not send paid-order notification",
+          reference,
+          notification.error
+        );
       }
 
       break;

@@ -3,8 +3,10 @@
 import { useCart } from "@/components/store/cart-provider";
 import { formatPrice, formatPriceExact } from "@/lib/money";
 
-export function OrderSummary() {
+export function OrderSummary({ pickup = false }: { pickup?: boolean }) {
   const { totals, itemCount } = useCart();
+  const delivery = pickup ? 0 : totals.delivery;
+  const total = totals.subtotal + delivery;
 
   return (
     <dl className="space-y-2.5 text-sm">
@@ -20,11 +22,11 @@ export function OrderSummary() {
       <div className="flex justify-between">
         <dt className="text-muted-foreground">Delivery</dt>
         <dd className="font-medium tabular-nums">
-          {totals.delivery === 0 ? "Free" : formatPrice(totals.delivery)}
+          {pickup ? "Pickup" : delivery === 0 ? "Free" : formatPrice(delivery)}
         </dd>
       </div>
 
-      {totals.freeDeliveryRemaining > 0 && (
+      {!pickup && totals.freeDeliveryRemaining > 0 && (
         <p className="text-muted-foreground text-xs">
           Spend {formatPrice(totals.freeDeliveryRemaining)} more for free
           delivery.
@@ -36,7 +38,7 @@ export function OrderSummary() {
           Total
         </dt>
         <dd className="font-display text-xl font-extrabold tabular-nums">
-          {formatPriceExact(totals.total)}
+          {formatPriceExact(total)}
         </dd>
       </div>
     </dl>

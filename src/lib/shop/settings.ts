@@ -8,6 +8,7 @@ import {
   DELIVERY_FLAT_RATE,
   FREE_DELIVERY_THRESHOLD,
   LEGAL,
+  PAYSTACK_PUBLIC_KEY,
   SITE_URL,
   WHATSAPP_NUMBER,
 } from "@/lib/config";
@@ -21,6 +22,8 @@ export type ShopSettings = {
   whatsappEnabled: boolean;
   freeDeliveryThreshold: number;
   deliveryFlatRate: number;
+  paystackPublicKey: string;
+  resendFromEmail: string;
   /** Added to every converted partner price, as whole percent. */
   priceMarkupPercent: number;
   legal: {
@@ -80,6 +83,12 @@ export const getShopSettings = unstable_cache(
         FREE_DELIVERY_THRESHOLD
       ),
       deliveryFlatRate: pickNumber(stored, "delivery_flat_rate", DELIVERY_FLAT_RATE),
+      paystackPublicKey: pick(stored, "paystack_public_key", PAYSTACK_PUBLIC_KEY),
+      resendFromEmail: pick(
+        stored,
+        "resend_from_email",
+        process.env.RESEND_FROM_EMAIL?.trim() || ""
+      ),
       // No environment fallback and no invented default: zero means the shelf
       // price is the bare converted figure, which is at least honest about
       // carrying no margin until someone sets one.

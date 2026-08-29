@@ -8,6 +8,8 @@ import {
   FileTextIcon,
   LockIcon,
   MessageCircleIcon,
+  StoreIcon,
+  TruckIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,7 @@ import { WhatsAppLink } from "@/components/store/whatsapp-link";
 import { cn } from "@/lib/utils";
 
 type Method = "card" | "whatsapp" | "enquiry";
+type FulfilmentMethod = "delivery" | "pickup";
 
 export function CheckoutForm({
   paystackReady,
@@ -34,11 +37,17 @@ export function CheckoutForm({
   const [method, setMethod] = React.useState<Method>(
     paystackReady ? "card" : "whatsapp"
   );
+  const [fulfilmentMethod, setFulfilmentMethod] =
+    React.useState<FulfilmentMethod>("delivery");
 
   const [state, formAction, pending] = React.useActionState(
     startPaystackCheckout,
     { error: null }
   );
+  const checkoutTotals =
+    fulfilmentMethod === "pickup"
+      ? { ...totals, delivery: 0, total: totals.subtotal }
+      : totals;
 
   if (!hydrated) {
     return (
@@ -94,14 +103,67 @@ export function CheckoutForm({
       available: true,
     },
   ];
+  const whatsappOrderMessage = `${buildWhatsAppOrder(lines, checkoutTotals)}\n\nFulfilment: ${
+    fulfilmentMethod === "pickup" ? "Pickup" : "Delivery"
+  }`;
 
   return (
     <div className="mt-10 grid items-start gap-10 lg:grid-cols-[1fr_380px]">
       <div className="space-y-8">
+        <fieldset>
+          <legend className="text-primary mb-4 text-[11px] font-semibold tracking-[0.2em] uppercase">
+            01 — How will you receive it?
+          </legend>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {([
+              {
+                id: "delivery" as const,
+                icon: TruckIcon,
+                title: "Delivery",
+                body: "We bring the order to your address",
+              },
+              {
+                id: "pickup" as const,
+                icon: StoreIcon,
+                title: "Pickup",
+                body: "Collect it from Abys Hub with your receipt code",
+              },
+            ]).map((option) => (
+              <label
+                key={option.id}
+                className={cn(
+                  "border-foreground/12 flex cursor-pointer items-start gap-4 rounded-xl border p-5 transition-colors",
+                  fulfilmentMethod === option.id
+                    ? "border-primary bg-primary/6 ring-primary/20 ring-2"
+                    : "hover:border-foreground/40"
+                )}
+              >
+                <input
+                  type="radio"
+                  name="fulfilment-choice"
+                  value={option.id}
+                  checked={fulfilmentMethod === option.id}
+                  onChange={() => setFulfilmentMethod(option.id)}
+                  className="sr-only"
+                />
+                <option.icon className="text-primary mt-0.5 size-6 shrink-0" />
+                <span>
+                  <span className="font-display block font-bold tracking-tight uppercase">
+                    {option.title}
+                  </span>
+                  <span className="text-muted-foreground mt-1 block text-xs">
+                    {option.body}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
         {/* ── Method picker ── */}
         <fieldset>
           <legend className="text-primary mb-4 text-[11px] font-semibold tracking-[0.2em] uppercase">
-            01 — How would you like to order?
+            02 — How would you like to pay?
           </legend>
 
           <div className="grid gap-px sm:grid-cols-3">
@@ -153,10 +215,15 @@ export function CheckoutForm({
           <form action={formAction} className="space-y-8">
             {/* Ids and quantities only — the server prices the order itself. */}
             <input type="hidden" name="cart" value={JSON.stringify(items)} />
+            <input
+              type="hidden"
+              name="fulfilment_method"
+              value={fulfilmentMethod}
+            />
 
             <section className="space-y-5">
               <h2 className="text-primary text-[11px] font-semibold tracking-[0.2em] uppercase">
-                02 — Delivery details
+                03 — {fulfilmentMethod === "delivery" ? "Delivery" : "Contact"} details
               </h2>
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field id="name" label="Full name" autoComplete="name" />
@@ -173,19 +240,23 @@ export function CheckoutForm({
                   autoComplete="email"
                   className="sm:col-span-2"
                 />
-                <Field
-                  id="address"
-                  label="Delivery address"
-                  autoComplete="street-address"
-                  className="sm:col-span-2"
-                />
-                <Field id="city" label="City" autoComplete="address-level2" />
-                <Field
-                  id="state"
-                  label="State"
-                  autoComplete="address-level1"
-                  required={false}
-                />
+                {fulfilmentMethod === "delivery" ? (
+                  <>
+                    <Field
+                      id="address"
+                      label="Delivery address"
+                      autoComplete="street-address"
+                      className="sm:col-span-2"
+                    />
+                    <Field id="city" label="City" autoComplete="address-level2" />
+                    <Field
+                      id="state"
+                      label="State"
+                      autoComplete="address-level1"
+                      required={false}
+                    />
+                  </>
+                ) : null}
               </div>
             </section>
 
@@ -208,7 +279,11 @@ export function CheckoutForm({
                 <LockIcon />
                 {pending
                   ? "Opening Paystack…"
-                  : `Pay ${formatPriceExact(totals.total)}`}
+                  : `Pay ${formatPriceExact(
+                      fulfilmentMethod === "pickup"
+                        ? totals.subtotal
+                        : totals.total
+                    )}`}
               </Button>
               <p className="text-muted-foreground flex items-start gap-2 text-xs">
                 <LockIcon className="mt-0.5 size-3.5 shrink-0" />
@@ -230,10 +305,10 @@ export function CheckoutForm({
             </p>
 
             <pre className="border-foreground/12 text-muted-foreground bg-muted/40 max-h-56 overflow-auto rounded-xl border p-4 font-mono text-xs whitespace-pre-wrap">
-              {buildWhatsAppOrder(lines, totals)}
+              {whatsappOrderMessage}
             </pre>
 
-            <WhatsAppLink message={buildWhatsAppOrder(lines, totals)}>
+            <WhatsAppLink message={whatsappOrderMessage}>
               <Button size="lg" className="w-full sm:w-auto">
                 <MessageCircleIcon /> Send this order on WhatsApp
               </Button>
@@ -296,7 +371,7 @@ export function CheckoutForm({
         </ul>
 
         <div className="border-foreground/12 border-t pt-5">
-          <OrderSummary />
+          <OrderSummary pickup={fulfilmentMethod === "pickup"} />
         </div>
 
         <Button asChild variant="ghost" className="w-full">

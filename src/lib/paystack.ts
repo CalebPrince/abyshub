@@ -179,3 +179,11 @@ export function generateReference(): string {
   const random = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `AH-${Date.now().toString(36).toUpperCase()}-${random}`;
 }
+
+/** Short, unambiguous code staff use to release an order to its recipient. */
+export async function generateCollectionCode(): Promise<string> {
+  const { randomBytes } = await import("node:crypto");
+  const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const bytes = randomBytes(8);
+  return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
+}

@@ -106,6 +106,26 @@ export async function saveSettings(
     }
   }
 
+  const publicKey = publicRows.find((row) => row.key === "paystack_public_key")?.value;
+  if (publicKey && !/^pk_(test|live)_[A-Za-z0-9]+$/.test(publicKey)) {
+    return { error: "Enter a valid Paystack public key beginning pk_live_ or pk_test_.", notice: null };
+  }
+
+  const secretKey = secretRows.find((row) => row.key === "paystack_secret_key")?.value;
+  if (secretKey && !/^sk_(test|live)_[A-Za-z0-9]+$/.test(secretKey)) {
+    return { error: "Enter a valid Paystack secret key beginning sk_live_ or sk_test_.", notice: null };
+  }
+
+  const resendKey = secretRows.find((row) => row.key === "resend_api_key")?.value;
+  if (resendKey && !/^re_[A-Za-z0-9_-]+$/.test(resendKey)) {
+    return { error: "Enter a valid Resend API key beginning re_.", notice: null };
+  }
+
+  const resendFrom = publicRows.find((row) => row.key === "resend_from_email")?.value;
+  if (resendFrom && !/^[^<>\s]+@[^<>\s]+\.[^<>\s]+$|^.+ <[^<>\s]+@[^<>\s]+\.[^<>\s]+>$/.test(resendFrom)) {
+    return { error: "Enter a valid Resend sender, such as Abys Hub <orders@abyshub.com>.", notice: null };
+  }
+
   if (publicRows.length > 0) {
     const { error } = await supabase
       .from("settings")
