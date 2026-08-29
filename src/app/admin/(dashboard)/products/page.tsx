@@ -73,6 +73,11 @@ async function listRows(page: number): Promise<{ rows: Row[]; total: number }> {
       "id, slug, name, brand, category, image, product_line, price, compare_at_price, tagline, description, highlights, in_stock, featured, published, supplier, source_url",
       { count: "exact" }
     )
+    // Featured products lead the list — they are the ones staff have
+    // actively vouched for (a fixed photo, a checked price), so whoever is
+    // scanning the table for something to review should hit those first
+    // rather than paging past hundreds of untouched bulk-import rows.
+    .order("featured", { ascending: false })
     .order("sort_order")
     // Ordering has to be total, not just useful: two rows sharing a
     // sort_order could otherwise swap between pages and one of them would
