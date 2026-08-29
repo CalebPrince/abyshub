@@ -41,6 +41,50 @@ export function isReachableEmail(email: string | undefined | null): boolean {
   );
 }
 
+/**
+ * Paystack's payload, mapped onto an order.
+ *
+ * Shared by the webhook and the admin recovery action rather than written out
+ * at each: a field added to checkout's metadata needs to appear here once, and
+ * two copies of this mapping would only be compared when one of them is
+ * already wrong.
+ */
+export function paidOrderFromPaystack(
+  source: {
+    reference: string;
+    email: string;
+    amount: number;
+    currency?: string | null;
+    paidAt?: string | null;
+    metadata: Record<string, unknown> | null;
+  },
+  rawPayload: unknown
+): PaidOrderInput {
+  const metadata = source.metadata ?? {};
+  const str = (key: string) => {
+    const value = metadata[key];
+    return typeof value === "string" && value ? value : undefined;
+  };
+
+  return {
+    reference: source.reference,
+    email: source.email,
+    amount: source.amount,
+    currency: source.currency || undefined,
+    paidAt: source.paidAt ?? null,
+    name: str("customer_name"),
+    phone: str("phone"),
+    address: str("address"),
+    city: str("city"),
+    fulfilmentMethod: metadata.fulfilment_method === "pickup" ? "pickup" : "delivery",
+    collectionCode: str("collection_code"),
+    subtotal: toInt(metadata.subtotal),
+    delivery: toInt(metadata.delivery),
+    items: Array.isArray(metadata.items) ? (metadata.items as PaystackItem[]) : [],
+    rawPayload,
+  };
+}
+
 function toInt(value: unknown, fallback = 0) {
   const n = typeof value === "string" ? Number(value) : value;
   return typeof n === "number" && Number.isFinite(n) ? Math.round(n) : fallback;

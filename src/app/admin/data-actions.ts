@@ -3,6 +3,8 @@
 import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 
 import { requireAdmin } from "@/lib/admin/dal";
+import { paidOrderFromPaystack, recordPaidOrder } from "@/lib/crm/orders";
+import { verifyTransaction } from "@/lib/paystack";
 import { createAdminClient, adminClientAvailable } from "@/lib/supabase/admin";
 import { products as catalogue, categories } from "@/lib/products";
 import { CATALOGUE_TAG } from "@/lib/shop/catalogue";
@@ -51,6 +53,91 @@ export async function setFulfilmentStatus(formData: FormData): Promise<void> {
 
   revalidatePath("/admin/orders");
   revalidatePath("/admin");
+}
+
+/**
+ * Writes an order for a payment Paystack took but never told us about.
+ *
+ * The webhook is the only thing that records a paid order, so a charge that
+ * settled while the endpoint was misconfigured — or while a migration it
+ * depended on had not been run — leaves money taken and no record of it.
+ * Paystack will not redeliver those indefinitely, and re-keying them by hand
+ * would invent a new handover code that no longer matches the one the
+ * customer was shown.
+ *
+ * This asks Paystack what actually happened and replays it through the same
+ * write the webhook uses, so the row is identical to the one that should
+ * have appeared — original collection code included.
+ *
+ * Deliberately sends no email. The customer paid hours or days ago and has
+ * had a receipt from Paystack; a confirmation arriving now reads as a second
+ * charge. Staff can tell them directly.
+ *
+ * Nothing here trusts the form beyond the reference: the amount, the status
+ * and the metadata all come from Paystack, so this cannot be used to conjure
+ * a paid order out of a typed number.
+ */
+export async function recoverPaidOrder(
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const reference = text(formData, "reference");
+  if (!reference) {
+    return { error: "Enter the payment reference.", notice: null };
+  }
+
+  const result = await verifyTransaction(reference);
+  if (!result.ok) {
+    return { error: result.error, notice: null };
+  }
+
+  const { transaction } = result;
+  if (transaction.status !== "success") {
+    return {
+      error: `Paystack reports that payment as "${transaction.status}", so there is nothing to record.`,
+      notice: null,
+    };
+  }
+
+  const email = transaction.customerEmail ?? "";
+  if (!email) {
+    return {
+      error: "Paystack returned no customer email for that reference.",
+      notice: null,
+    };
+  }
+
+  const order = paidOrderFromPaystack(
+    {
+      reference: transaction.reference,
+      email,
+      amount: transaction.amount,
+      currency: transaction.currency,
+      paidAt: transaction.paidAt,
+      metadata: transaction.metadata,
+    },
+    transaction
+  );
+
+  // Idempotent on `reference`, so recovering one the webhook later redelivers
+  // — or one an impatient second click already wrote — is harmless.
+  const written = await recordPaidOrder(order);
+  if (!written.ok) {
+    return { error: written.error, notice: null };
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin/payments");
+  revalidatePath("/admin");
+
+  return {
+    error: null,
+    notice: `Recorded ${transaction.reference} for ${email}${
+      order.collectionCode ? ` — handover code ${order.collectionCode}` : ""
+    }. No email was sent.`,
+  };
 }
 
 // ---------------------------------------------------------------------------
