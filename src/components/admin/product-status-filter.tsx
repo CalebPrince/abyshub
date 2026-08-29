@@ -4,20 +4,11 @@ import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
-
-export const STATUS_OPTIONS = [
-  { value: "all", label: "All" },
-  { value: "featured", label: "Featured" },
-  { value: "available", label: "Available (GH)" },
-  { value: "out-of-stock", label: "Out of stock" },
-  { value: "unlisted", label: "Unlisted" },
-] as const;
-
-export type StatusFilter = (typeof STATUS_OPTIONS)[number]["value"];
-
-export function isStatusFilter(value: string): value is StatusFilter {
-  return STATUS_OPTIONS.some((option) => option.value === value);
-}
+import {
+  STATUS_OPTIONS,
+  isStatusFilter,
+  type StatusFilter,
+} from "@/lib/admin/product-status";
 
 /**
  * Quick status filter for the product table.

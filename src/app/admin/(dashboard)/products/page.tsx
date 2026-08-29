@@ -11,11 +11,11 @@ import { ImportProductDialog } from "@/components/admin/import-product-dialog";
 import { DeleteAllProducts } from "@/components/admin/delete-all-products";
 import { BulkImportDialog } from "@/components/admin/bulk-import-dialog";
 import { BulkAvailabilityDialog } from "@/components/admin/bulk-availability-dialog";
+import { ProductStatusFilter } from "@/components/admin/product-status-filter";
 import {
-  ProductStatusFilter,
   isStatusFilter,
   type StatusFilter,
-} from "@/components/admin/product-status-filter";
+} from "@/lib/admin/product-status";
 import { adminClientAvailable, createAdminClient } from "@/lib/supabase/admin";
 import {
   refreshProduct,
