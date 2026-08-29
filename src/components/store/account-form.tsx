@@ -18,6 +18,18 @@ const config: Record<Field, { label: string; type: string; autoComplete: string 
 };
 
 /**
+ * Fixed copy for the codes /auth/callback sends people back with. The message
+ * is looked up rather than read from the URL: free text in a query parameter,
+ * rendered above a sign-in form, is a gift to anyone building a phishing link.
+ */
+const linkErrors: Record<string, string> = {
+  expired: "That link has expired or has already been used. Ask for a new one below.",
+  browser:
+    "That link has to be opened in the browser you asked for it from. Sign in below instead.",
+  unavailable: "Accounts are not available right now. Please try again shortly.",
+};
+
+/**
  * Shared shell for sign in, register, forgot and reset. The differences
  * between those four are which fields show and which action runs, so they
  * share one component rather than four that drift apart.
@@ -44,6 +56,10 @@ export function AccountForm({
     { error: null, notice: null }
   );
 
+  // Whatever this attempt just said comes first; the emailed link's complaint
+  // is only there to explain how they arrived here.
+  const error = state.error ?? linkErrors[params.get("error") ?? ""] ?? null;
+
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="next" value={next} />
@@ -68,10 +84,10 @@ export function AccountForm({
         );
       })}
 
-      {state.error ? (
+      {error ? (
         <p role="alert" className="text-destructive flex items-start gap-2 text-sm">
           <AlertCircleIcon className="mt-0.5 size-4 shrink-0" />
-          {state.error}
+          {error}
         </p>
       ) : null}
 

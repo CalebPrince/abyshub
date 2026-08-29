@@ -21,7 +21,7 @@ Every setting lives in `.env.local`; see `.env.example` for the annotated list.
 
 | Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | Public origin. Paystack redirects back here after payment. |
+| `NEXT_PUBLIC_SITE_URL` | Public origin. Paystack redirects back here after payment, and it is the origin baked into confirmation and password-reset emails. |
 | `NEXT_PUBLIC_CURRENCY` / `NEXT_PUBLIC_LOCALE` | Charge currency and price formatting. Defaults to `GHS` / `en-GH`. |
 | `NEXT_PUBLIC_FREE_DELIVERY_THRESHOLD` / `NEXT_PUBLIC_DELIVERY_FLAT_RATE` | Delivery rules, in minor units. |
 | `PAYSTACK_SECRET_KEY` | **Server only.** Enables card checkout. |

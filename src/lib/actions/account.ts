@@ -51,7 +51,9 @@ export async function register(
     password,
     options: {
       data: { full_name: name },
-      emailRedirectTo: `${SITE_URL}/account`,
+      // Not /account directly: the link arrives with a one-time code that
+      // /auth/callback has to trade for a session first.
+      emailRedirectTo: `${SITE_URL}/auth/callback?next=%2Faccount`,
     },
   });
 
@@ -118,7 +120,7 @@ export async function requestPasswordReset(
 
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${SITE_URL}/account/reset`,
+    redirectTo: `${SITE_URL}/auth/callback?next=%2Faccount%2Freset`,
   });
 
   // Always the same answer, whether or not the address has an account —
