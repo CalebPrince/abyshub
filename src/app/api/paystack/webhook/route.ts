@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 
 import { isValidWebhookSignature } from "@/lib/paystack";
 import { recordPaidOrder, type PaidOrderInput } from "@/lib/crm/orders";
-import { sendPaidOrderNotification } from "@/lib/email/order-notification";
+import {
+  sendCustomerOrderConfirmation,
+  sendPaidOrderNotification,
+} from "@/lib/email/order-notification";
 
 /**
  * Paystack posts here when a charge settles. This is the authoritative signal
@@ -69,14 +72,31 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Could not record order" }, { status: 500 });
       }
 
-      const notification = await sendPaidOrderNotification(paidOrder);
+      // Both mails are sent, and neither is allowed to sink the other: the
+      // customer's copy carries their handover code, the staff alert is how
+      // the order gets picked up. Settled in parallel because Paystack is
+      // waiting on this response.
+      const [notification, confirmation] = await Promise.all([
+        sendPaidOrderNotification(paidOrder),
+        sendCustomerOrderConfirmation(paidOrder),
+      ]);
+
+      // The payment and order are already safely recorded by this point.
+      // Email is a notification, so a mail-provider outage must never turn
+      // into a rejected webhook and a payment we look like we did not take.
       if (!notification.ok) {
-        // The payment and order are already safely recorded. Email is an
-        // alert, so a mail-provider outage must not reject a settled payment.
         console.error(
           "[resend] could not send paid-order notification",
           reference,
           notification.error
+        );
+      }
+
+      if (!confirmation.ok) {
+        console.error(
+          "[resend] could not send customer confirmation",
+          reference,
+          confirmation.error
         );
       }
 
