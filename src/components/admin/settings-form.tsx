@@ -70,30 +70,13 @@ export function SettingsForm({
         <p className="text-muted-foreground mt-1 mb-4 text-sm">{secrets.blurb}</p>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          {secrets.fields.map((field) => {
-            const isSet = secretsSet.includes(field.key);
-            return (
-              <div className="space-y-2" key={field.key}>
-                <Label htmlFor={`secret:${field.key}`}>{field.label}</Label>
-                <Input
-                  id={`secret:${field.key}`}
-                  name={`secret:${field.key}`}
-                  type="password"
-                  autoComplete="off"
-                  // Never populated: the value is not read out of the database
-                  // and does not travel to the browser. The form reports only
-                  // whether one is stored.
-                  placeholder={isSet ? "•••••••• (stored)" : "Not set"}
-                  className="h-10"
-                />
-                <p className="text-muted-foreground text-xs">
-                  {isSet
-                    ? "Stored. Leave blank to keep it, or type a new value to replace it."
-                    : field.hint ?? "Not set."}
-                </p>
-              </div>
-            );
-          })}
+          {secrets.fields.map((field) => (
+            <SecretField
+              key={field.key}
+              field={field}
+              isSet={secretsSet.includes(field.key)}
+            />
+          ))}
         </div>
       </section>
 
@@ -116,5 +99,59 @@ export function SettingsForm({
         Save settings
       </Button>
     </form>
+  );
+}
+
+function SecretField({
+  field,
+  isSet,
+}: {
+  field: SettingField;
+  isSet: boolean;
+}) {
+  const [replacing, setReplacing] = React.useState(!isSet);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  function beginReplacement() {
+    setReplacing(true);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }
+
+  function cancelReplacement() {
+    if (inputRef.current) inputRef.current.value = "";
+    setReplacing(false);
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <Label htmlFor={`secret:${field.key}`}>{field.label}</Label>
+        {isSet ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={replacing ? cancelReplacement : beginReplacement}
+          >
+            {replacing ? "Cancel" : "Replace"}
+          </Button>
+        ) : null}
+      </div>
+      <Input
+        ref={inputRef}
+        id={`secret:${field.key}`}
+        name={`secret:${field.key}`}
+        type="password"
+        autoComplete="new-password"
+        disabled={!replacing}
+        placeholder={isSet && !replacing ? "•••••••• (stored)" : field.hint}
+        className="h-10"
+      />
+      <p className="text-muted-foreground text-xs">
+        {isSet && !replacing
+          ? "Stored securely. Click Replace only when you want to change it."
+          : field.hint ?? "Enter the credential."}
+      </p>
+    </div>
   );
 }
