@@ -3,14 +3,19 @@ import type { Metadata } from "next";
 
 import { CONTACT_EMAIL, LEGAL, STORE_NAME } from "@/lib/config";
 import { formatPrice } from "@/lib/money";
-import { DELIVERY_FLAT_RATE, FREE_DELIVERY_THRESHOLD } from "@/lib/config";
+import { getShopSettings } from "@/lib/shop/settings";
 
 export const metadata: Metadata = {
   title: "Terms of Use",
   description: `The terms you agree to when you use ${STORE_NAME} or place an order with us.`,
 };
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  // The figures the shop actually charges, not the build-time defaults: this
+  // page is a statement of terms, so quoting a stale threshold is a promise
+  // checkout will not keep.
+  const settings = await getShopSettings();
+
   return (
     <>
       <h1>Terms of Use</h1>
@@ -47,8 +52,8 @@ export default function TermsPage() {
           checkout.
         </li>
         <li>
-          Delivery is {formatPrice(DELIVERY_FLAT_RATE)}, and free once your
-          basket passes {formatPrice(FREE_DELIVERY_THRESHOLD)}.
+          Delivery is {formatPrice(settings.deliveryFlatRate)}, and free once
+          your basket passes {formatPrice(settings.freeDeliveryThreshold)}.
         </li>
         <li>
           Product photographs and illustrations are representative. Sizes,

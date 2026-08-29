@@ -39,7 +39,7 @@ export function ChatWidget({
     { id: nextId(), role: "assistant", ...GREETING },
   ]);
 
-  const { lines } = useCart();
+  const { lines, rates } = useCart();
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const timers = React.useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -73,6 +73,7 @@ export function ChatWidget({
       const reply = await responder(text, {
         basket: lines.map((line) => line.product.name),
         whatsappEnabled,
+        rates,
       });
 
       // A beat of "typing" so answers don't snap in faster than they read.
@@ -86,7 +87,7 @@ export function ChatWidget({
       }, 450);
       timers.current.push(timer);
     },
-    [lines, responder, thinking]
+    [lines, rates, responder, thinking]
   );
 
   function handleOpen() {

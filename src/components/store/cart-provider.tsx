@@ -14,6 +14,13 @@ import type { CartItem, Product } from "@/lib/types";
 
 type CartContextValue = {
   items: CartItem[];
+  /**
+   * The same rates the totals were priced with. Exposed so copy that merely
+   * *states* the free-delivery threshold quotes the figure the basket is
+   * actually using, instead of importing the build-time constant and
+   * promising something checkout will not honour.
+   */
+  rates: DeliveryRates;
   lines: OrderLine[];
   itemCount: number;
   totals: OrderTotals;
@@ -74,6 +81,7 @@ export function CartProvider({
       lines,
       itemCount,
       totals,
+      rates,
       hydrated,
       isOpen,
       setOpen,
@@ -82,7 +90,7 @@ export function CartProvider({
       updateQuantity: cartStore.updateQuantity,
       clearCart: cartStore.clearCart,
     }),
-    [items, lines, itemCount, totals, hydrated, isOpen]
+    [items, lines, itemCount, totals, rates, hydrated, isOpen]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

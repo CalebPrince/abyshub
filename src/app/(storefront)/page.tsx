@@ -18,7 +18,8 @@ import { getPageCopy } from "@/lib/shop/content";
 import { OffersGrid } from "@/components/store/offers-grid";
 import { PartnersSection } from "@/components/store/partners-section";
 import { categoryImage, HERO_ALBUM, LIFESTYLE } from "@/lib/shop/imagery";
-import { FREE_DELIVERY_THRESHOLD, whatsappEnabled } from "@/lib/config";
+import { whatsappEnabled } from "@/lib/config";
+import { getShopSettings } from "@/lib/shop/settings";
 import { formatPrice } from "@/lib/money";
 
 const orderRoutes = [
@@ -46,9 +47,10 @@ const orderRoutes = [
 ];
 
 export default async function HomePage() {
-  const [{ products, categories }, copy] = await Promise.all([
+  const [{ products, categories }, copy, settings] = await Promise.all([
     getCatalogue(),
     getPageCopy("home"),
+    getShopSettings(),
   ]);
   const featured = featuredFrom(products);
 
@@ -339,7 +341,7 @@ export default async function HomePage() {
             {
               icon: TruckIcon,
               title: "Nationwide delivery",
-              body: `Free over ${formatPrice(FREE_DELIVERY_THRESHOLD)}. Dispatch within one working day.`,
+              body: `Free over ${formatPrice(settings.freeDeliveryThreshold)}. Dispatch within one working day.`,
             },
             {
               icon: MessageCircleIcon,
