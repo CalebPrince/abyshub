@@ -111,7 +111,11 @@ function SecretField({
   field: SettingField;
   isSet: boolean;
 }) {
-  const [replacing, setReplacing] = React.useState(!isSet);
+  // Locked even when nothing is stored yet. An enabled, empty password box on
+  // a page you just signed in to is exactly what a browser's password manager
+  // fills with your admin password — and the save then writes that over the
+  // key. Clicking Set is the deliberate act that opens the box.
+  const [replacing, setReplacing] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   function beginReplacement() {
@@ -128,31 +132,45 @@ function SecretField({
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3">
         <Label htmlFor={`secret:${field.key}`}>{field.label}</Label>
-        {isSet ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={replacing ? cancelReplacement : beginReplacement}
-          >
-            {replacing ? "Cancel" : "Replace"}
-          </Button>
-        ) : null}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={replacing ? cancelReplacement : beginReplacement}
+        >
+          {replacing ? "Cancel" : isSet ? "Replace" : "Set"}
+        </Button>
       </div>
       <Input
         ref={inputRef}
         id={`secret:${field.key}`}
         name={`secret:${field.key}`}
-        type="password"
-        autoComplete="new-password"
+        // Not `type="password"`. That is the single strongest signal a
+        // password manager has, and it will offer to fill the box whatever
+        // the autocomplete attribute says. Masking is done with CSS instead,
+        // so the value is still hidden over the shoulder while the field
+        // reads to a manager as ordinary text it has no business filling.
+        type="text"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
+        // The managers that ignore autocomplete honour these instead.
+        data-1p-ignore
+        data-lpignore="true"
+        data-bwignore
+        data-form-type="other"
         disabled={!replacing}
         placeholder={isSet && !replacing ? "•••••••• (stored)" : field.hint}
-        className="h-10"
+        className="h-10 [-webkit-text-security:disc] [text-security:disc]"
+        style={{ WebkitTextSecurity: "disc" } as React.CSSProperties}
       />
       <p className="text-muted-foreground text-xs">
-        {isSet && !replacing
-          ? "Stored securely. Click Replace only when you want to change it."
-          : field.hint ?? "Enter the credential."}
+        {replacing
+          ? field.hint ?? "Enter the credential."
+          : isSet
+            ? "Stored securely. Click Replace only when you want to change it."
+            : "Not set. Click Set to enter it."}
       </p>
     </div>
   );

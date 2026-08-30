@@ -208,6 +208,34 @@ export async function saveSettings(
     return { error: "Enter a valid Resend API key beginning re_.", notice: null };
   }
 
+  // The last line of defence against a password manager having filled a
+  // credential box with someone's login password. The UI keeps those boxes
+  // locked, but a stored key is worth more than a tidy form: anything that
+  // does not look like the credential it claims to be is refused rather than
+  // silently written over a working one.
+  const shapes: Record<string, { test: RegExp; label: string }> = {
+    gemini_api_key: { test: /^AIza[A-Za-z0-9_-]{20,}$/, label: "a Google Gemini key beginning AIza" },
+    anthropic_api_key: { test: /^sk-ant-[A-Za-z0-9_-]{20,}$/, label: "an Anthropic key beginning sk-ant-" },
+    groq_api_key: { test: /^gsk_[A-Za-z0-9]{20,}$/, label: "a Groq key beginning gsk_" },
+  };
+
+  for (const row of secretRows) {
+    const shape = shapes[row.key];
+    if (shape && !shape.test.exec(row.value)) {
+      return { error: `That does not look like ${shape.label}. Nothing was changed.`, notice: null };
+    }
+
+    // Catches the rest. Every credential this form takes is long and has no
+    // spaces in it; a typed password usually fails one of those.
+    if (/\s/.test(row.value) || row.value.length < 12) {
+      return {
+        error:
+          "A credential that short or containing spaces is almost certainly an autofilled password. Nothing was changed.",
+        notice: null,
+      };
+    }
+  }
+
   const resendFrom = publicRows.find((row) => row.key === "resend_from_email")?.value;
   if (resendFrom && !/^[^<>\s]+@[^<>\s]+\.[^<>\s]+$|^.+ <[^<>\s]+@[^<>\s]+\.[^<>\s]+>$/.test(resendFrom)) {
     return { error: "Enter a valid Resend sender, such as Abys Hub <orders@abyshub.com>.", notice: null };
