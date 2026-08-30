@@ -11,10 +11,8 @@ import {
   TypingIndicator,
 } from "@/components/store/chat/chat-message";
 import { useCart } from "@/components/store/cart-provider";
-import {
-  GREETING,
-  scriptedResponder,
-} from "@/lib/chat/scripted-responder";
+import { GREETING } from "@/lib/chat/scripted-responder";
+import { aiResponder } from "@/lib/chat/ai-responder";
 import type {
   ChatMessage as Message,
   Responder,
@@ -26,9 +24,13 @@ let messageId = 0;
 const nextId = () => `m${++messageId}`;
 
 export function ChatWidget({
-  responder = scriptedResponder,
+  responder = aiResponder,
 }: {
-  /** Swap in an AI-backed responder here — see lib/chat/types.ts. */
+  /**
+   * Defaults to the AI responder, which falls back to the scripted rules on
+   * its own whenever the server cannot answer. Pass `scriptedResponder` here
+   * to pin the widget to the rules alone.
+   */
   responder?: Responder;
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
