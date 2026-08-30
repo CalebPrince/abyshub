@@ -22,7 +22,7 @@ export function SettingsForm({
   secretsSet,
 }: {
   groups: { title: string; blurb: string; fields: SettingField[] }[];
-  secrets: { title: string; blurb: string; fields: SettingField[] };
+  secrets: { title: string; blurb: string; fields: SettingField[] }[];
   values: Record<string, string>;
   secretsSet: string[];
 }) {
@@ -63,22 +63,24 @@ export function SettingsForm({
         </section>
       ))}
 
-      <section className="border-border bg-card rounded-xl border p-5">
-        <h2 className="font-display text-lg font-extrabold tracking-tight uppercase">
-          {secrets.title}
-        </h2>
-        <p className="text-muted-foreground mt-1 mb-4 text-sm">{secrets.blurb}</p>
+      {secrets.map((group) => (
+        <section key={group.title} className="border-border bg-card rounded-xl border p-5">
+          <h2 className="font-display text-lg font-extrabold tracking-tight uppercase">
+            {group.title}
+          </h2>
+          <p className="text-muted-foreground mt-1 mb-4 text-sm">{group.blurb}</p>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          {secrets.fields.map((field) => (
-            <SecretField
-              key={field.key}
-              field={field}
-              isSet={secretsSet.includes(field.key)}
-            />
-          ))}
-        </div>
-      </section>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {group.fields.map((field) => (
+              <SecretField
+                key={field.key}
+                field={field}
+                isSet={secretsSet.includes(field.key)}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
 
       {state.error ? (
         <p role="alert" className="text-destructive flex items-start gap-2 text-sm">

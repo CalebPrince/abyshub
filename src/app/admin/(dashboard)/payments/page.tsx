@@ -59,18 +59,20 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
   },
 ];
 
-const secrets = {
-  title: "Paystack credentials",
-  blurb:
-    "Held in a table no browser key can read — only the server can. Existing values are never shown here, not even to you: this form can set the key, not reveal it. Saving one here takes effect immediately, no redeploy needed.",
-  fields: [
-    {
-      key: "paystack_secret_key",
-      label: "Paystack secret key",
-      hint: "sk_live_… for real charges, sk_test_… while testing.",
-    },
-  ] as SettingField[],
-};
+const secrets = [
+  {
+    title: "Paystack credentials",
+    blurb:
+      "Held in a table no browser key can read — only the server can. Existing values are never shown here, not even to you: this form can set the key, not reveal it. Saving one here takes effect immediately, no redeploy needed.",
+    fields: [
+      {
+        key: "paystack_secret_key",
+        label: "Paystack secret key",
+        hint: "sk_live_… for real charges, sk_test_… while testing.",
+      },
+    ] as SettingField[],
+  },
+];
 
 export default async function AdminPaymentsPage() {
   await requireAdmin();
