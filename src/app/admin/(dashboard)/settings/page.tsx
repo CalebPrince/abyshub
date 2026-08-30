@@ -5,6 +5,7 @@ import { SetupNotice } from "@/components/admin/setup-notice";
 import { SettingsForm, type SettingField } from "@/components/admin/settings-form";
 import { adminClientAvailable } from "@/lib/supabase/admin";
 import { listSettings } from "@/lib/crm/queries";
+import { getShopSettings } from "@/lib/shop/settings";
 import { requireAdmin } from "@/lib/admin/dal";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -124,7 +125,31 @@ export default async function AdminSettingsPage() {
   await requireAdmin();
 
   const connected = adminClientAvailable();
-  const { settings, secretsSet } = await listSettings();
+  const [{ settings, secretsSet }, shop] = await Promise.all([
+    listSettings(),
+    getShopSettings(),
+  ]);
+
+  // Built from the shop's own origin rather than written out, so they stay
+  // right on a preview deployment and cannot drift from the live site.
+  const origin = shop.siteUrl.replace(/\/$/, "");
+  const elevenLabsHooks = [
+    {
+      label: "Conversation initiation",
+      url: `${origin}/api/whatsapp/elevenlabs-init`,
+      note: "Hands the agent Lisa's current prompt and the earlier conversation.",
+    },
+    {
+      label: "Server tools",
+      url: `${origin}/api/whatsapp/elevenlabs-tool`,
+      note: "One URL for all four tools — each is configured separately in the agent and sends its own name.",
+    },
+    {
+      label: "Post-call",
+      url: `${origin}/api/whatsapp/elevenlabs-post-call`,
+      note: "Stores the transcript. Without it every conversation starts amnesiac.",
+    },
+  ];
 
   const values = Object.fromEntries(
     settings.map((row) => [row.key, row.value ?? ""])
@@ -156,6 +181,37 @@ export default async function AdminSettingsPage() {
           </span>
         </span>
       </Link>
+
+      <div className="border-border bg-card mt-6 rounded-xl border p-4">
+        <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase">
+          ElevenLabs webhook URLs
+        </p>
+        <p className="text-muted-foreground mt-2 text-xs">
+          Paste these into the WhatsApp agent in ElevenLabs, each sending the
+          header <code className="font-semibold">X-ElevenLabs-Secret</code> set
+          to the webhook secret below. All three refuse anything without it.
+        </p>
+        <dl className="mt-4 space-y-4">
+          {elevenLabsHooks.map((hook) => (
+            <div key={hook.url}>
+              <dt className="text-[11px] font-semibold tracking-[0.14em] uppercase">
+                {hook.label}
+              </dt>
+              <dd>
+                <code className="mt-1 block overflow-x-auto text-sm font-semibold select-all">
+                  {hook.url}
+                </code>
+                <p className="text-muted-foreground mt-1 text-xs">{hook.note}</p>
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <p className="text-muted-foreground mt-4 text-xs">
+          The agent must also have system-prompt overrides enabled in its
+          security settings, or ElevenLabs ignores the prompt sent here and
+          answers from its own empty default.
+        </p>
+      </div>
 
       {!connected ? (
         <div className="mt-8">
