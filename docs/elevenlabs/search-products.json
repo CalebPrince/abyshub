@@ -18,14 +18,18 @@
           "type": "string",
           "description": "What the customer is after, in their own words: 'lunch box', 'Tupperware seals', 'something for rice'.",
           "required": true,
-          "value_type": "llm_prompt"
+          "value_type": "llm_prompt",
+          "dynamic_variable": "",
+          "constant_value": ""
         },
         {
           "id": "in_stock_only",
           "type": "boolean",
           "description": "Limit to items available now. Default false.",
           "required": false,
-          "value_type": "llm_prompt"
+          "value_type": "llm_prompt",
+          "dynamic_variable": "",
+          "constant_value": ""
         }
       ]
     },

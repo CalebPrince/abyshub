@@ -18,7 +18,9 @@
           "type": "string",
           "description": "One line on what they need, for the staff picking it up.",
           "required": true,
-          "value_type": "llm_prompt"
+          "value_type": "llm_prompt",
+          "dynamic_variable": "",
+          "constant_value": ""
         },
         {
           "id": "session_token",
@@ -26,7 +28,8 @@
           "description": "Issued by the conversation-initiation webhook. Without it the handoff is never recorded and nobody learns the customer asked for a person.",
           "required": true,
           "value_type": "dynamic_variable",
-          "dynamic_variable": "session_token"
+          "dynamic_variable": "session_token",
+          "constant_value": ""
         }
       ]
     },

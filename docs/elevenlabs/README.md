@@ -45,8 +45,13 @@ list of names on the parent. The same node shape is used by
 
 ```
 request_body_schema: { id, type: "object", required: true, properties: [ … ] }
-                                                            ^ array, each { id, type, required, value_type }
+                                                            ^ array of nodes
 ```
+
+Every property node must carry **all** of `id`, `type`, `description`,
+`required`, `value_type`, `dynamic_variable` and `constant_value` — the last
+two even when the value comes from the model. Empty strings, not omitted keys.
+Only `session_token` in `request_human` actually uses one.
 
 Getting this wrong is loud rather than silent — the editor refuses the paste and
 names the three fields — so it is the safe kind of mistake.
