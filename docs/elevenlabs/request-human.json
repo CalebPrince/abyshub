@@ -1,0 +1,49 @@
+{
+  "type": "webhook",
+  "name": "request_human",
+  "description": "Flag that this conversation needs a person: bulk quotes, order changes, complaints, anything about a specific customer's account or payment. Call it once, then tell the customer someone will pick it up.",
+  "disable_interruptions": false,
+  "interruption_mode": "allow",
+  "force_pre_tool_speech": false,
+  "pre_tool_speech": "auto",
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "tool_error_handling_mode": "auto",
+  "execution_mode": "immediate",
+  "api_schema": {
+    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool?secret=REPLACE_WITH_WEBHOOK_SECRET&tool=request_human",
+    "method": "POST",
+    "path_params_schema": [],
+    "query_params_schema": [],
+    "request_body_schema": {
+      "id": "body",
+      "type": "object",
+      "description": "Why this conversation needs a person.",
+      "properties": [
+        {
+          "id": "reason",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "One line on what they need, for the staff picking it up.",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        }
+      ],
+      "required": false,
+      "dynamic_variable": "",
+      "value_type": "llm_prompt"
+    },
+    "request_headers": [],
+    "content_type": "application/json",
+    "auth_connection": null
+  },
+  "assignments": [],
+  "response_timeout_secs": 20,
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {}
+  },
+  "response_mocks": []
+}

@@ -53,16 +53,101 @@ export async function POST(request: Request) {
   }
 
   const turns = readTranscript(payload);
-  if (turns.length === 0) return NextResponse.json({ ok: true, stored: false });
+  const handoff = readHandoff(payload);
+  if (turns.length === 0 && !handoff) {
+    return NextResponse.json({ ok: true, stored: false });
+  }
 
   const session = await findOrCreateSession(token, "whatsapp");
   if (!session) return NextResponse.json({ ok: true, stored: false });
 
-  // Appended rather than replacing: a call that ends mid-thread should not
-  // erase what was typed before it.
-  await saveTranscript(session.id, [...session.transcript, ...turns], session.needsHuman);
+  // A request for a person is recorded here rather than by the tool that
+  // raised it. ElevenLabs refuses to create a tool carrying a dynamic
+  // variable, so the tool webhook has no way of knowing which conversation
+  // called it — whereas this payload names the caller. The cost is that a
+  // handoff surfaces when the conversation ends rather than the moment it is
+  // asked for; the alternative was a tool that tells the customer someone will
+  // follow up and quietly tells nobody.
+  const marked = handoff
+    ? [...turns, { role: "user" as const, text: `[asked for a person: ${handoff}]` }]
+    : turns;
 
-  return NextResponse.json({ ok: true, stored: true, turns: turns.length });
+  await saveTranscript(
+    session.id,
+    [...session.transcript, ...marked],
+    session.needsHuman || handoff !== null
+  );
+
+  return NextResponse.json({
+    ok: true,
+    stored: true,
+    turns: marked.length,
+    handoff: handoff !== null,
+  });
+}
+
+/**
+ * Whether the agent called `request_human` during the conversation, and why.
+ *
+ * ElevenLabs reports tool calls in more than one shape and has moved them
+ * about, so the plausible spots are swept rather than one being assumed. A
+ * missed handoff is a customer who asked for a person and was never passed to
+ * one, which is worse than a false positive: the cost of reading this too
+ * eagerly is a staff member glancing at a conversation that did not need them.
+ */
+function readHandoff(payload: Record<string, unknown>): string | null {
+  const seen: unknown[] = [
+    payload.tool_calls,
+    asRecord(payload.data).tool_calls,
+    asRecord(payload.analysis).tool_calls,
+    payload.transcript,
+    asRecord(payload.data).transcript,
+    payload.messages,
+  ];
+
+  for (const candidate of seen) {
+    if (!Array.isArray(candidate)) continue;
+
+    for (const entry of candidate) {
+      const item = asRecord(entry);
+      const name = String(item.tool_name ?? item.name ?? item.tool ?? "");
+      if (name === "request_human") return reasonFrom(item);
+
+      // Transcript turns carry their tool calls nested inside them.
+      const nested = item.tool_calls;
+      if (Array.isArray(nested)) {
+        for (const call of nested) {
+          const record = asRecord(call);
+          const nestedName = String(record.tool_name ?? record.name ?? record.tool ?? "");
+          if (nestedName === "request_human") return reasonFrom(record);
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+/** The reason the agent gave, or a stand-in so the flag is never empty. */
+function reasonFrom(call: Record<string, unknown>): string {
+  const raw = call.params_as_json ?? call.arguments ?? call.args ?? call.parameters;
+
+  // ElevenLabs sends these as a JSON string in some shapes and an object in
+  // others. Parsing a string that is not JSON must not take the handoff down
+  // with it — the flag matters far more than the sentence explaining it.
+  let args: Record<string, unknown> = {};
+  if (typeof raw === "string") {
+    try {
+      args = asRecord(JSON.parse(raw));
+    } catch {
+      args = {};
+    }
+  } else {
+    args = asRecord(raw);
+  }
+
+  const reason = String(args.reason ?? "").trim();
+  return reason || "no reason given";
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
