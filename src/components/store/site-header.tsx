@@ -56,7 +56,7 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
       </div>
 
       <div className="bg-background/95 border-foreground/12 supports-[backdrop-filter]:bg-background/80 border-b backdrop-blur">
-        <div className="mx-auto flex h-18 max-w-[1400px] items-center gap-4 px-4 lg:px-8">
+        <div className="mx-auto flex h-20 max-w-[1400px] items-center gap-4 px-4 lg:h-22 lg:px-8">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button
