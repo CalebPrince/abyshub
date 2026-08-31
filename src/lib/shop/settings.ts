@@ -26,6 +26,20 @@ export type ShopSettings = {
   resendFromEmail: string;
   /** Added to every converted partner price, as whole percent. */
   priceMarkupPercent: number;
+  /**
+   * Lisa's speaking voice on the website.
+   *
+   * There is no separate on/off flag: a voice is chosen or it is not, the same
+   * way `whatsappEnabled` is decided by whether a number exists. A flag beside
+   * the voice ID would only add a state where both are set and nothing speaks,
+   * which someone then has to debug.
+   */
+  voice: {
+    id: string;
+    model: string;
+  };
+  /** The ElevenLabs agent running WhatsApp, for the admin connection check. */
+  elevenLabsAgentId: string;
   legal: {
     entity: string;
     address: string;
@@ -97,6 +111,14 @@ export const getShopSettings = unstable_cache(
       // price is the bare converted figure, which is at least honest about
       // carrying no margin until someone sets one.
       priceMarkupPercent: pickNumber(stored, "price_markup_percent", 0),
+      voice: {
+        id: pick(stored, "elevenlabs_voice_id", ""),
+        // Flash rather than the higher-fidelity models on purpose: this speaks
+        // a reply the customer is already reading, so latency is the quality
+        // that matters and a slower voice arrives after they have moved on.
+        model: pick(stored, "elevenlabs_tts_model", "eleven_flash_v2_5"),
+      },
+      elevenLabsAgentId: pick(stored, "elevenlabs_agent_id", ""),
       legal: {
         entity: pick(stored, "legal_entity", LEGAL.entity),
         address: pick(stored, "business_address", LEGAL.address),

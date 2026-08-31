@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { SquareIcon, Volume2Icon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/store/cart-provider";
@@ -13,9 +14,14 @@ import { cn } from "@/lib/utils";
 export function ChatMessage({
   message,
   onQuickReply,
+  onSpeak,
+  speaking = false,
 }: {
   message: Message;
   onQuickReply: (text: string) => void;
+  /** Omitted when the browser cannot speak at all, which hides the control. */
+  onSpeak?: (message: Message) => void;
+  speaking?: boolean;
 }) {
   const isAssistant = message.role === "assistant";
 
@@ -36,6 +42,22 @@ export function ChatMessage({
       >
         {message.text}
       </div>
+
+      {isAssistant && onSpeak && (
+        <button
+          type="button"
+          onClick={() => onSpeak(message)}
+          aria-label={speaking ? "Stop reading this reply" : "Read this reply aloud"}
+          className="text-muted-foreground hover:text-primary flex cursor-pointer items-center gap-1 text-[10px] font-semibold tracking-wide uppercase transition-colors"
+        >
+          {speaking ? (
+            <SquareIcon className="size-3 fill-current" />
+          ) : (
+            <Volume2Icon className="size-3.5" />
+          )}
+          {speaking ? "Stop" : "Listen"}
+        </button>
+      )}
 
       {message.products && message.products.length > 0 && (
         <ul className="w-full space-y-2">

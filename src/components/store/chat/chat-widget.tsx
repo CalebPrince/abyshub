@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { MessageCircleIcon, SendIcon, XIcon } from "lucide-react";
+import {
+  MessageCircleIcon,
+  SendIcon,
+  Volume2Icon,
+  VolumeXIcon,
+  XIcon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +23,14 @@ import type {
   ChatMessage as Message,
   Responder,
 } from "@/lib/chat/types";
+import {
+  playTts,
+  speakWithBrowser,
+  stopBrowserSpeech,
+  stopTts,
+  unlockTts,
+} from "@/lib/chat/tts";
+import { forSpeech } from "@/lib/chat/speech-text";
 import { ASSISTANT_NAME, whatsappEnabled } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +55,22 @@ export function ChatWidget({
     { id: nextId(), role: "assistant", ...GREETING },
   ]);
 
+  // Off until proven otherwise: speech starts silent so nobody's laptop
+  // announces a shopping assistant in an open-plan office. The choice is kept
+  // for the tab, not forever — a new visit starts quiet again.
+  const [speechOn, setSpeechOn] = React.useState(false);
+  const [speakingId, setSpeakingId] = React.useState<string | null>(null);
+  const [canSpeak, setCanSpeak] = React.useState(false);
+
+  // The same value twice: state to render from, a ref to decide from. Speech
+  // callbacks fire outside React's render cycle, and a decision made against a
+  // captured render is a decision made against the past.
+  const speakingIdRef = React.useRef<string | null>(null);
+  const setSpeaking = React.useCallback((id: string | null) => {
+    speakingIdRef.current = id;
+    setSpeakingId(id);
+  }, []);
+
   const { lines, rates } = useCart();
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -50,6 +80,69 @@ export function ChatWidget({
     const pending = timers.current;
     return () => pending.forEach(clearTimeout);
   }, []);
+
+  // Browsers hand the right to play audio to a gesture, and it expires while
+  // a reply is still being synthesised. One silent frame on the first touch
+  // keeps a element permanently allowed.
+  React.useEffect(() => {
+    document.addEventListener("pointerdown", unlockTts, { capture: true, once: true });
+    document.addEventListener("keydown", unlockTts, { capture: true, once: true });
+    return () => {
+      document.removeEventListener("pointerdown", unlockTts, { capture: true });
+      document.removeEventListener("keydown", unlockTts, { capture: true });
+    };
+  }, []);
+
+  React.useEffect(
+    () => () => {
+      stopTts();
+      stopBrowserSpeech();
+    },
+    []
+  );
+
+  /**
+   * Speak one reply, or stop if it is the one already speaking.
+   *
+   * The natural voice is tried first and the browser's own is the fallback —
+   * `playTts` latches itself off after the first failure, so a shop with no
+   * voice configured makes exactly one wasted request per page load and then
+   * goes straight to the local voice.
+   */
+  const speak = React.useCallback(async (message: Message) => {
+    const spoken = forSpeech(message.text);
+    if (!spoken) return;
+
+    // Read through the ref, not the state. The click that stops playback has
+    // to compare against what is playing *now*, and a value captured when this
+    // callback was built is a render behind — which shows up as a Stop button
+    // that needs pressing twice.
+    const wasSpeaking = speakingIdRef.current === message.id;
+
+    stopTts();
+    stopBrowserSpeech();
+    setSpeaking(null);
+
+    if (wasSpeaking) return;
+
+    const handlers = {
+      onstart: () => setSpeaking(message.id),
+      // Guarded so a late `onend` from the utterance we just cancelled cannot
+      // clear the state belonging to the reply that replaced it.
+      onend: () => {
+        if (speakingIdRef.current === message.id) setSpeaking(null);
+      },
+      onerror: () => {
+        if (speakingIdRef.current === message.id) setSpeaking(null);
+      },
+    };
+
+    try {
+      await playTts(spoken, handlers);
+    } catch {
+      void speakWithBrowser(spoken, handlers);
+    }
+  }, [setSpeaking]);
 
   // Keep the newest message in view as the conversation grows.
   React.useEffect(() => {
@@ -78,25 +171,45 @@ export function ChatWidget({
         rates,
       });
 
+      const answer: Message = { id: nextId(), role: "assistant", ...reply };
+
       // A beat of "typing" so answers don't snap in faster than they read.
       const timer = setTimeout(() => {
         setThinking(false);
-        setMessages((current) => [
-          ...current,
-          { id: nextId(), role: "assistant", ...reply },
-        ]);
+        setMessages((current) => [...current, answer]);
         if (reply.handoff) setShowHandoff(true);
+        if (speechOn) void speak(answer);
       }, 450);
       timers.current.push(timer);
     },
-    [lines, rates, responder, thinking]
+    [lines, rates, responder, speak, speechOn, thinking]
   );
 
   function handleOpen() {
     setIsOpen(true);
+
+    // Read on open rather than on mount. Both values come from the browser and
+    // neither exists on the server, so reading them during the first render
+    // would be a hydration mismatch — and opening the panel is the first
+    // moment either one is needed.
+    setCanSpeak("speechSynthesis" in window);
+    try {
+      setSpeechOn(sessionStorage.getItem("abyshub_chat_speech") === "1");
+    } catch {
+      // Private browsing can throw on access. Staying silent is the safe read.
+    }
+
     // Focus the field once the panel has painted.
     const timer = setTimeout(() => inputRef.current?.focus(), 120);
     timers.current.push(timer);
+  }
+
+  /** Nothing should still be talking to a closed panel. */
+  function handleClose() {
+    setIsOpen(false);
+    stopTts();
+    stopBrowserSpeech();
+    setSpeaking(null);
   }
 
   return (
@@ -105,7 +218,7 @@ export function ChatWidget({
           conversation state can leak into the first paint. */}
       <button
         type="button"
-        onClick={isOpen ? () => setIsOpen(false) : handleOpen}
+        onClick={isOpen ? handleClose : handleOpen}
         aria-expanded={isOpen}
         aria-controls="abyshub-chat-panel"
         aria-label={isOpen ? "Close chat" : `Chat with ${ASSISTANT_NAME}`}
@@ -144,9 +257,44 @@ export function ChatWidget({
                 Abys Hub assistant
               </p>
             </div>
+            {canSpeak && (
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !speechOn;
+                  setSpeechOn(next);
+                  // Turning it on is itself a gesture, so this is the moment
+                  // the browser will honour — priming here means the very next
+                  // reply can speak rather than the one after it.
+                  if (next) unlockTts();
+                  if (!next) {
+                    stopTts();
+                    stopBrowserSpeech();
+                    setSpeaking(null);
+                  }
+                  try {
+                    sessionStorage.setItem("abyshub_chat_speech", next ? "1" : "0");
+                  } catch {
+                    // Not being able to remember the choice is not a reason to
+                    // refuse to make it.
+                  }
+                }}
+                aria-pressed={speechOn}
+                aria-label={
+                  speechOn ? "Turn off spoken replies" : "Read replies aloud"
+                }
+                className="text-background/70 hover:text-background cursor-pointer"
+              >
+                {speechOn ? (
+                  <Volume2Icon className="size-5" />
+                ) : (
+                  <VolumeXIcon className="size-5" />
+                )}
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
               aria-label="Close chat"
               className="text-background/70 hover:text-background cursor-pointer"
             >
@@ -164,6 +312,8 @@ export function ChatWidget({
                 key={message.id}
                 message={message}
                 onQuickReply={send}
+                onSpeak={canSpeak ? speak : undefined}
+                speaking={speakingId === message.id}
               />
             ))}
 
