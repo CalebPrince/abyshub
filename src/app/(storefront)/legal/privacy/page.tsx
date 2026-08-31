@@ -56,7 +56,7 @@ export default function PrivacyPage() {
 
       <h3>The chat assistant</h3>
       <p>
-        Messages you type to Lisa are answered by code running in your own
+        Messages you type to Mimi are answered by code running in your own
         browser. They are not transmitted to us and we cannot read them —
         unless you use the &ldquo;talk to a person&rdquo; form, which sends what
         you asked along with your contact details so somebody can reply.

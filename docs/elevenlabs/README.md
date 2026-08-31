@@ -1,9 +1,9 @@
-# Lisa's tools on ElevenLabs
+# Mimi's tools on ElevenLabs
 
 Four webhook tools for the WhatsApp agent, in the shape the ElevenLabs tool
 editor uses. They live here because the dashboard is otherwise the only copy,
 and a description that has quietly drifted from `toolDeclarations` in
-`src/lib/chat/lisa.ts` produces the one bug nobody goes looking for: Lisa
+`src/lib/chat/lisa.ts` produces the one bug nobody goes looking for: Mimi
 answering differently on WhatsApp than she does on the website.
 
 Descriptions are copied verbatim from that file. Change one there, change it

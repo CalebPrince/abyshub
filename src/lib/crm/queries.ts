@@ -115,6 +115,32 @@ export async function listLeads(limit = 50) {
   return (data ?? []) as LeadRow[];
 }
 
+export type ChatSessionRow = {
+  id: string;
+  token: string;
+  channel: "web" | "whatsapp" | "voice";
+  client_name: string | null;
+  client_phone: string | null;
+  transcript_json: unknown;
+  needs_human: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+/** Private Lisa conversations for the unified staff inbox. */
+export async function listChatSessions(limit = 100) {
+  if (!adminClientAvailable()) return [];
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("chat_sessions")
+    .select(
+      "id, token, channel, client_name, client_phone, transcript_json, needs_human, created_at, updated_at"
+    )
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  return (data ?? []) as ChatSessionRow[];
+}
+
 export type Overview = {
   paidOrders: number;
   revenue: number;

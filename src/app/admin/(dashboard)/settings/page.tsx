@@ -33,7 +33,7 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
     ],
   },
   {
-    title: "Lisa",
+    title: "Mimi",
     blurb:
       "The assistant on the storefront and on WhatsApp. Both read the same catalogue, prices and delivery rules, so the two cannot answer differently. API keys live under Credentials below.",
     fields: [
@@ -50,7 +50,7 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
       {
         key: "elevenlabs_voice_id",
         label: "Website voice ID",
-        hint: "From elevenlabs.io → Voices. Blank means Lisa uses the browser's own voice on the site; WhatsApp is unaffected either way.",
+        hint: "From elevenlabs.io → Voices. Blank means Mimi uses the browser's own voice on the site; WhatsApp is unaffected either way.",
         placeholder: "21m00Tcm4TlvDq8ikWAM",
       },
       {
@@ -64,13 +64,13 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
   {
     title: "Owner",
     blurb:
-      "Who runs the shop. Lisa compares these numbers against the caller on WhatsApp so she knows when she is talking to you rather than to a customer — the numbers themselves never reach her, only the answer.",
+      "Who runs the shop. Mimi compares these numbers against the caller on WhatsApp so she knows when she is talking to you rather than to a customer — the numbers themselves never reach her, only the answer.",
     fields: [
       { key: "owner_name", label: "Owner name", placeholder: "Gladys Ayertey" },
       {
         key: "owner_whatsapp",
         label: "Owner WhatsApp number",
-        hint: "Digits with country code. Blank means Lisa treats every caller as a customer.",
+        hint: "Digits with country code. Blank means Mimi treats every caller as a customer.",
         placeholder: "233XXXXXXXXX",
       },
       {
@@ -111,9 +111,9 @@ const secrets: { title: string; blurb: string; fields: SettingField[] }[] = [
     // the first that answers. They bill separately, so all three being out of
     // credit at the same moment is the only thing that silences her — and any
     // one of them on its own is enough to run.
-    title: "Lisa's AI providers",
+    title: "Mimi's AI providers",
     blurb:
-      "Lisa answers from whichever of these responds first, in the order shown. Leave one blank and it is skipped. With none set she falls back to the scripted replies, which never invent stock or a price.",
+      "Mimi answers from whichever of these responds first, in the order shown. Leave one blank and it is skipped. With none set she falls back to the scripted replies, which never invent stock or a price.",
     fields: [
       {
         key: "gemini_api_key",
@@ -136,7 +136,7 @@ const secrets: { title: string; blurb: string; fields: SettingField[] }[] = [
     // ElevenLabs runs the WhatsApp conversation on its own servers, so these
     // are what let it reach back for Lisa's current prompt and tools instead
     // of answering from a prompt pasted into its dashboard months ago.
-    title: "Lisa on WhatsApp and voice",
+    title: "Mimi on WhatsApp and voice",
     blurb:
       "ElevenLabs hosts the WhatsApp agent against the shop's Meta Business number. The webhook secret is what proves an inbound request is really ElevenLabs — without it the webhooks refuse every call, which is the safe default.",
     fields: [
@@ -176,7 +176,7 @@ export default async function AdminSettingsPage() {
     {
       label: "Conversation initiation",
       url: `${origin}/api/whatsapp/elevenlabs-init`,
-      note: "Hands the agent Lisa's current prompt and the earlier conversation.",
+      note: "Hands the agent Mimi's current prompt and the earlier conversation.",
     },
     {
       label: "Server tools",
@@ -232,7 +232,7 @@ export default async function AdminSettingsPage() {
           webhook secret below. The tool URL can carry it as{" "}
           <code className="font-semibold">?secret=…</code> instead, and usually
           should: ElevenLabs does not reliably send custom headers on tool
-          calls, which leaves Lisa talking but unable to look anything up. The
+          calls, which leaves Mimi talking but unable to look anything up. The
           post-call webhook is signed rather than sent with a header — paste the
           secret ElevenLabs generates for it into the post-call signing secret
           field below.
@@ -308,7 +308,7 @@ function AgentStatusLine({ status }: { status: AgentStatus }) {
       {status.overridesPrompt ? (
         <p className="flex items-start gap-1.5 text-emerald-600">
           <CheckCircle2Icon className="mt-px size-3.5 shrink-0" />
-          <span>System-prompt overrides are on, so Lisa gets the live prompt.</span>
+          <span>System-prompt overrides are on, so Mimi gets the live prompt.</span>
         </p>
       ) : (
         <p className="text-destructive flex items-start gap-1.5">

@@ -22,6 +22,7 @@ function buildNav(categories: Category[]) {
       href: `/products?category=${category.slug}`,
       label: category.name,
     })),
+    { href: "/contact", label: "Contact" },
   ];
 }
 

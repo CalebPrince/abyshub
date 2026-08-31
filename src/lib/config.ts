@@ -63,7 +63,7 @@ export const PAYSTACK_PUBLIC_KEY = env(
 export const STORE_NAME = "Abys Hub";
 
 /** The name the chat assistant introduces herself by. */
-export const ASSISTANT_NAME = "Lisa";
+export const ASSISTANT_NAME = "Mimi";
 
 /** Order totals, all in minor units of CURRENCY (pesewas). */
 export const FREE_DELIVERY_THRESHOLD = envNumber(
