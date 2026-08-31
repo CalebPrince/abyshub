@@ -3,10 +3,27 @@
   "name": "get_delivery_terms",
   "description": "The current delivery charge, the basket total that earns free delivery, and dispatch timing. Read this rather than quoting a figure from memory — the shop changes it.",
   "api_schema": {
-    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool?secret=REPLACE_WITH_WEBHOOK_SECRET&tool=get_delivery_terms",
-    "method": "POST",
+    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool",
+    "method": "GET",
     "path_params_schema": [],
-    "query_params_schema": [],
+    "query_params_schema": [
+      {
+        "id": "secret",
+        "type": "string",
+        "description": "Shared secret proving the call is really ElevenLabs.",
+        "required": true,
+        "value_type": "constant",
+        "constant_value": "REPLACE_WITH_WEBHOOK_SECRET"
+      },
+      {
+        "id": "tool",
+        "type": "string",
+        "description": "Which tool this call is for. One URL serves all four.",
+        "required": true,
+        "value_type": "constant",
+        "constant_value": "get_delivery_terms"
+      }
+    ],
     "request_body_schema": null,
     "request_headers": [],
     "content_type": "application/json",

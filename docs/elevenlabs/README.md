@@ -22,6 +22,21 @@ Attach them to the Abys Hub agent only. If the workspace also holds tools from
 another project (`check_availability`, `book_appointment`, consent/opt-out),
 those post to a different server and must not be attached here.
 
+## Methods
+
+The two tools that take no arguments are GET, with `secret` and `tool` declared
+as constant query parameters. A POST carrying no body is refused by tooling on
+both sides, and a read with no arguments is a GET anyway. The route accepts both
+verbs.
+
+`request_human` must stay POST: everything a GET carries lives in the URL, and
+its `session_token` holds a customer phone number, which has no business in an
+access log on every hop that handled the request.
+
+A constant query parameter takes `constant_value` and omits `dynamic_variable`
+entirely — not an empty string. Body properties are the opposite and want both
+keys present. They are not the same node shape.
+
 ## Why the URL carries the tool name
 
 All four post to the same endpoint, so something has to say which tool was
