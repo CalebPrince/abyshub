@@ -23,13 +23,19 @@ const legalLinks = [
   { href: "/legal/cookies", label: "Cookies" },
 ];
 
+const linkClass =
+  "text-background/65 hover:text-background text-sm transition-colors";
+
+const headingClass =
+  "text-[11px] font-semibold tracking-[0.18em] uppercase";
+
 export async function SiteFooter() {
   const categories = await getCategories();
 
   return (
     <footer className="bg-primary text-primary-foreground mt-auto">
       <div className="mx-auto max-w-[1400px] px-4 py-16 lg:px-8">
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,3.2fr)] lg:gap-16">
           <div className="space-y-4">
             <Logo tone="paper" />
             <p className="text-background/65 max-w-xs text-sm">
@@ -38,86 +44,82 @@ export async function SiteFooter() {
             </p>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-[11px] font-semibold tracking-[0.18em] uppercase">
-              Shop
-            </h3>
-            <ul className="space-y-2.5">
-              {categories.map((category) => (
-                <li key={category.slug}>
-                  <Link
-                    href={`/products?category=${category.slug}`}
-                    className="text-background/65 hover:text-background text-sm transition-colors"
-                  >
-                    {category.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* The menus sit two-up from the narrowest screen rather than
+              stacking, and the category list flows into its own pair of
+              columns. A catalogue that keeps growing widens the footer instead
+              of pushing it further down the page. */}
+          <div className="grid grid-cols-2 gap-x-8 gap-y-10 lg:grid-cols-5">
+            <div className="col-span-2 space-y-4">
+              <h3 className={headingClass}>Shop</h3>
+              {/* Margin sits on the items, not as space-y on the list: in a
+                  multi-column flow a top margin would land on whichever item
+                  starts the second column and knock the two out of line. */}
+              <ul className="columns-2 gap-x-8">
+                {categories.map((category) => (
+                  <li key={category.slug} className="mb-2.5 break-inside-avoid">
+                    <Link
+                      href={`/products?category=${category.slug}`}
+                      className={linkClass}
+                    >
+                      {category.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <div className="space-y-4">
-            <h3 className="text-[11px] font-semibold tracking-[0.18em] uppercase">
-              Ordering
-            </h3>
-            <ul className="space-y-2.5">
-              {helpLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-background/65 hover:text-background text-sm transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+            <div className="space-y-4">
+              <h3 className={headingClass}>Ordering</h3>
+              <ul className="space-y-2.5">
+                {helpLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className={linkClass}>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <div className="space-y-4">
-            <h3 className="text-[11px] font-semibold tracking-[0.18em] uppercase">
-              Legal
-            </h3>
-            <ul className="space-y-2.5">
-              {legalLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-background/65 hover:text-background text-sm transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+            <div className="space-y-4">
+              <h3 className={headingClass}>Legal</h3>
+              <ul className="space-y-2.5">
+                {legalLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className={linkClass}>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <div className="space-y-4">
-            <h3 className="text-[11px] font-semibold tracking-[0.18em] uppercase">
-              Reach us
-            </h3>
-            <ul className="space-y-2.5 text-sm">
-              {whatsappEnabled && (
+            <div className="space-y-4">
+              <h3 className={headingClass}>Reach us</h3>
+              <ul className="space-y-2.5 text-sm">
+                {whatsappEnabled && (
+                  <li>
+                    <a
+                      href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-background/65 hover:text-background inline-flex items-center gap-2 transition-colors"
+                    >
+                      <MessageCircleIcon className="size-4" /> WhatsApp us
+                    </a>
+                  </li>
+                )}
                 <li>
                   <a
-                    href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={`mailto:${CONTACT_EMAIL}`}
                     className="text-background/65 hover:text-background inline-flex items-center gap-2 transition-colors"
                   >
-                    <MessageCircleIcon className="size-4" /> WhatsApp us
+                    <MailIcon className="size-4" />{" "}
+                    <span className="break-all">{CONTACT_EMAIL}</span>
                   </a>
                 </li>
-              )}
-              <li>
-                <a
-                  href={`mailto:${CONTACT_EMAIL}`}
-                  className="text-background/65 hover:text-background inline-flex items-center gap-2 transition-colors"
-                >
-                  <MailIcon className="size-4" /> {CONTACT_EMAIL}
-                </a>
-              </li>
-            </ul>
+              </ul>
+            </div>
           </div>
         </div>
 
