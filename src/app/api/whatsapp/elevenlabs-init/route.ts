@@ -37,7 +37,10 @@ export async function POST(request: Request) {
 
   const callerId = String(payload.caller_id ?? payload.from ?? "");
   const digits = normalisePhone(callerId);
-  const systemPrompt = await buildSystemPrompt();
+  // The caller ID is the only thing distinguishing the owner from a customer,
+  // and it arrives here and nowhere else — the storefront widget has no idea
+  // who is typing.
+  const systemPrompt = await buildSystemPrompt({ callerPhone: digits });
 
   if (!digits) {
     // No number means no session and no history, but the conversation can

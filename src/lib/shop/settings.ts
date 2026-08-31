@@ -40,6 +40,21 @@ export type ShopSettings = {
   };
   /** The ElevenLabs agent running WhatsApp, for the admin connection check. */
   elevenLabsAgentId: string;
+  /**
+   * Who owns the shop, and the numbers they message from.
+   *
+   * These exist so Lisa can tell when the person on the other end is the owner
+   * rather than a customer. The numbers are never put in a prompt — that would
+   * hand the owner's mobile to anyone who asked Lisa the right question. They
+   * are compared against the caller ID, and only the *result* of that
+   * comparison reaches the model.
+   */
+  owner: {
+    name: string;
+    /** Digits only, no plus — matched against the caller ID. */
+    whatsapp: string;
+    phone: string;
+  };
   legal: {
     entity: string;
     address: string;
@@ -119,6 +134,21 @@ export const getShopSettings = unstable_cache(
         model: pick(stored, "elevenlabs_tts_model", "eleven_flash_v2_5"),
       },
       elevenLabsAgentId: pick(stored, "elevenlabs_agent_id", ""),
+      owner: {
+        name: pick(stored, "owner_name", process.env.OWNER_NAME?.trim() || ""),
+        // Stripped to digits here rather than at the comparison, so a number
+        // typed with spaces or a leading plus still matches a caller ID.
+        whatsapp: pick(
+          stored,
+          "owner_whatsapp",
+          process.env.OWNER_WHATSAPP?.trim() || ""
+        ).replace(/\D/g, ""),
+        phone: pick(
+          stored,
+          "owner_phone",
+          process.env.OWNER_PHONE?.trim() || ""
+        ).replace(/\D/g, ""),
+      },
       legal: {
         entity: pick(stored, "legal_entity", LEGAL.entity),
         address: pick(stored, "business_address", LEGAL.address),
