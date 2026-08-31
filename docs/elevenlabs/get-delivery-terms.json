@@ -2,35 +2,26 @@
   "type": "webhook",
   "name": "get_delivery_terms",
   "description": "The current delivery charge, the basket total that earns free delivery, and dispatch timing. Read this rather than quoting a figure from memory — the shop changes it.",
-  "response_timeout_secs": 20,
   "api_schema": {
-    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool?secret=REPLACE_WITH_WEBHOOK_SECRET",
+    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool?secret=REPLACE_WITH_WEBHOOK_SECRET&tool=get_delivery_terms",
     "method": "POST",
-    "request_headers": {
-      "Content-Type": "application/json"
-    },
-    "request_body_schema": {
-      "type": "object",
-      "required": ["tool", "session_token"],
-      "properties": {
-        "tool": {
-          "type": "string",
-          "description": "Which tool this call is for. One URL serves all four, so this is how the shop knows.",
-          "value_type": "constant",
-          "constant_value": "get_delivery_terms"
-        },
-        "session_token": {
-          "type": "string",
-          "description": "Issued by the conversation-initiation webhook. Without it the shop cannot tell which conversation is calling.",
-          "value_type": "dynamic_variable",
-          "dynamic_variable": "session_token"
-        },
-        "args": {
-          "type": "object",
-          "description": "This tool takes no arguments.",
-          "properties": {}
-        }
-      }
-    }
-  }
+    "path_params_schema": [],
+    "query_params_schema": [],
+    "request_body_schema": null,
+    "request_headers": [],
+    "content_type": "application/json",
+    "auth_connection": null
+  },
+  "response_timeout_secs": 20,
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {}
+  },
+  "assignments": [],
+  "interruption_mode": "allow",
+  "pre_tool_speech": "auto",
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "execution_mode": "immediate",
+  "tool_error_handling_mode": "auto",
+  "response_mocks": []
 }

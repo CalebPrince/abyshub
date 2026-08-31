@@ -2,47 +2,42 @@
   "type": "webhook",
   "name": "search_products",
   "description": "Search the shop's catalogue by name, brand, category or purpose. Use for any question about what is sold, what something costs, or whether it is in stock. Returns nothing if there is no match — say so rather than guessing.",
-  "response_timeout_secs": 20,
   "api_schema": {
-    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool?secret=REPLACE_WITH_WEBHOOK_SECRET",
+    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool?secret=REPLACE_WITH_WEBHOOK_SECRET&tool=search_products",
     "method": "POST",
-    "request_headers": {
-      "Content-Type": "application/json"
-    },
+    "path_params_schema": [],
+    "query_params_schema": [],
     "request_body_schema": {
       "type": "object",
-      "required": ["tool", "session_token", "args"],
+      "description": "What the customer is looking for.",
+      "required": ["query"],
       "properties": {
-        "tool": {
+        "query": {
           "type": "string",
-          "description": "Which tool this call is for. One URL serves all four, so this is how the shop knows.",
-          "value_type": "constant",
-          "constant_value": "search_products"
+          "description": "What the customer is after, in their own words: 'lunch box', 'Tupperware seals', 'something for rice'.",
+          "value_type": "llm_prompt"
         },
-        "session_token": {
-          "type": "string",
-          "description": "Issued by the conversation-initiation webhook. Without it the shop cannot tell which conversation is calling.",
-          "value_type": "dynamic_variable",
-          "dynamic_variable": "session_token"
-        },
-        "args": {
-          "type": "object",
-          "description": "Arguments for this tool.",
-          "required": ["query"],
-          "properties": {
-            "query": {
-              "type": "string",
-              "description": "What the customer is after, in their own words: 'lunch box', 'Tupperware seals', 'something for rice'.",
-              "value_type": "llm_prompt"
-            },
-            "in_stock_only": {
-              "type": "boolean",
-              "description": "Limit to items available now. Default false.",
-              "value_type": "llm_prompt"
-            }
-          }
+        "in_stock_only": {
+          "type": "boolean",
+          "description": "Limit to items available now. Default false.",
+          "value_type": "llm_prompt"
         }
       }
-    }
-  }
+    },
+    "request_headers": [],
+    "content_type": "application/json",
+    "auth_connection": null
+  },
+  "response_timeout_secs": 20,
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {}
+  },
+  "assignments": [],
+  "interruption_mode": "allow",
+  "pre_tool_speech": "auto",
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "execution_mode": "immediate",
+  "tool_error_handling_mode": "auto",
+  "response_mocks": []
 }

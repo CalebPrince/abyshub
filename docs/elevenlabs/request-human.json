@@ -2,42 +2,43 @@
   "type": "webhook",
   "name": "request_human",
   "description": "Flag that this conversation needs a person: bulk quotes, order changes, complaints, anything about a specific customer's account or payment. Call it once, then tell the customer someone will pick it up.",
-  "response_timeout_secs": 20,
   "api_schema": {
-    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool?secret=REPLACE_WITH_WEBHOOK_SECRET",
+    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool?secret=REPLACE_WITH_WEBHOOK_SECRET&tool=request_human",
     "method": "POST",
-    "request_headers": {
-      "Content-Type": "application/json"
-    },
+    "path_params_schema": [],
+    "query_params_schema": [],
     "request_body_schema": {
       "type": "object",
-      "required": ["tool", "session_token", "args"],
+      "description": "Why this conversation needs a person, and which conversation it is.",
+      "required": ["reason", "session_token"],
       "properties": {
-        "tool": {
+        "reason": {
           "type": "string",
-          "description": "Which tool this call is for. One URL serves all four, so this is how the shop knows.",
-          "value_type": "constant",
-          "constant_value": "request_human"
+          "description": "One line on what they need, for the staff picking it up.",
+          "value_type": "llm_prompt"
         },
         "session_token": {
           "type": "string",
-          "description": "Issued by the conversation-initiation webhook. This tool is the one that most needs it: without the token the handoff is never recorded, so nobody on the shop's side learns the customer asked for a person.",
+          "description": "Issued by the conversation-initiation webhook. Without it the handoff is never recorded and nobody learns the customer asked for a person.",
           "value_type": "dynamic_variable",
           "dynamic_variable": "session_token"
-        },
-        "args": {
-          "type": "object",
-          "description": "Arguments for this tool.",
-          "required": ["reason"],
-          "properties": {
-            "reason": {
-              "type": "string",
-              "description": "One line on what they need, for the staff picking it up.",
-              "value_type": "llm_prompt"
-            }
-          }
         }
       }
-    }
-  }
+    },
+    "request_headers": [],
+    "content_type": "application/json",
+    "auth_connection": null
+  },
+  "response_timeout_secs": 20,
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {}
+  },
+  "assignments": [],
+  "interruption_mode": "allow",
+  "pre_tool_speech": "auto",
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "execution_mode": "immediate",
+  "tool_error_handling_mode": "auto",
+  "response_mocks": []
 }

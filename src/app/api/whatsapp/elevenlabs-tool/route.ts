@@ -21,23 +21,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid webhook secret." }, { status: 403 });
   }
 
+  const query = new URL(request.url).searchParams;
+
   let payload: Record<string, unknown> = {};
   try {
     payload = await request.json();
   } catch {
-    return NextResponse.json({ error: "Malformed request." }, { status: 400 });
+    // A tool that takes no arguments has nothing to send, and ElevenLabs may
+    // post nothing at all rather than an empty object. That is not an error
+    // when the tool is named in the URL.
+    payload = {};
   }
 
-  const name = String(payload.tool ?? payload.name ?? payload.tool_name ?? "");
+  // The query string is checked last but matters most in practice: naming the
+  // tool there makes each dashboard entry a plain URL with no body schema to
+  // configure, which is the difference between three of these tools needing
+  // no request-body setup and all four needing it exactly right.
+  const name = String(
+    payload.tool ?? payload.name ?? payload.tool_name ?? query.get("tool") ?? ""
+  );
   if (!name) {
     return NextResponse.json({ error: "No tool named." }, { status: 422 });
   }
 
-  const rawArgs = payload.args ?? payload.parameters ?? payload.input ?? {};
+  // ElevenLabs sends the model's arguments at the top level of the body. The
+  // nested forms come first for callers that wrap them, and the body itself is
+  // the fallback — minus the fields that are ours rather than the tool's.
+  const nested = payload.args ?? payload.parameters ?? payload.input;
   const args =
-    typeof rawArgs === "object" && rawArgs !== null
-      ? (rawArgs as Record<string, unknown>)
-      : {};
+    typeof nested === "object" && nested !== null
+      ? (nested as Record<string, unknown>)
+      : withoutEnvelope(payload);
 
   const token = String(payload.session_token ?? "");
 
@@ -64,4 +78,22 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ result });
+}
+
+/**
+ * The body minus the envelope fields, for the common case where ElevenLabs
+ * puts the model's arguments straight at the top level.
+ *
+ * Passing `session_token` through as though it were a tool argument would be
+ * harmless today — the executor ignores what it does not know — but it is the
+ * shop's plumbing, not something the model chose, and a tool that starts
+ * validating its arguments strictly should not trip over it.
+ */
+function withoutEnvelope(payload: Record<string, unknown>): Record<string, unknown> {
+  const { tool, name, tool_name, session_token, ...rest } = payload;
+  void tool;
+  void name;
+  void tool_name;
+  void session_token;
+  return rest;
 }
