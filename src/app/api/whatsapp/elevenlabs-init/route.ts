@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   const history = rollingTranscript(session?.transcript ?? []);
   const prompt = history.length
     ? `${systemPrompt}\n\nEARLIER IN THIS CONVERSATION (already said — do not greet them again, and do not re-ask anything answered here):\n${history
-        .map((turn) => `${turn.role === "user" ? "Customer" : "Lisa"}: ${turn.text}`)
+        .map((turn) => `${turn.role === "user" ? "Customer" : "Mimi"}: ${turn.text}`)
         .join("\n")}`
     : systemPrompt;
 

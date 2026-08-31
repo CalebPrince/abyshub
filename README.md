@@ -62,9 +62,9 @@ paid order should be written to a database and confirmation emails sent. Paystac
 retries until it receives a 200, so look the reference up first and make the
 handler idempotent.
 
-## Lisa, the chat assistant
+## Mimi, the chat assistant
 
-A launcher sits bottom-right on every page. Lisa answers from a fixed rule set
+A launcher sits bottom-right on every page. Mimi answers from a fixed rule set
 in `src/lib/chat/scripted-responder.ts` — no network call, no API key, no cost
 per message. She covers delivery and payment, brands and warranty, returns, and
 finding things on the shelves; product answers come back as cards you can add to
@@ -73,7 +73,7 @@ form that posts through the same server action as the enquiry page, with a
 WhatsApp button alongside carrying the conversation so far.
 
 Product lookups use the same matcher as the listing page (`src/lib/search.ts`),
-so Lisa can only ever name real stock.
+so Mimi can only ever name real stock.
 
 ### Making her AI-powered
 
@@ -109,7 +109,7 @@ the theme preference, both in `localStorage`, and the fonts are self-hosted by
 
 Two changes would make the current text inaccurate and must be reflected there:
 adding **any** analytics or tracking (the cookies page promises none), and
-switching Lisa to an **AI responder** (the privacy page says chat messages never
+switching Mimi to an **AI responder** (the privacy page says chat messages never
 leave your browser).
 
 ## The welcome modal
@@ -141,7 +141,7 @@ src/
   components/
     ui/                         shadcn/ui primitives
     store/                      storefront components
-    store/chat/                 Lisa, the chat assistant
+    store/chat/                 Mimi, the chat assistant
   lib/
     products.ts                 catalogue
     search.ts                   product matching, shared by listing and chat

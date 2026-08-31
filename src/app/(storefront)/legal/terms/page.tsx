@@ -137,7 +137,7 @@ export default async function TermsPage() {
 
       <h2>The chat assistant</h2>
       <p>
-        Lisa, the assistant on this site, gives general information about stock,
+        Mimi, the assistant on this site, gives general information about stock,
         delivery and payment. Treat her answers as a guide — the price and
         availability confirmed on your order are what count. She cannot see your
         account or look up past orders.

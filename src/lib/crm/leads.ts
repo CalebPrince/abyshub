@@ -8,7 +8,7 @@ export type LeadInput = {
   phone?: string;
   details: string;
   basketSummary?: string;
-  source: "enquiry" | "chat" | "whatsapp" | "manual";
+  source: "enquiry" | "contact" | "chat" | "whatsapp" | "manual";
 };
 
 /**

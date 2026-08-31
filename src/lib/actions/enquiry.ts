@@ -23,6 +23,7 @@ export async function submitEnquiry(
   const email = text(formData, "email");
   const phone = text(formData, "phone");
   const details = text(formData, "details");
+  const kind = text(formData, "kind") === "contact" ? "contact" : "enquiry";
   // The chat handoff sends the conversation as `details` and anything the
   // person typed as `note`; the enquiry page sends `details` alone.
   const note = text(formData, "note");
@@ -67,7 +68,7 @@ export async function submitEnquiry(
     details: fullDetails,
     basketSummary,
     // The chat handoff attaches a note; the enquiry page does not.
-    source: note ? "chat" : "enquiry",
+    source: note ? "chat" : kind,
   });
 
   if (!saved.ok) {
@@ -86,6 +87,8 @@ export async function submitEnquiry(
   return {
     status: "sent",
     message:
-      "Thank you — we have your enquiry and will come back to you with a price.",
+      kind === "contact"
+        ? "Thank you — your message is in our inbox and we will reply shortly."
+        : "Thank you — we have your enquiry and will come back to you with a price.",
   };
 }
