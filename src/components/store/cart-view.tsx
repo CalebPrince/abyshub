@@ -89,6 +89,7 @@ export function CartView() {
                 <div className="flex items-center justify-between gap-3">
                   <QuantityStepper
                     quantity={line.quantity}
+                    max={line.product.stockQuantity ?? 99}
                     onChange={(quantity) =>
                       updateQuantity(line.productId, quantity)
                     }

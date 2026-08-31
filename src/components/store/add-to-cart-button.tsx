@@ -40,7 +40,7 @@ export function AddToCartButton({
   );
 
   function handleClick() {
-    addItem(product.id, quantity);
+    addItem(product.id, quantity, product.stockQuantity ?? 99);
     setJustAdded(true);
     if (openCartOnAdd) setOpen(true);
 

@@ -12,7 +12,11 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       {product.inStock && (
-        <QuantityStepper quantity={quantity} onChange={setQuantity} />
+        <QuantityStepper
+          quantity={quantity}
+          onChange={setQuantity}
+          max={product.stockQuantity ?? 99}
+        />
       )}
       <AddToCartButton
         product={product}

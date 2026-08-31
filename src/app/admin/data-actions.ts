@@ -359,6 +359,7 @@ export async function seedCatalogue(): Promise<void> {
       rating: product.rating,
       review_count: product.reviewCount,
       in_stock: product.inStock,
+      stock_quantity: product.stockQuantity ?? (product.inStock ? 1 : 0),
       featured: product.featured ?? false,
       highlights: product.highlights,
       variants: product.variants ?? [],
@@ -512,12 +513,16 @@ export async function createProduct(
   const brand = text(formData, "brand");
   const category = text(formData, "category");
   const price = Number(text(formData, "price"));
+  const stockQuantity = Number(text(formData, "stock_quantity"));
 
   if (!name) return { error: "Give the product a name.", notice: null };
   if (!brand) return { error: "Give the product a brand.", notice: null };
   if (!category) return { error: "Pick a category.", notice: null };
   if (!Number.isFinite(price) || price <= 0) {
     return { error: "Enter a price in minor units, e.g. 95000.", notice: null };
+  }
+  if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
+    return { error: "Enter the number of physical units available.", notice: null };
   }
 
   const slug = slugify(text(formData, "slug") || name);
@@ -581,7 +586,8 @@ export async function createProduct(
       compare && Number.isFinite(Number(compare)) ? Math.round(Number(compare)) : null,
     category,
     image: image || null,
-    in_stock: formData.get("in_stock") === "on",
+    stock_quantity: stockQuantity,
+    in_stock: stockQuantity > 0,
     featured: formData.get("featured") === "on",
     published: formData.get("published") === "on",
     highlights: text(formData, "highlights")
@@ -591,6 +597,15 @@ export async function createProduct(
   });
 
   if (error) return { error: error.message, notice: null };
+
+  if (stockQuantity > 0) {
+    const { error: movementError } = await supabase.from("inventory_movements").insert({
+      product_id: slug,
+      delta: stockQuantity,
+      reason: "manual_adjustment",
+    });
+    if (movementError) console.error("[inventory] could not record opening stock", slug, movementError.message);
+  }
 
   revalidateTag(CATALOGUE_TAG, { expire: 0 });
   revalidatePath("/admin/products");
@@ -640,6 +655,7 @@ export async function editProduct(
   const brand = text(formData, "brand");
   const category = text(formData, "category");
   const price = Number(text(formData, "price"));
+  const stockQuantity = Number(text(formData, "stock_quantity"));
 
   if (!name) return { error: "Give the product a name.", notice: null };
   if (!brand) return { error: "Give the product a brand.", notice: null };
@@ -647,9 +663,17 @@ export async function editProduct(
   if (!Number.isFinite(price) || price <= 0) {
     return { error: "Enter a price in minor units, e.g. 95000.", notice: null };
   }
+  if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
+    return { error: "Enter the number of physical units available.", notice: null };
+  }
 
   const supabase = createAdminClient();
   const compare = text(formData, "compare_at_price");
+  const { data: existing } = await supabase
+    .from("products")
+    .select("stock_quantity")
+    .eq("id", id)
+    .maybeSingle();
 
   const patch: Record<string, unknown> = {
     name,
@@ -660,7 +684,8 @@ export async function editProduct(
     price: Math.round(price),
     compare_at_price:
       compare && Number.isFinite(Number(compare)) ? Math.round(Number(compare)) : null,
-    in_stock: formData.get("in_stock") === "on",
+    stock_quantity: stockQuantity,
+    in_stock: stockQuantity > 0,
     featured: formData.get("featured") === "on",
     published: formData.get("published") === "on",
     highlights: text(formData, "highlights")
@@ -698,6 +723,17 @@ export async function editProduct(
 
   const { error } = await supabase.from("products").update(patch).eq("id", id);
   if (error) return { error: error.message, notice: null };
+
+  const previousQuantity = Number(existing?.stock_quantity ?? 0);
+  const delta = stockQuantity - previousQuantity;
+  if (delta !== 0) {
+    const { error: movementError } = await supabase.from("inventory_movements").insert({
+      product_id: id,
+      delta,
+      reason: "manual_adjustment",
+    });
+    if (movementError) console.error("[inventory] could not record adjustment", id, movementError.message);
+  }
 
   updateTag(CATALOGUE_TAG);
   revalidatePath("/admin/products");
@@ -1043,7 +1079,7 @@ export async function setGhanaAvailability(
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("products")
-    .update({ in_stock: available })
+    .update({ in_stock: available, stock_quantity: available ? 1 : 0 })
     .eq("supplier", supplier.id)
     .select("id");
 

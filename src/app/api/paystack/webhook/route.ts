@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 
 import { isValidWebhookSignature } from "@/lib/paystack";
 import { paidOrderFromPaystack, recordPaidOrder } from "@/lib/crm/orders";
+import { CATALOGUE_TAG } from "@/lib/shop/catalogue";
 import {
   sendCustomerOrderConfirmation,
   sendPaidOrderNotification,
@@ -62,6 +64,11 @@ export async function POST(request: Request) {
         console.error("[paystack] could not record order", reference, result.error);
         return NextResponse.json({ error: "Could not record order" }, { status: 500 });
       }
+
+      // The paid-order write also decrements physical stock. Expire the shared
+      // catalogue immediately so product pages, carts and Mimi quote the new
+      // remaining quantity on their next request.
+      revalidateTag(CATALOGUE_TAG, { expire: 0 });
 
       // Both mails are sent, and neither is allowed to sink the other: the
       // customer's copy carries their handover code, the staff alert is how

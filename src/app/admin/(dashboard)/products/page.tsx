@@ -27,6 +27,7 @@ import { getCatalogue } from "@/lib/shop/catalogue";
 import { products as fileCatalogue } from "@/lib/products";
 import { formatPrice } from "@/lib/money";
 import { requireAdmin } from "@/lib/admin/dal";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Products" };
 
@@ -51,10 +52,12 @@ type Row = {
   description: string | null;
   highlights: string[] | null;
   in_stock: boolean;
+  stock_quantity: number;
   featured: boolean;
   published: boolean;
   supplier: string | null;
   source_url: string | null;
+  last_movement?: { delta: number; reason: string; created_at: string };
 };
 
 /** Rows to a page. A bulk sync brings in hundreds; a table of 400 is not a list. */
@@ -77,7 +80,7 @@ async function listRows(
   let query = supabase
     .from("products")
     .select(
-      "id, slug, name, brand, category, image, product_line, price, compare_at_price, tagline, description, highlights, in_stock, featured, published, supplier, source_url",
+      "id, slug, name, brand, category, image, product_line, price, compare_at_price, tagline, description, highlights, in_stock, stock_quantity, featured, published, supplier, source_url",
       { count: "exact" }
     );
 
@@ -103,7 +106,24 @@ async function listRows(
     .order("id")
     .range(from, from + PER_PAGE - 1);
 
-  return { rows: (data ?? []) as Row[], total: count ?? 0 };
+  const rows = (data ?? []) as Row[];
+  if (rows.length === 0) return { rows, total: count ?? 0 };
+
+  const { data: movements } = await supabase
+    .from("inventory_movements")
+    .select("product_id, delta, reason, created_at")
+    .in("product_id", rows.map((row) => row.id))
+    .order("created_at", { ascending: false });
+
+  const latest = new Map<string, { delta: number; reason: string; created_at: string }>();
+  for (const movement of movements ?? []) {
+    if (!latest.has(movement.product_id)) latest.set(movement.product_id, movement);
+  }
+
+  return {
+    rows: rows.map((row) => ({ ...row, last_movement: latest.get(row.id) })),
+    total: count ?? 0,
+  };
 }
 
 /** First and last always, and a step either side of where you are. */
@@ -245,6 +265,9 @@ export default async function AdminProductsPage({
                   <th className="p-3 text-right text-[11px] font-semibold tracking-[0.14em] uppercase">
                     Price
                   </th>
+                  <th className="p-3 text-center text-[11px] font-semibold tracking-[0.14em] uppercase">
+                    Stock
+                  </th>
                   <th className="p-3 text-[11px] font-semibold tracking-[0.14em] uppercase">
                     Status
                   </th>
@@ -303,6 +326,28 @@ export default async function AdminProductsPage({
                         <span className="text-muted-foreground ml-2 text-xs line-through">
                           {formatPrice(product.compare_at_price)}
                         </span>
+                      ) : null}
+                    </td>
+                    <td className="p-3 text-center">
+                      <span className={cn(
+                        "inline-flex min-w-12 justify-center rounded-full px-2.5 py-1 text-xs font-extrabold tabular-nums",
+                        product.stock_quantity === 0
+                          ? "bg-muted text-muted-foreground"
+                          : product.stock_quantity <= 3
+                            ? "bg-amber-500/12 text-amber-700 dark:text-amber-400"
+                            : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                      )}>
+                        {product.stock_quantity}
+                      </span>
+                      {product.last_movement ? (
+                        <p className="text-muted-foreground mt-1 text-[10px] whitespace-nowrap">
+                          {product.last_movement.delta > 0 ? "+" : ""}{product.last_movement.delta}{" "}
+                          {product.last_movement.reason === "sale"
+                            ? "sold"
+                            : product.last_movement.delta > 0
+                              ? "added"
+                              : "removed"}
+                        </p>
                       ) : null}
                     </td>
                     <td className="p-3">

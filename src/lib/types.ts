@@ -29,6 +29,8 @@ export type Product = {
   rating: number;
   reviewCount: number;
   inStock: boolean;
+  /** Physical units remaining. Database products always provide this value. */
+  stockQuantity?: number;
   featured?: boolean;
   highlights: string[];
   /** Available colours, sizes or other supplier-listed options. */

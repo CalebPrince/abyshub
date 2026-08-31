@@ -81,6 +81,14 @@ export function ProductCard({
           <p className="text-muted-foreground line-clamp-2 text-sm">
             {product.tagline}
           </p>
+          {product.inStock && product.stockQuantity !== undefined ? (
+            <p className={cn(
+              "text-[11px] font-bold tracking-[0.1em] uppercase",
+              product.stockQuantity <= 3 ? "text-amber-700 dark:text-amber-400" : "text-emerald-700 dark:text-emerald-400"
+            )}>
+              {product.stockQuantity} {product.stockQuantity === 1 ? "unit" : "units"} left
+            </p>
+          ) : null}
         </div>
 
         <div className="flex items-end justify-between gap-2">
