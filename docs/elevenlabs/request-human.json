@@ -54,9 +54,7 @@
   "assignments": [],
   "response_timeout_secs": 20,
   "dynamic_variables": {
-    "dynamic_variable_placeholders": {
-      "session_token": ""
-    }
+    "dynamic_variable_placeholders": {}
   },
   "response_mocks": []
 }
