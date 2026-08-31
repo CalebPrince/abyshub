@@ -8,21 +8,26 @@
     "path_params_schema": [],
     "query_params_schema": [],
     "request_body_schema": {
+      "id": "body",
       "type": "object",
       "description": "What the customer is looking for.",
-      "required": ["query"],
-      "properties": {
-        "query": {
+      "required": true,
+      "properties": [
+        {
+          "id": "query",
           "type": "string",
           "description": "What the customer is after, in their own words: 'lunch box', 'Tupperware seals', 'something for rice'.",
+          "required": true,
           "value_type": "llm_prompt"
         },
-        "in_stock_only": {
+        {
+          "id": "in_stock_only",
           "type": "boolean",
           "description": "Limit to items available now. Default false.",
+          "required": false,
           "value_type": "llm_prompt"
         }
-      }
+      ]
     },
     "request_headers": [],
     "content_type": "application/json",

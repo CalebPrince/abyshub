@@ -8,22 +8,27 @@
     "path_params_schema": [],
     "query_params_schema": [],
     "request_body_schema": {
+      "id": "body",
       "type": "object",
       "description": "Why this conversation needs a person, and which conversation it is.",
-      "required": ["reason", "session_token"],
-      "properties": {
-        "reason": {
+      "required": true,
+      "properties": [
+        {
+          "id": "reason",
           "type": "string",
           "description": "One line on what they need, for the staff picking it up.",
+          "required": true,
           "value_type": "llm_prompt"
         },
-        "session_token": {
+        {
+          "id": "session_token",
           "type": "string",
           "description": "Issued by the conversation-initiation webhook. Without it the handoff is never recorded and nobody learns the customer asked for a person.",
+          "required": true,
           "value_type": "dynamic_variable",
           "dynamic_variable": "session_token"
         }
-      }
+      ]
     },
     "request_headers": [],
     "content_type": "application/json",

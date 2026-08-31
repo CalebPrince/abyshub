@@ -35,16 +35,28 @@ reliably send configured custom headers on tool calls, and a header-only check
 fails as an assistant who still talks fluently but has silently lost every tool.
 `verifyElevenLabsSecret` accepts either.
 
+## The body schema shape
+
+Not the JSON Schema shape it resembles. Every node — including the body itself —
+is an object with an `id`, and `properties` is an **array** of those nodes
+rather than a map keyed by name. `required` is a boolean **on each node**, not a
+list of names on the parent. The same node shape is used by
+`path_params_schema` and `query_params_schema`, which is the tell.
+
+```
+request_body_schema: { id, type: "object", required: true, properties: [ … ] }
+                                                            ^ array, each { id, type, required, value_type }
+```
+
+Getting this wrong is loud rather than silent — the editor refuses the paste and
+names the three fields — so it is the safe kind of mistake.
+
 ## The one field to watch
 
 `request_human` is the only tool needing a dynamic variable — `session_token`,
 which the conversation-initiation webhook returns. It is not optional plumbing:
 without it that tool runs, reports success, and the handoff reaches nobody. The
 customer is told a person will follow up and no person ever learns.
-
-If the editor rejects `value_type` / `dynamic_variable`, those key names are the
-likeliest thing to have changed between versions. The rest of the structure
-matches the blank tool the editor produces.
 
 ## What the route actually requires
 
