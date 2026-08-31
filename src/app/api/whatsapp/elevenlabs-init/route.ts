@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       // The caller ID is the only thing distinguishing the owner from a
       // customer, and it arrives here and nowhere else — the storefront widget
       // has no idea who is typing.
-      initResponse(await buildSystemPrompt(), null)
+      initResponse(await buildSystemPrompt())
     );
   }
 
@@ -72,19 +72,33 @@ export async function POST(request: Request) {
         .join("\n")}`
     : systemPrompt;
 
-  return NextResponse.json(initResponse(prompt, token, `+${digits}`));
+  return NextResponse.json(initResponse(prompt));
 }
 
-function initResponse(prompt: string, token: string | null, phone?: string) {
+/**
+ * The prompt, and deliberately nothing else.
+ *
+ * This used to hand back `session_token` and `caller_phone` as dynamic
+ * variables, so the tool webhook could tell which conversation was calling.
+ * Nothing consumes them any more — ElevenLabs refuses to create a tool that
+ * carries a dynamic variable, so `request_human` stopped taking one and the
+ * handoff moved to the post-call webhook, which names the caller itself.
+ *
+ * They are removed rather than left as harmless residue because ElevenLabs is
+ * strict about dynamic variables it was never told to expect: an undeclared
+ * one is what refused those tools, with no field named and no explanation. A
+ * response returning two variables the agent never declared is the same
+ * mistake in the other direction, and the symptom — every conversation
+ * failing outright at the moment it starts — matches.
+ */
+function initResponse(prompt: string) {
   return {
     type: "conversation_initiation_client_data",
-    // The tool webhook has no other way to know which conversation it is
-    // serving, so the token rides along as a dynamic variable and comes back
-    // on every tool call.
-    dynamic_variables: {
-      session_token: token ?? "",
-      caller_phone: phone ?? "",
-    },
+    // Present but empty, rather than absent. Declaring variables the agent
+    // does not know about is what this is meant to stop; dropping the field
+    // altogether would be a different guess about a shape we have not seen
+    // documented, and an empty object cannot be wrong in either direction.
+    dynamic_variables: {},
     conversation_config_override: {
       agent: { prompt: { prompt } },
     },
