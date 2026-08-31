@@ -16,12 +16,18 @@ const HEADER_CATEGORY_LIMIT = 6;
  * added in the admin reaches the header without a deploy.
  */
 function buildNav(categories: Category[]) {
-  return [
-    { href: "/products", label: "Everything" },
-    ...categories.slice(0, HEADER_CATEGORY_LIMIT).map((category) => ({
+  const categoryLinks = categories
+    .filter((category) => category.slug !== "serveware")
+    .slice(0, HEADER_CATEGORY_LIMIT)
+    .map((category) => ({
       href: `/products?category=${category.slug}`,
       label: category.name,
-    })),
+    }));
+
+  return [
+    { href: "/", label: "Home" },
+    { href: "/products", label: "Everything" },
+    ...categoryLinks,
     { href: "/contact", label: "Contact" },
   ];
 }

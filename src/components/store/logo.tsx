@@ -45,7 +45,7 @@ export function Logo({
         priority
         className={cn(
           "w-auto object-contain transition-opacity group-hover:opacity-85",
-          compact ? "h-9" : "h-8 sm:h-9",
+          compact ? "h-10" : "h-11 sm:h-12 lg:h-14",
           tone === "paper" && "brightness-0 invert"
         )}
       />
