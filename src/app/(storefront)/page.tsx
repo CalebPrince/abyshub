@@ -12,12 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/store/product-card";
 import { Reveal } from "@/components/store/reveal";
+import { HeroSlider } from "@/components/store/hero-slider";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
 import { getCatalogue, featuredFrom } from "@/lib/shop/catalogue";
 import { getPageCopy } from "@/lib/shop/content";
 import { OffersGrid } from "@/components/store/offers-grid";
 import { PartnersSection } from "@/components/store/partners-section";
-import { categoryImage, HERO_ALBUM, LIFESTYLE } from "@/lib/shop/imagery";
+import { categoryImage, HERO_SLIDES, LIFESTYLE } from "@/lib/shop/imagery";
 import { whatsappEnabled } from "@/lib/config";
 import { getShopSettings } from "@/lib/shop/settings";
 import { formatPrice } from "@/lib/money";
@@ -54,108 +55,36 @@ export default async function HomePage() {
   ]);
   const featured = featuredFrom(products);
 
+  // The admin copy panel predates the slider and has one set of hero keys, so
+  // they stay pointed at the first slide rather than being silently ignored.
+  const slides = HERO_SLIDES.map((slide, index) =>
+    index === 0
+      ? {
+          ...slide,
+          eyebrow: copy("hero_eyebrow", slide.eyebrow),
+          body: copy("hero_body", slide.body),
+          cta: copy("hero_cta", slide.cta),
+        }
+      : slide
+  );
+
+  const stats = [
+    [
+      String(products.filter((product) => product.inStock).length),
+      "products in stock",
+    ],
+    [String(categories.length), "shelves to browse"],
+    [String(orderRoutes.length), "ways to order"],
+  ] as const;
+
   return (
     <>
-      {/* ── Hero: split black/paper, oversized type, offset product ── */}
+      {/* ── Hero: a slider, words left and one photograph right ── */}
       {/* A wash of the brand pink across the whole hero, well under the
           threshold where it reads as a coloured panel — the page should feel
           warmer here without anyone being able to say why. */}
-      <section className="border-foreground/12 from-secondary/70 border-b bg-gradient-to-br via-white to-white">
-        <div className="mx-auto grid max-w-[1400px] lg:grid-cols-12">
-          {/* Words on the left, an album of six on the right. One picture
-              could only show one half of what the shop sells; six show both
-              partners before a word is read. */}
-          <div className="flex flex-col justify-center px-4 py-10 lg:col-span-5 lg:py-14 lg:pl-8 xl:pl-12">
-            <Reveal className="max-w-xl" y={16}>
-            <p className="text-primary mb-6 text-[11px] font-semibold tracking-[0.24em] uppercase">
-              {copy("hero_eyebrow", "Genuine Tupperware · and more")}
-            </p>
-
-            <h1 className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[0.95] font-extrabold tracking-[-0.03em] uppercase">
-              Buy it once.
-              <br />
-              <span className="text-primary">Keep it</span> for
-              <br />
-              years.
-            </h1>
-
-            <p className="text-muted-foreground mt-5 max-w-md text-base">
-              {copy(
-                "hero_body",
-                "Airtight storage, prep tools and home goods that survive daily use in a real kitchen — not the kind that cracks by the second harmattan."
-              )}
-            </p>
-
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Button asChild size="lg">
-                <Link href="/products">
-                  {copy("hero_cta", "Shop everything")} <ArrowRightIcon />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-foreground/25"
-              >
-                <Link href="/products?brand=Tupperware">Tupperware only</Link>
-              </Button>
-            </div>
-
-            <dl className="border-foreground/12 mt-8 grid max-w-lg grid-cols-3 gap-6 border-t pt-6">
-              {[
-                [String(products.filter((product) => product.inStock).length), "products in stock"],
-                [String(categories.length), "shelves to browse"],
-                [String(orderRoutes.length), "ways to order"],
-              ].map(([value, label]) => (
-                <div key={label}>
-                  <dt className="font-display text-2xl font-extrabold">
-                    {value}
-                  </dt>
-                  <dd className="text-muted-foreground mt-1 text-xs tracking-wide uppercase">
-                    {label}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            </Reveal>
-          </div>
-
-          {/* Three columns, staggered against each other and alternating
-              tall and square, so it reads as a laid-out album rather than a
-              grid of thumbnails. */}
-          <div className="grid grid-cols-2 gap-3 px-4 pb-10 sm:grid-cols-3 lg:col-span-7 lg:gap-4 lg:py-14 lg:pr-8 lg:pl-4 xl:pr-12">
-            {[0, 1, 2].map((column) => (
-              <Reveal
-                key={column}
-                delay={120 + column * 100}
-                y={20}
-                className={`flex flex-col gap-3 lg:gap-4 ${
-                  column === 1 ? "sm:mt-8" : column === 2 ? "sm:mt-4" : ""
-                } ${column === 2 ? "hidden sm:flex" : ""}`}
-              >
-                {HERO_ALBUM.slice(column * 2, column * 2 + 2).map((frame, i) => (
-                  <div
-                    key={frame.src}
-                    className={`bg-secondary relative overflow-hidden rounded-2xl ${
-                      frame.tall ? "aspect-3/4" : "aspect-square"
-                    }`}
-                  >
-                    <Image
-                      src={frame.src}
-                      alt={frame.alt}
-                      fill
-                      sizes="(min-width: 1024px) 20vw, (min-width: 640px) 30vw, 45vw"
-                      // Only the first frame is above the fold on every screen.
-                      priority={column === 0 && i === 0}
-                      className={`object-cover ${frame.focus}`}
-                    />
-                  </div>
-                ))}
-              </Reveal>
-            ))}
-          </div>
-        </div>
+      <section className="border-foreground/12 from-secondary/70 via-background to-background border-b bg-gradient-to-br">
+        <HeroSlider slides={slides} stats={stats} />
       </section>
 
       {/* ── Shelves ── */}

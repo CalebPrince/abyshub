@@ -90,3 +90,70 @@ export const LIFESTYLE = {
   makeup: "/lifestyle/makeup.webp",
   pantry: "/lifestyle/pantry-portrait.webp",
 } as const;
+
+/**
+ * The hero slider.
+ *
+ * Each slide is a whole argument, not just a picture: its own eyebrow,
+ * headline, paragraph and button, crossfading together with the photograph on
+ * the right. The album this replaced showed six thumbnails at once and said
+ * one thing underneath them all; this gets to make the kitchen case and the
+ * beauty case separately, in their own words, which is what the shop actually
+ * needed — it sells two ranges and only ever pitched one.
+ *
+ * `focus` matters more than it did. Every frame is composed with the subject
+ * weighted right and the left third left soft, so the scrim that dissolves the
+ * picture into the headline eats empty wall rather than a face. A
+ * centre-weighted shot dropped into this list will look wrong in a way that is
+ * hard to place.
+ *
+ * The button label is per-slide too, so it names the range the picture is
+ * making the case for. Both still land on the full products page: pointing
+ * each at its own shelf is a one-line change to `href`, and worth making once
+ * the live catalogue is confirmed to carry a matching category slug.
+ *
+ * The headline is segmented rather than a string because one phrase in it is
+ * set in the brand pink, and which phrase is a per-slide decision. Each inner
+ * array is a rendered line — and a line is a hard promise, not a suggestion:
+ * at this type size the column takes about twelve characters before it wraps
+ * on its own and the break lands somewhere nobody chose.
+ *
+ * PLACEHOLDERS: both photographs are generated stand-ins holding unbranded
+ * stock, so nothing on screen claims to be a product that can be bought. They
+ * come out the moment the client's own product photographs arrive, at which
+ * point the renders are conditioned on those photographs and the thing in
+ * frame is the thing in the basket. The second slide's copy is a first draft
+ * of the beauty pitch and wants the client's eye on it.
+ */
+export const HERO_SLIDES = [
+  {
+    src: "/lifestyle/hero-slide-01.webp",
+    alt: "Carrying a stack of sealed food storage containers through a kitchen",
+    focus: "object-right",
+    eyebrow: "Genuine Tupperware · and more",
+    headline: [
+      [{ text: "Buy it once." }],
+      [{ text: "Keep it", accent: true }, { text: " for" }],
+      [{ text: "years." }],
+    ],
+    body: "Airtight storage, prep tools and home goods that survive daily use in a real kitchen — not the kind that cracks by the second harmattan.",
+    cta: "Shop the kitchen range",
+    href: "/products",
+  },
+  {
+    src: "/lifestyle/hero-slide-02.webp",
+    alt: "Holding a skincare bottle at a bright bathroom vanity",
+    focus: "object-right",
+    eyebrow: "Skincare · bath · body",
+    headline: [
+      [{ text: "Good skin is" }],
+      [{ text: "a routine,", accent: true }],
+      [{ text: "not a treat." }],
+    ],
+    body: "Cleansers, body care and everyday beauty picked the same way as the kitchen range — things worth buying again, not things that look good once.",
+    cta: "Shop the beauty range",
+    href: "/products",
+  },
+] as const;
+
+export type HeroSlide = (typeof HERO_SLIDES)[number];
