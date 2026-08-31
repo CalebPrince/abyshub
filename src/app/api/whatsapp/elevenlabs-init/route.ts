@@ -94,6 +94,11 @@ export async function POST(request: Request) {
 function initResponse(prompt: string) {
   return {
     type: "conversation_initiation_client_data",
+    // Present but empty, rather than absent. Declaring variables the agent
+    // does not know about is what this is meant to stop; dropping the field
+    // altogether would be a different guess about a shape we have not seen
+    // documented, and an empty object cannot be wrong in either direction.
+    dynamic_variables: {},
     conversation_config_override: {
       agent: { prompt: { prompt } },
     },
