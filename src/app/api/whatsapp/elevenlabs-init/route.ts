@@ -37,24 +37,33 @@ export async function POST(request: Request) {
 
   const callerId = String(payload.caller_id ?? payload.from ?? "");
   const digits = normalisePhone(callerId);
-  // The caller ID is the only thing distinguishing the owner from a customer,
-  // and it arrives here and nowhere else — the storefront widget has no idea
-  // who is typing.
-  const systemPrompt = await buildSystemPrompt({ callerPhone: digits });
 
   if (!digits) {
     // No number means no session and no history, but the conversation can
     // still happen. Logged because a payload whose shape we misread would
     // show up here first.
     console.error("[lisa] elevenlabs init without a caller id");
-    return NextResponse.json(initResponse(systemPrompt, null));
+    return NextResponse.json(
+      // The caller ID is the only thing distinguishing the owner from a
+      // customer, and it arrives here and nowhere else — the storefront widget
+      // has no idea who is typing.
+      initResponse(await buildSystemPrompt(), null)
+    );
   }
 
   const token = whatsappToken(digits);
-  const session = await findOrCreateSession(token, "whatsapp", {
-    phone: `+${digits}`,
-    name: typeof payload.caller_name === "string" ? payload.caller_name : null,
-  });
+
+  // Together rather than in turn. ElevenLabs holds the conversation open while
+  // this answers and gives up before long, so the two round trips this route
+  // cannot avoid should at least overlap — nothing in the prompt depends on
+  // the session, or the session on the prompt.
+  const [systemPrompt, session] = await Promise.all([
+    buildSystemPrompt({ callerPhone: digits }),
+    findOrCreateSession(token, "whatsapp", {
+      phone: `+${digits}`,
+      name: typeof payload.caller_name === "string" ? payload.caller_name : null,
+    }),
+  ]);
 
   const history = rollingTranscript(session?.transcript ?? []);
   const prompt = history.length
