@@ -18,7 +18,7 @@
     "request_body_schema": {
       "id": "body",
       "type": "object",
-      "description": "Why this conversation needs a person, and which conversation it is.",
+      "description": "Why this conversation needs a person.",
       "properties": [
         {
           "id": "reason",
@@ -26,17 +26,6 @@
           "value_type": "llm_prompt",
           "description": "One line on what they need, for the staff picking it up.",
           "dynamic_variable": "",
-          "constant_value": "",
-          "enum": null,
-          "is_system_provided": false,
-          "required": true
-        },
-        {
-          "id": "session_token",
-          "type": "string",
-          "value_type": "dynamic_variable",
-          "description": "Issued by the conversation-initiation webhook. Without it the handoff is never recorded and nobody learns the customer asked for a person.",
-          "dynamic_variable": "session_token",
           "constant_value": "",
           "enum": null,
           "is_system_provided": false,

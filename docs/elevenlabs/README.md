@@ -68,11 +68,12 @@ Two things it settled that guessing did not:
 - The two tools that take no arguments therefore carry one optional
   `llm_prompt` string, copying `get_site_info` in this workspace — a tool with
   the same shape that has run without error. The route ignores it.
-- A property with `value_type: "dynamic_variable"` must have that variable
-  declared in `dynamic_variables.dynamic_variable_placeholders`. Referencing
-  one that was never declared is refused with the same fieldless "failed to
-  create tool", which is why only `request_human` uses a dynamic variable and
-  why it declares `session_token` there.
+- `value_type: "dynamic_variable"` does not work here at all. Every tool
+  carrying one was refused with the fieldless "failed to create tool";
+  declaring the variable in `dynamic_variable_placeholders` did not help, and
+  that map wants an object per variable rather than a string anyway. Nothing in
+  the working set in this workspace uses one. All four tools are plain
+  `llm_prompt` fields as a result.
 - Query parameters belong **inline in the URL**, with `query_params_schema`
   left empty. Declaring them there instead is what broke the two tools that
   would not save.
