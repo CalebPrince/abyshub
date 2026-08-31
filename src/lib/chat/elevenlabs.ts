@@ -36,15 +36,78 @@ export async function verifyElevenLabsSecret(request: Request): Promise<boolean>
   );
   if (!expected) return false;
 
+  // The query string is not a convenience. ElevenLabs does not reliably send
+  // configured custom headers on *tool* calls, so a header-only check makes
+  // every tool Lisa has silently unavailable — she keeps talking and simply
+  // stops being able to look anything up. Appending `?secret=…` to the tool
+  // URL is the documented way round it, and the URL is only ever held by
+  // ElevenLabs.
   const received =
     request.headers.get("x-elevenlabs-secret") ??
     request.headers.get("x-webhook-secret") ??
+    new URL(request.url).searchParams.get("secret") ??
     "";
   if (!received) return false;
 
+  return constantTimeEqual(expected, received);
+}
+
+/**
+ * The post-call webhook, which is signed rather than shared-secreted.
+ *
+ * ElevenLabs generates this secret itself and signs each request Stripe-style:
+ * `ElevenLabs-Signature: t=<unix seconds>,v0=<hex HMAC-SHA256>`, over
+ * `<timestamp>.<raw body>`. It does not send the custom header the other two
+ * webhooks use, so checking for one here rejects every genuine call — and
+ * because this is the only route by which anything said on WhatsApp reaches
+ * us, the symptom is not an error but an assistant that is permanently
+ * amnesiac between messages.
+ *
+ * The body must be the raw text, byte for byte. Re-serialising parsed JSON
+ * changes whitespace and key order and the signature stops matching.
+ */
+export async function verifyElevenLabsSignature(
+  request: Request,
+  rawBody: string
+): Promise<boolean> {
+  const secret = await getSecret(
+    "elevenlabs_postcall_signing_secret",
+    process.env.ELEVENLABS_POSTCALL_SIGNING_SECRET
+  );
+  const header = request.headers.get("elevenlabs-signature")?.trim();
+  if (!secret || !header) return false;
+
+  const parts = new Map<string, string>();
+  for (const piece of header.split(",")) {
+    const [key, value] = piece.split("=", 2);
+    if (key && value !== undefined) parts.set(key.trim(), value.trim());
+  }
+
+  const timestamp = parts.get("t") ?? "";
+  const signature = parts.get("v0") ?? "";
+  if (!/^\d+$/.test(timestamp) || !signature) return false;
+
+  // Without this, a signature captured once is valid forever — the signature
+  // proves who sent it, the timestamp proves when.
+  const age = Math.abs(Date.now() / 1000 - Number(timestamp));
+  if (age > 1800) {
+    console.error("[lisa] post-call signature outside the 30-minute window");
+    return false;
+  }
+
+  const { createHmac } = await import("node:crypto");
+  const expected = createHmac("sha256", secret)
+    .update(`${timestamp}.${rawBody}`)
+    .digest("hex");
+
+  return constantTimeEqual(expected, signature);
+}
+
+/** Length-agnostic and non-throwing, so a wrong-length value is just false. */
+async function constantTimeEqual(a: string, b: string): Promise<boolean> {
   const { timingSafeEqual } = await import("node:crypto");
-  const a = Buffer.from(expected, "utf8");
-  const b = Buffer.from(received, "utf8");
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
+  const left = Buffer.from(a, "utf8");
+  const right = Buffer.from(b, "utf8");
+  if (left.length !== right.length) return false;
+  return timingSafeEqual(left, right);
 }

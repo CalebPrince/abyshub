@@ -4,6 +4,7 @@ import { findOrCreateSession, saveTranscript } from "@/lib/chat/sessions";
 import {
   normalisePhone,
   verifyElevenLabsSecret,
+  verifyElevenLabsSignature,
   whatsappToken,
 } from "@/lib/chat/elevenlabs";
 import type { Turn } from "@/lib/ai/engine";
@@ -17,13 +18,24 @@ import type { Turn } from "@/lib/ai/engine";
  * what puts WhatsApp exchanges in front of staff at all.
  */
 export async function POST(request: Request) {
-  if (!(await verifyElevenLabsSecret(request))) {
-    return NextResponse.json({ error: "Invalid webhook secret." }, { status: 403 });
+  // Read the body as text first: the signature is over the exact bytes sent,
+  // and `request.json()` consumes the stream, leaving nothing to verify.
+  const rawBody = await request.text();
+
+  // ElevenLabs signs this webhook with a secret it generates, and does not
+  // send the shared header the other two use. The header check stays as a
+  // fallback for a workspace configured the older way, so an installation that
+  // already worked keeps working.
+  const verified =
+    (await verifyElevenLabsSignature(request, rawBody)) ||
+    (await verifyElevenLabsSecret(request));
+  if (!verified) {
+    return NextResponse.json({ error: "Invalid webhook signature." }, { status: 403 });
   }
 
   let payload: Record<string, unknown> = {};
   try {
-    payload = await request.json();
+    payload = JSON.parse(rawBody) as Record<string, unknown>;
   } catch {
     return NextResponse.json({ error: "Malformed request." }, { status: 400 });
   }
