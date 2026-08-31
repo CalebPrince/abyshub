@@ -61,10 +61,15 @@ first if any of this stops matching.
 
 Two things it settled that guessing did not:
 
-- `request_body_schema` may not be `null` on a POST. A tool taking no arguments
-  still needs the object, with `properties: []`. A null body is refused with
-  "failed to create tool" and no field named, which is the least useful error
-  in the set.
+- `request_body_schema` may not be `null` on a POST, and may not be empty
+  either — the object is required and needs at least one property. A null body
+  is refused with "failed to create tool" and no field named, which is the
+  least useful error in the set.
+- The two tools that take no arguments therefore carry `session_token`, which
+  is a real field rather than a placeholder invented to satisfy the validator:
+  the route strips it from the arguments it passes to the tool, and having it
+  on every call means anything later wanting to know which conversation asked
+  already has it.
 - Query parameters belong **inline in the URL**, with `query_params_schema`
   left empty. Declaring them there instead is what broke the two tools that
   would not save.

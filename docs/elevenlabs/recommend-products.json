@@ -18,8 +18,20 @@
     "request_body_schema": {
       "id": "body",
       "type": "object",
-      "description": "This tool takes no arguments.",
-      "properties": [],
+      "description": "Which conversation is asking. This tool takes no arguments of its own.",
+      "properties": [
+        {
+          "id": "session_token",
+          "type": "string",
+          "value_type": "dynamic_variable",
+          "description": "Issued by the conversation-initiation webhook. Identifies which conversation is asking.",
+          "dynamic_variable": "session_token",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        }
+      ],
       "required": false,
       "dynamic_variable": "",
       "value_type": "llm_prompt"
