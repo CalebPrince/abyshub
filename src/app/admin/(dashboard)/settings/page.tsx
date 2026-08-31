@@ -62,6 +62,26 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
     ],
   },
   {
+    title: "Owner",
+    blurb:
+      "Who runs the shop. Lisa compares these numbers against the caller on WhatsApp so she knows when she is talking to you rather than to a customer — the numbers themselves never reach her, only the answer.",
+    fields: [
+      { key: "owner_name", label: "Owner name", placeholder: "Gladys Ayertey" },
+      {
+        key: "owner_whatsapp",
+        label: "Owner WhatsApp number",
+        hint: "Digits with country code. Blank means Lisa treats every caller as a customer.",
+        placeholder: "233XXXXXXXXX",
+      },
+      {
+        key: "owner_phone",
+        label: "Owner phone number",
+        hint: "A second number to recognise, if you message from more than one.",
+        placeholder: "233XXXXXXXXX",
+      },
+    ],
+  },
+  {
     title: "Legal",
     blurb: "Printed on the terms, privacy and cookie pages.",
     fields: [

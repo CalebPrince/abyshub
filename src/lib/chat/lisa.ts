@@ -36,11 +36,33 @@ function summarise(product: Product) {
   };
 }
 
-export async function buildSystemPrompt(): Promise<string> {
+/**
+ * Whether a caller ID belongs to the shop's owner.
+ *
+ * Compared on digits alone, because the same person arrives as "+233…" from
+ * one place and "233…" from another. An unset owner number matches nobody —
+ * the empty string must never be treated as a wildcard, or every anonymous
+ * caller becomes the owner.
+ */
+export async function isOwner(callerPhone: string): Promise<boolean> {
+  const digits = callerPhone.replace(/\D/g, "");
+  if (!digits) return false;
+
+  const { owner } = await getShopSettings();
+  return [owner.whatsapp, owner.phone].some(
+    (known) => known.length > 0 && known === digits
+  );
+}
+
+export async function buildSystemPrompt(
+  options: { callerPhone?: string } = {}
+): Promise<string> {
   const [{ products, categories }, settings] = await Promise.all([
     getCatalogue(),
     getShopSettings(),
   ]);
+
+  const owner = options.callerPhone ? await isOwner(options.callerPhone) : false;
 
   const inStock = products.filter((product) => product.inStock).length;
   const brands = [...new Set(products.map((product) => product.brand))];
@@ -48,10 +70,18 @@ export async function buildSystemPrompt(): Promise<string> {
   return [
     `You are ${ASSISTANT_NAME}, the assistant for ${STORE_NAME}, a shop in Ghana selling genuine Tupperware, home goods and personal care.`,
     "",
-    "HOW YOU SPEAK",
-    "- Like a knowledgeable shop assistant: warm, brief, never breathless. Two or three sentences is usually plenty.",
-    "- Plain British English. No emoji, no exclamation marks, no sales patter.",
-    "- If someone writes in Twi, Ga or Pidgin, answer in the same register but keep product names in English.",
+    // The owner gets a different register, not the customer one with a
+    // correction bolted on afterwards. Telling a model to speak like a shop
+    // assistant and then telling it not to leaves both instructions in play,
+    // and which one wins is a coin toss decided per reply.
+    ...(owner
+      ? speakingToTheOwner(settings.owner.name)
+      : [
+          "HOW YOU SPEAK",
+          "- Like a knowledgeable shop assistant: warm, brief, never breathless. Two or three sentences is usually plenty.",
+          "- Plain British English. No emoji, no exclamation marks, no sales patter.",
+          "- If someone writes in Twi, Ga or Pidgin, answer in the same register but keep product names in English.",
+        ]),
     "",
     "WHAT YOU MUST NOT DO",
     "- Never state a price, a stock level or a product detail you have not just read from a tool. If a tool did not tell you, say you will check.",
@@ -68,9 +98,50 @@ export async function buildSystemPrompt(): Promise<string> {
     "- Tupperware carries the manufacturer's warranty, including the lifetime seal warranty. Anything faulty is replaced.",
     `- People can reach a person at ${settings.contactEmail}${settings.whatsappEnabled ? ` or on WhatsApp at ${settings.whatsappNumber}` : ""}.`,
     "",
-    "WHEN TO HAND OVER",
-    "Call request_human when someone asks for a bulk or event quote, wants to change or chase an order, has a complaint, or asks anything about their own account or payment. Say plainly that you are passing them to a person — do not pretend to have done it yourself.",
+    // The owner is the person a handoff hands over *to*. Offering to fetch her
+    // a member of staff is the single most obvious way for Lisa to reveal she
+    // has not registered who she is talking to.
+    ...(owner
+      ? [
+          "WHAT YOU CANNOT DO FOR HER",
+          "- You see only the public catalogue. Orders, customers, takings and behind-the-scenes stock are invisible to you — say so plainly and point at the admin pages rather than estimating.",
+          "- You cannot change a price, cancel or edit an order, or message a customer. If she asks, say so rather than agreeing and doing nothing.",
+          "- Never call request_human. She is the person it would fetch.",
+        ]
+      : [
+          "WHEN TO HAND OVER",
+          "Call request_human when someone asks for a bulk or event quote, wants to change or chase an order, has a complaint, or asks anything about their own account or payment. Say plainly that you are passing them to a person — do not pretend to have done it yourself.",
+        ]),
   ].join("\n");
+}
+
+/**
+ * How Lisa speaks to the owner.
+ *
+ * This replaces the shop-assistant register rather than qualifying it. She is
+ * not selling to the person who owns the stock, and a prompt that says "be a
+ * shop assistant" and then "but not with her" leaves the model arbitrating
+ * between two live instructions every turn.
+ *
+ * It says who she is talking to and never how that was decided: the owner's
+ * numbers stay in settings and out of every prompt, so no amount of asking
+ * gets Lisa to read her mobile back to a customer.
+ *
+ * It grants no authority either. Lisa can see exactly what she could before,
+ * and the honest answer to "how did we do this week" is still that she cannot
+ * see it — an owner confidently told invented figures about her own shop is
+ * worse served than one told to go and look.
+ */
+function speakingToTheOwner(name: string): string[] {
+  const who = name ? `${name}, who owns the shop` : "the shop's owner";
+
+  return [
+    "WHO YOU ARE TALKING TO",
+    `- This is ${who}, not a customer. Use her name the first time and speak to her as a colleague: short, direct, and willing to say plainly when something is not right.`,
+    "- No pitching, no sales patter, no explaining the delivery charge or the warranty back to her — she set them. Do not offer to pass her to a person.",
+    "- Plain British English. No emoji, no exclamation marks.",
+    "- If she writes in Twi, Ga or Pidgin, answer in the same register but keep product names in English.",
+  ];
 }
 
 export const toolDeclarations: ToolDeclaration[] = [
