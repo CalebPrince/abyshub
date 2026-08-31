@@ -1,0 +1,36 @@
+{
+  "type": "webhook",
+  "name": "recommend_products",
+  "description": "A short list of what the shop would put in front of someone with no particular request yet — featured items first, then whatever is in stock.",
+  "response_timeout_secs": 20,
+  "api_schema": {
+    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool?secret=REPLACE_WITH_WEBHOOK_SECRET",
+    "method": "POST",
+    "request_headers": {
+      "Content-Type": "application/json"
+    },
+    "request_body_schema": {
+      "type": "object",
+      "required": ["tool", "session_token"],
+      "properties": {
+        "tool": {
+          "type": "string",
+          "description": "Which tool this call is for. One URL serves all four, so this is how the shop knows.",
+          "value_type": "constant",
+          "constant_value": "recommend_products"
+        },
+        "session_token": {
+          "type": "string",
+          "description": "Issued by the conversation-initiation webhook. Without it the shop cannot tell which conversation is calling.",
+          "value_type": "dynamic_variable",
+          "dynamic_variable": "session_token"
+        },
+        "args": {
+          "type": "object",
+          "description": "This tool takes no arguments.",
+          "properties": {}
+        }
+      }
+    }
+  }
+}
