@@ -18,14 +18,14 @@
     "request_body_schema": {
       "id": "body",
       "type": "object",
-      "description": "Which conversation is asking. This tool takes no arguments of its own.",
+      "description": "Optional context. This tool takes no real arguments.",
       "properties": [
         {
-          "id": "session_token",
+          "id": "context",
           "type": "string",
-          "value_type": "dynamic_variable",
-          "description": "Issued by the conversation-initiation webhook. Identifies which conversation is asking.",
-          "dynamic_variable": "session_token",
+          "value_type": "llm_prompt",
+          "description": "Optional — a short note on what the customer asked. Not required; the recommendation list is the same whatever is sent.",
+          "dynamic_variable": "",
           "constant_value": "",
           "enum": null,
           "is_system_provided": false,
