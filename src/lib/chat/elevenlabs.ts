@@ -30,11 +30,15 @@ export function whatsappToken(digits: string): string {
  * everyone. Compared in constant time so the check cannot be timed.
  */
 export async function verifyElevenLabsSecret(request: Request): Promise<boolean> {
-  const expected = await getSecret(
-    "elevenlabs_webhook_secret",
-    process.env.ELEVENLABS_WEBHOOK_SECRET
-  );
-  if (!expected) return false;
+  // Keep both explicitly configured values valid during secret rotation. The
+  // admin database normally takes precedence over the environment, but making
+  // it replace the environment value here can strand ElevenLabs on a valid
+  // deployment secret whenever an older admin value still exists.
+  const expected = [
+    await getSecret("elevenlabs_webhook_secret"),
+    process.env.ELEVENLABS_WEBHOOK_SECRET?.trim() ?? "",
+  ].filter((secret, index, secrets) => secret && secrets.indexOf(secret) === index);
+  if (expected.length === 0) return false;
 
   // The query string is not a convenience. ElevenLabs does not reliably send
   // configured custom headers on *tool* calls, so a header-only check makes
@@ -45,11 +49,20 @@ export async function verifyElevenLabsSecret(request: Request): Promise<boolean>
   const received =
     request.headers.get("x-elevenlabs-secret") ??
     request.headers.get("x-webhook-secret") ??
+    bearerToken(request.headers.get("authorization")) ??
     new URL(request.url).searchParams.get("secret") ??
     "";
   if (!received) return false;
 
-  return constantTimeEqual(expected, received);
+  const comparisons = await Promise.all(
+    expected.map((secret) => constantTimeEqual(secret, received))
+  );
+  return comparisons.some(Boolean);
+}
+
+function bearerToken(value: string | null): string | null {
+  const match = value?.match(/^Bearer\s+(.+)$/i);
+  return match?.[1]?.trim() || null;
 }
 
 /**
