@@ -33,9 +33,11 @@ verbs.
 its `session_token` holds a customer phone number, which has no business in an
 access log on every hop that handled the request.
 
-A constant query parameter takes `constant_value` and omits `dynamic_variable`
-entirely — not an empty string. Body properties are the opposite and want both
-keys present. They are not the same node shape.
+Query parameters and body properties are the same node shape, and every node
+wants the full set of keys — `id`, `type`, `description`, `required`,
+`value_type`, `dynamic_variable`, `constant_value` — whichever two of them it
+actually uses. Empty strings for the unused ones. Omitting a key is rejected
+even where it is obviously irrelevant, so do not tidy them away.
 
 ## Why the URL carries the tool name
 

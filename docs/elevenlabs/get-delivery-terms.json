@@ -13,7 +13,8 @@
         "description": "Shared secret proving the call is really ElevenLabs.",
         "required": true,
         "value_type": "constant",
-        "constant_value": "REPLACE_WITH_WEBHOOK_SECRET"
+        "constant_value": "REPLACE_WITH_WEBHOOK_SECRET",
+        "dynamic_variable": ""
       },
       {
         "id": "tool",
@@ -21,7 +22,8 @@
         "description": "Which tool this call is for. One URL serves all four.",
         "required": true,
         "value_type": "constant",
-        "constant_value": "get_delivery_terms"
+        "constant_value": "get_delivery_terms",
+        "dynamic_variable": ""
       }
     ],
     "request_body_schema": null,
