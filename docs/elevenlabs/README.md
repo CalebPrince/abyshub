@@ -52,33 +52,31 @@ reliably send configured custom headers on tool calls, and a header-only check
 fails as an assistant who still talks fluently but has silently lost every tool.
 `verifyElevenLabsSecret` accepts either.
 
-## The body schema shape
+## The shape, taken from the server
 
-Not the JSON Schema shape it resembles. Every node — including the body itself —
-is an object with an `id`, and `properties` is an **array** of those nodes
-rather than a map keyed by name. `required` is a boolean **on each node**, not a
-list of names on the parent. The same node shape is used by
-`path_params_schema` and `query_params_schema`, which is the tell.
+These four are copied from what ElevenLabs actually stored for a tool it
+accepted — read out of the tool editor's **Edit as JSON** view — rather than
+reconstructed from validation errors. That view is the authority; reach for it
+first if any of this stops matching.
+
+Two things it settled that guessing did not:
+
+- `request_body_schema` may not be `null` on a POST. A tool taking no arguments
+  still needs the object, with `properties: []`. A null body is refused with
+  "failed to create tool" and no field named, which is the least useful error
+  in the set.
+- Query parameters belong **inline in the URL**, with `query_params_schema`
+  left empty. Declaring them there instead is what broke the two tools that
+  would not save.
+
+Every node — the body itself and each property — carries the full key set, with
+empty strings where unused:
 
 ```
-request_body_schema: { id, type: "object", required: true, properties: [ … ] }
-                                                            ^ array of nodes
+body:     id, type, description, properties[], required, dynamic_variable, value_type
+property: id, type, value_type, description, dynamic_variable, constant_value,
+          enum, is_system_provided, required
 ```
-
-Every property node must carry **all** of `id`, `type`, `description`,
-`required`, `value_type`, `dynamic_variable` and `constant_value` — the last
-two even when the value comes from the model. Empty strings, not omitted keys.
-Only `session_token` in `request_human` actually uses one.
-
-Getting this wrong is loud rather than silent — the editor refuses the paste and
-names the three fields — so it is the safe kind of mistake.
-
-## The one field to watch
-
-`request_human` is the only tool needing a dynamic variable — `session_token`,
-which the conversation-initiation webhook returns. It is not optional plumbing:
-without it that tool runs, reports success, and the handoff reaches nobody. The
-customer is told a person will follow up and no person ever learns.
 
 ## What the route actually requires
 

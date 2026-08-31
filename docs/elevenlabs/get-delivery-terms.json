@@ -2,45 +2,36 @@
   "type": "webhook",
   "name": "get_delivery_terms",
   "description": "The current delivery charge, the basket total that earns free delivery, and dispatch timing. Read this rather than quoting a figure from memory — the shop changes it.",
+  "disable_interruptions": false,
+  "interruption_mode": "allow",
+  "force_pre_tool_speech": false,
+  "pre_tool_speech": "auto",
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "tool_error_handling_mode": "auto",
+  "execution_mode": "immediate",
   "api_schema": {
-    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool",
-    "method": "GET",
+    "url": "https://abyshub.com/api/whatsapp/elevenlabs-tool?secret=REPLACE_WITH_WEBHOOK_SECRET&tool=get_delivery_terms",
+    "method": "POST",
     "path_params_schema": [],
-    "query_params_schema": [
-      {
-        "id": "secret",
-        "type": "string",
-        "description": "Shared secret proving the call is really ElevenLabs.",
-        "required": true,
-        "value_type": "constant",
-        "constant_value": "REPLACE_WITH_WEBHOOK_SECRET",
-        "dynamic_variable": ""
-      },
-      {
-        "id": "tool",
-        "type": "string",
-        "description": "Which tool this call is for. One URL serves all four.",
-        "required": true,
-        "value_type": "constant",
-        "constant_value": "get_delivery_terms",
-        "dynamic_variable": ""
-      }
-    ],
-    "request_body_schema": null,
+    "query_params_schema": [],
+    "request_body_schema": {
+      "id": "body",
+      "type": "object",
+      "description": "This tool takes no arguments.",
+      "properties": [],
+      "required": false,
+      "dynamic_variable": "",
+      "value_type": "llm_prompt"
+    },
     "request_headers": [],
     "content_type": "application/json",
     "auth_connection": null
   },
+  "assignments": [],
   "response_timeout_secs": 20,
   "dynamic_variables": {
     "dynamic_variable_placeholders": {}
   },
-  "assignments": [],
-  "interruption_mode": "allow",
-  "pre_tool_speech": "auto",
-  "tool_call_sound": null,
-  "tool_call_sound_behavior": "auto",
-  "execution_mode": "immediate",
-  "tool_error_handling_mode": "auto",
   "response_mocks": []
 }
