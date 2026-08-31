@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CreditCardIcon } from "lucide-react";
+import { CheckCircle2Icon, CreditCardIcon, XCircleIcon } from "lucide-react";
 import { SetupNotice } from "@/components/admin/setup-notice";
 import { SettingsForm, type SettingField } from "@/components/admin/settings-form";
 import { adminClientAvailable } from "@/lib/supabase/admin";
 import { listSettings } from "@/lib/crm/queries";
 import { getShopSettings } from "@/lib/shop/settings";
+import { readAgentStatus, type AgentStatus } from "@/lib/chat/agent-status";
 import { requireAdmin } from "@/lib/admin/dal";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -45,6 +46,18 @@ const groups: { title: string; blurb: string; fields: SettingField[] }[] = [
         key: "whatsapp_business_number",
         label: "WhatsApp Business number",
         placeholder: "233…",
+      },
+      {
+        key: "elevenlabs_voice_id",
+        label: "Website voice ID",
+        hint: "From elevenlabs.io → Voices. Blank means Lisa uses the browser's own voice on the site; WhatsApp is unaffected either way.",
+        placeholder: "21m00Tcm4TlvDq8ikWAM",
+      },
+      {
+        key: "elevenlabs_tts_model",
+        label: "Website voice model",
+        hint: "Leave blank for eleven_flash_v2_5. This speaks a reply the customer is already reading, so latency matters more than fidelity.",
+        placeholder: "eleven_flash_v2_5",
       },
     ],
   },
@@ -129,6 +142,7 @@ export default async function AdminSettingsPage() {
     listSettings(),
     getShopSettings(),
   ]);
+  const agentStatus = await readAgentStatus();
 
   // Built from the shop's own origin rather than written out, so they stay
   // right on a preview deployment and cannot drift from the live site.
@@ -206,11 +220,7 @@ export default async function AdminSettingsPage() {
             </div>
           ))}
         </dl>
-        <p className="text-muted-foreground mt-4 text-xs">
-          The agent must also have system-prompt overrides enabled in its
-          security settings, or ElevenLabs ignores the prompt sent here and
-          answers from its own empty default.
-        </p>
+        <AgentStatusLine status={agentStatus} />
       </div>
 
       {!connected ? (
@@ -224,6 +234,59 @@ export default async function AdminSettingsPage() {
           values={values}
           secretsSet={secretsSet}
         />
+      )}
+    </div>
+  );
+}
+
+/**
+ * The live state of the WhatsApp agent, printed under the URLs it verifies.
+ *
+ * Prompt overrides get their own line rather than a footnote because it is the
+ * failure that looks like success: the webhooks fire, Lisa answers, and every
+ * answer is from an empty default because ElevenLabs discarded the prompt.
+ */
+function AgentStatusLine({ status }: { status: AgentStatus }) {
+  if (status.state === "unconfigured") {
+    return (
+      <p className="text-muted-foreground mt-4 text-xs">
+        {status.detail} Fill in the agent ID and API key below and this line
+        will say whether the agent answers.
+      </p>
+    );
+  }
+
+  if (status.state === "error") {
+    return (
+      <p className="text-destructive mt-4 flex items-start gap-1.5 text-xs">
+        <XCircleIcon className="mt-px size-3.5 shrink-0" />
+        <span>{status.detail}</span>
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-4 space-y-1.5 text-xs">
+      <p className="flex items-start gap-1.5 text-emerald-600">
+        <CheckCircle2Icon className="mt-px size-3.5 shrink-0" />
+        <span>
+          Reached the agent <span className="font-semibold">{status.name}</span>.
+        </span>
+      </p>
+      {status.overridesPrompt ? (
+        <p className="flex items-start gap-1.5 text-emerald-600">
+          <CheckCircle2Icon className="mt-px size-3.5 shrink-0" />
+          <span>System-prompt overrides are on, so Lisa gets the live prompt.</span>
+        </p>
+      ) : (
+        <p className="text-destructive flex items-start gap-1.5">
+          <XCircleIcon className="mt-px size-3.5 shrink-0" />
+          <span>
+            System-prompt overrides are off. ElevenLabs will ignore the prompt
+            sent by the init webhook and answer from its own empty default —
+            turn them on in the agent&rsquo;s security settings.
+          </span>
+        </p>
       )}
     </div>
   );
