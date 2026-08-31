@@ -27,7 +27,7 @@ type CartContextValue = {
   hydrated: boolean;
   isOpen: boolean;
   setOpen: (open: boolean) => void;
-  addItem: (productId: string, quantity?: number) => void;
+  addItem: (productId: string, quantity?: number, max?: number) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;

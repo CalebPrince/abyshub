@@ -31,6 +31,7 @@ function summarise(product: Product) {
     brand: product.brand,
     price: formatPrice(product.price),
     in_stock: product.inStock,
+    stock_remaining: product.stockQuantity,
     category: product.category,
     url: `/products/${product.slug}`,
   };

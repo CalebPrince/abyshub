@@ -39,6 +39,7 @@ export type ProductDraft = {
   description: string | null;
   highlights: string[] | null;
   in_stock: boolean;
+  stock_quantity: number;
   featured: boolean;
   published: boolean;
 };
@@ -98,7 +99,7 @@ export function ProductDialog({
         <DialogDescription className="text-muted-foreground text-sm">
           {editing
             ? "The web address is fixed once a product exists — changing it would break every link already pointing at it."
-            : "It appears on the shop as soon as it is listed and in stock."}
+            : "Set the physical quantity here; anything above zero is available on the shop."}
         </DialogDescription>
 
         <form action={formAction} className="mt-5">
@@ -184,6 +185,24 @@ export function ProductDialog({
               />
             </div>
 
+            <div className="border-primary/20 bg-primary/5 space-y-2 rounded-xl border p-4 sm:col-span-2">
+              <Label htmlFor="pd-stock" className="font-bold">Units in stock</Label>
+              <Input
+                id="pd-stock"
+                name="stock_quantity"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                step={1}
+                required
+                defaultValue={product?.stock_quantity ?? 0}
+                className="h-11 max-w-40 bg-background text-lg font-bold tabular-nums"
+              />
+              <p className="text-muted-foreground text-xs">
+                Saving a higher number records stock added. Paid orders reduce it automatically.
+              </p>
+            </div>
+
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="pd-tagline">Tagline</Label>
               <Input
@@ -235,7 +254,6 @@ export function ProductDialog({
           <div className="mt-4 flex flex-wrap gap-4">
             {[
               { name: "published", label: "Listed", value: product?.published ?? true },
-              { name: "in_stock", label: "Available in Ghana", value: product?.in_stock ?? true },
               { name: "featured", label: "Featured", value: product?.featured ?? false },
             ].map((box) => (
               <label className="flex items-center gap-2 text-sm" key={box.name}>

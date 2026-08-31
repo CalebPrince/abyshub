@@ -189,7 +189,16 @@ export async function recordPaidOrder(input: PaidOrderInput) {
     }));
 
   if (lines.length > 0) {
-    await supabase.from("order_items").insert(lines);
+    const { error: linesError } = await supabase.from("order_items").insert(lines);
+    if (linesError) return { ok: false as const, error: linesError.message };
+  }
+
+  const { error: inventoryError } = await supabase.rpc(
+    "deduct_inventory_for_paid_order",
+    { p_order_id: order.id }
+  );
+  if (inventoryError) {
+    return { ok: false as const, error: `Inventory was not updated: ${inventoryError.message}` };
   }
 
   // --- customer rollup ------------------------------------------------------

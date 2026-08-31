@@ -117,6 +117,17 @@ export async function startPaystackCheckout(
     };
   }
 
+  const insufficientStock = lines.find(
+    (line) =>
+      line.product.stockQuantity !== undefined &&
+      line.quantity > line.product.stockQuantity
+  );
+  if (insufficientStock) {
+    return {
+      error: `Only ${insufficientStock.product.stockQuantity} of ${insufficientStock.product.name} remain. Update the quantity to continue.`,
+    };
+  }
+
   const calculatedTotals = calculateTotals(lines, {
     freeDeliveryThreshold: settings.freeDeliveryThreshold,
     deliveryFlatRate: settings.deliveryFlatRate,

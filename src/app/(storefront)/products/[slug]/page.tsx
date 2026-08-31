@@ -200,7 +200,9 @@ export default async function ProductPage({
               aria-hidden
             />
             {product.inStock
-              ? "In stock — dispatched within one working day"
+              ? product.stockQuantity !== undefined
+                ? `${product.stockQuantity} ${product.stockQuantity === 1 ? "unit" : "units"} in stock — dispatched within one working day`
+                : "In stock — dispatched within one working day"
               : "Out of stock — ask us when it lands"}
           </div>
 

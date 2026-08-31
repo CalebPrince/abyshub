@@ -102,17 +102,17 @@ function commit(items: CartItem[]) {
   writeStorage(items);
 }
 
-export function addItem(productId: string, quantity = 1) {
+export function addItem(productId: string, quantity = 1, max = 99) {
   const existing = state.items.find((item) => item.productId === productId);
 
   commit(
     existing
       ? state.items.map((item) =>
           item.productId === productId
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: Math.min(item.quantity + quantity, max) }
             : item
         )
-      : [...state.items, { productId, quantity }]
+      : [...state.items, { productId, quantity: Math.min(quantity, max) }]
   );
 }
 
