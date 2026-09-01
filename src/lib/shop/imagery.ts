@@ -43,11 +43,12 @@ const BY_BRAND: Record<string, string> = {
   tupperware: "/lifestyle/kitchen-hero.webp",
   oriflame: "/lifestyle/beauty.webp",
   feminelle: "/categories/bath-body.webp",
-  // Stand-ins until the client supplies their own photography. Both are
-  // already licensed for this site, which borrowed pictures would not be.
-  "jibu water": "/categories/wellness.webp",
-  jibu: "/categories/wellness.webp",
-  jbco: "/categories/hair.webp",
+  // Generated for these two ranges rather than borrowed: the shop takes real
+  // money, and a photograph lifted off the web is a claim against it rather
+  // than a placeholder. Swap them when the client supplies their own.
+  "jibu water": "/lifestyle/jibu-water.webp",
+  jibu: "/lifestyle/jibu-water.webp",
+  jbco: "/lifestyle/jbco.webp",
   novage: "/lifestyle/skincare.webp",
 };
 

@@ -13,7 +13,7 @@ export default function JibuWaterPage() {
       eyebrow="JIBU Water"
       title="Clean water, on its way."
       blurb="We are bringing JIBU purified drinking water to Abys Hub — refills and bulk orders for homes, offices and events. Tell us what you need and we will come back to you with sizes and pricing as soon as it lands."
-      image="/categories/wellness.webp"
+      image="/lifestyle/jibu-water.webp"
       enquiry="Hello Abys Hub, I would like to know about JIBU Water — sizes, pricing and delivery."
     />
   );
