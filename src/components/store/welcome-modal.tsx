@@ -1,17 +1,19 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import {
-  ArrowRightIcon,
   BadgeCheckIcon,
+  CheckCircle2Icon,
   CreditCardIcon,
-  MessageCircleIcon,
+  SendIcon,
   TruckIcon,
   XIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { subscribeToOffers } from "@/lib/actions/subscribe";
 import {
   Dialog,
   DialogClose,
@@ -35,18 +37,18 @@ function buildPoints(freeDeliveryThreshold: number) {
   return [
     {
       icon: BadgeCheckIcon,
-      title: "Genuine stock",
-      body: "Tupperware through authorised channels, warranty intact.",
+      title: "Offers first",
+      body: "Discounts reach the list before they reach the shop.",
     },
     {
       icon: TruckIcon,
       title: "Free delivery",
-      body: `On every basket over ${formatPrice(freeDeliveryThreshold)}, nationwide.`,
+      body: `Still free on every basket over ${formatPrice(freeDeliveryThreshold)}, nationwide.`,
     },
     {
       icon: CreditCardIcon,
-      title: "Three ways to pay",
-      body: "Card at checkout, WhatsApp, or ask us for a quote.",
+      title: "Genuine stock",
+      body: "Tupperware through authorised channels, warranty intact.",
     },
   ];
 }
@@ -55,6 +57,10 @@ export function WelcomeModal() {
   const { rates } = useCart();
   const points = buildPoints(rates.freeDeliveryThreshold);
   const [open, setOpen] = React.useState(false);
+  const [state, formAction, pending] = React.useActionState(subscribeToOffers, {
+    status: "idle" as const,
+    message: null,
+  });
 
   React.useEffect(() => {
     let seen = true;
@@ -119,17 +125,17 @@ export function WelcomeModal() {
           </DialogClose>
 
           <p className="text-primary-foreground/75 text-[11px] font-semibold tracking-[0.24em] uppercase">
-            Welcome
+            Discount offers
           </p>
           <DialogTitle className="mt-2 max-w-[85%] text-xl leading-[1] sm:text-3xl sm:leading-[0.95]">
-            Buy it once.
+            Get the deals
             <br />
-            <span className="text-foreground">Keep it</span> for years.
+            <span className="text-foreground">before</span> everyone else.
           </DialogTitle>
           <DialogDescription className="text-background/70 mt-2 line-clamp-2 text-xs sm:mt-3 sm:line-clamp-none sm:text-sm">
-            {STORE_NAME} stocks genuine Tupperware and our own home range —
-            airtight storage, prep tools and everyday kitchen goods built to
-            outlast the trend cycle.
+            Leave your email and {STORE_NAME} will send you our discount
+            offers as they land — monthly deals and price drops on genuine
+            Tupperware and our own home range.
           </DialogDescription>
         </div>
 
@@ -149,20 +155,53 @@ export function WelcomeModal() {
           ))}
         </ul>
 
-        <div className="flex flex-col gap-2 px-5 pt-2 pb-5 sm:flex-row sm:gap-2.5 sm:px-6 sm:pb-6">
-          <DialogClose asChild>
-            <Button asChild className="h-9 flex-1 sm:h-10">
-              <Link href="/products">
-                Start shopping <ArrowRightIcon />
-              </Link>
-            </Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button variant="outline" className="h-9 flex-1 sm:h-10">
-              <MessageCircleIcon /> Keep browsing
-            </Button>
-          </DialogClose>
-        </div>
+        {state.status === "sent" ? (
+          <div className="px-5 pt-4 pb-5 text-center sm:px-6 sm:pb-6">
+            <CheckCircle2Icon className="mx-auto size-8 text-emerald-600" />
+            <p className="mt-2 text-sm font-semibold">{state.message}</p>
+            <DialogClose asChild>
+              <Button variant="outline" className="mt-4 h-9 w-full sm:h-10">
+                Keep browsing
+              </Button>
+            </DialogClose>
+          </div>
+        ) : (
+          <form action={formAction} className="px-5 pt-3 pb-5 sm:px-6 sm:pb-6">
+            <input type="hidden" name="source" value="welcome_modal" />
+            <Label htmlFor="offers-email" className="sr-only">
+              Email address
+            </Label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-2.5">
+              <Input
+                id="offers-email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="you@example.com"
+                className="h-9 flex-1 sm:h-10"
+              />
+              <Button type="submit" disabled={pending} className="h-9 sm:h-10">
+                <SendIcon /> {pending ? "Sending…" : "Send me offers"}
+              </Button>
+            </div>
+
+            {state.status === "error" && state.message ? (
+              <p role="alert" className="text-primary mt-2 text-xs">
+                {state.message}
+              </p>
+            ) : null}
+
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-muted-foreground text-[11px]">
+                Offers only. Unsubscribe whenever you like.
+              </p>
+              <DialogClose className="text-muted-foreground hover:text-foreground shrink-0 cursor-pointer text-[11px] underline underline-offset-4">
+                No thanks
+              </DialogClose>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -26,8 +26,8 @@ import { formatPrice } from "@/lib/money";
 const orderRoutes = [
   {
     icon: CreditCardIcon,
-    title: "Pay by card",
-    body: "Checkout online and pay with card, bank transfer or USSD through Paystack.",
+    title: "Pay By Card or Mobile Money",
+    body: "Pay with card or mobile money — MTN MoMo, Telecel Cash and AirtelTigo Money — plus bank transfer and USSD, all through Paystack.",
     href: "/checkout",
     cta: "Go to checkout",
   },

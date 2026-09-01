@@ -3,34 +3,49 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { SearchIcon } from "lucide-react";
+import { ChevronDownIcon, SearchIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import type { Category } from "@/lib/types";
 
-const HEADER_CATEGORY_LIMIT = 6;
+type NavItem = {
+  href: string;
+  label: string;
+  children?: { href: string; label: string }[];
+};
 
 /**
- * Built from the shelves passed in rather than a hardcoded list, so a category
- * added in the admin reaches the header without a deploy.
+ * The shop is organised by the ranges it carries, so the menu is written out
+ * rather than generated from the catalogue's shelves: a range keeps its place
+ * in the header whether or not there is stock against it yet.
  */
-function buildNav(categories: Category[]) {
-  const categoryLinks = categories
-    .filter((category) => category.slug !== "serveware")
-    .slice(0, HEADER_CATEGORY_LIMIT)
-    .map((category) => ({
-      href: `/products?category=${category.slug}`,
-      label: category.name,
-    }));
+const NAV: NavItem[] = [
+  { href: "/", label: "Home" },
+  {
+    href: "/products?brand=Tupperware",
+    label: "Tupperware",
+    children: [
+      { href: "/products?brand=Tupperware", label: "Shop" },
+      { href: "/offers", label: "Monthly Offers" },
+      { href: "/products?sale=1", label: "Discounted Items" },
+      { href: "/sales-agent", label: "Become a Sales Agent" },
+      { href: "/media", label: "Media" },
+    ],
+  },
+  { href: "/products?brand=Oriflame", label: "Oriflame" },
+  { href: "/jibu-water", label: "JIBU Water" },
+  { href: "/jbco", label: "JBCO" },
+  { href: "/contact", label: "Contact Us" },
+];
 
-  return [
-    { href: "/", label: "Home" },
-    { href: "/products", label: "Everything" },
-    ...categoryLinks,
-    { href: "/contact", label: "Contact" },
-  ];
-}
+/** The params that narrow the shop, so a bare /products is only "active" when none are set. */
+const FILTER_PARAMS = ["category", "brand", "sale"] as const;
 
 /**
  * Everything in the header that reads the URL lives here.
@@ -41,65 +56,135 @@ function buildNav(categories: Category[]) {
  * these pieces separate lets the cart button hydrate with the rest of the page.
  */
 export function HeaderNav({
-  categories,
   variant,
   onNavigate,
 }: {
-  categories: Category[];
   variant: "desktop" | "mobile";
   onNavigate?: () => void;
 }) {
-  const navLinks = buildNav(categories);
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const activeCategory = searchParams.get("category");
 
-  function isActive(href: string) {
-    const [path, search] = href.split("?");
-    if (pathname !== path) return false;
-    if (!search) return !activeCategory;
-    return search === `category=${activeCategory}`;
+  const isActive = React.useCallback(
+    (href: string) => {
+      const [path, search] = href.split("?");
+      if (pathname !== path) return false;
+      // An unfiltered link is only current while nothing is narrowing the list,
+      // otherwise "Tupperware" and "Discounted Items" would both look selected.
+      if (!search) return FILTER_PARAMS.every((key) => !searchParams.get(key));
+
+      const wanted = new URLSearchParams(search);
+      for (const [key, value] of wanted) {
+        if (searchParams.get(key) !== value) return false;
+      }
+      return true;
+    },
+    [pathname, searchParams]
+  );
+
+  function branchActive(item: NavItem) {
+    return isActive(item.href) || (item.children ?? []).some((child) => isActive(child.href));
   }
 
   if (variant === "mobile") {
     return (
       <nav className="flex flex-col px-4">
-        {navLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            onClick={onNavigate}
-            className={cn(
-              "font-display border-foreground/10 border-b py-3.5 text-lg font-bold tracking-tight uppercase transition-colors",
-              isActive(link.href) ? "text-primary" : "hover:text-primary"
-            )}
-          >
-            {link.label}
-          </Link>
+        {NAV.map((item) => (
+          <div key={item.label}>
+            <Link
+              href={item.href}
+              onClick={onNavigate}
+              className={cn(
+                "font-display border-foreground/10 block border-b py-3.5 text-lg font-bold tracking-tight uppercase transition-colors",
+                branchActive(item) ? "text-primary" : "hover:text-primary"
+              )}
+            >
+              {item.label}
+            </Link>
+
+            {/* Laid out flat rather than behind a toggle: the drawer already
+                scrolls, and a second tap to reach Monthly Offers is a tap
+                most people will not make. */}
+            {item.children ? (
+              <div className="border-foreground/10 flex flex-col border-b py-1 pl-4">
+                {item.children.map((child) => (
+                  <Link
+                    key={child.label}
+                    href={child.href}
+                    onClick={onNavigate}
+                    className={cn(
+                      "py-2 text-sm font-semibold transition-colors",
+                      isActive(child.href)
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {child.label}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
         ))}
       </nav>
     );
   }
 
   return (
-    <nav className="hidden min-w-0 flex-1 items-center gap-4 overflow-hidden lg:flex">
-      {navLinks.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={cn(
-            "relative py-1 text-[12px] font-semibold tracking-[0.12em] uppercase transition-colors",
-            isActive(link.href)
-              ? "text-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {link.label}
-          {isActive(link.href) && (
-            <span className="bg-primary absolute -bottom-0.5 left-0 h-[3px] w-full rounded-full" />
-          )}
-        </Link>
-      ))}
+    <nav className="hidden min-w-0 flex-1 items-center gap-4 lg:flex">
+      {NAV.map((item) =>
+        item.children ? (
+          // modal={false} on purpose: the modal variant locks body scroll and
+          // blanks pointer events behind it, which a header menu should not do.
+          <DropdownMenu key={item.label} modal={false}>
+            <DropdownMenuTrigger
+              className={cn(
+                "relative flex cursor-pointer items-center gap-1 py-1 text-[12px] font-semibold tracking-[0.12em] uppercase transition-colors outline-none",
+                branchActive(item)
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {item.label}
+              <ChevronDownIcon className="size-3.5" aria-hidden />
+              {branchActive(item) && (
+                <span className="bg-primary absolute -bottom-0.5 left-0 h-[3px] w-[calc(100%-1.125rem)] rounded-full" />
+              )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              {item.children.map((child) => (
+                <DropdownMenuItem key={child.label} asChild>
+                  <Link
+                    href={child.href}
+                    className={cn(
+                      "cursor-pointer text-[12px] font-semibold tracking-[0.08em] uppercase",
+                      isActive(child.href) && "text-primary"
+                    )}
+                  >
+                    {child.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Link
+            key={item.label}
+            href={item.href}
+            className={cn(
+              "relative py-1 text-[12px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
+              isActive(item.href)
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {item.label}
+            {isActive(item.href) && (
+              <span className="bg-primary absolute -bottom-0.5 left-0 h-[3px] w-full rounded-full" />
+            )}
+          </Link>
+        )
+      )}
     </nav>
   );
 }

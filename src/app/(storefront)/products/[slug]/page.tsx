@@ -111,12 +111,15 @@ export default async function ProductPage({
         </ol>
       </nav>
 
-      <div className="border-foreground/12 grid overflow-hidden rounded-2xl border lg:grid-cols-2">
-        {/* Not sticky: the card above is overflow-hidden, which makes it the
-            scroll container this would resolve against, so the offset only
-            ever parked the photo 128px down the card and never held it in
-            view. Dropping it closes that gap at the top. */}
-        <div className="border-foreground/12 min-w-0 border-b lg:self-start lg:border-b-0">
+      {/* No overflow-hidden: it would make this the nearest scroll container
+          for the sticky photo beside it, which parks the photo partway down
+          the card and never holds it in view. Nothing bleeds to the card edge
+          any more — the photo carries its own inset, rounded frame. */}
+      <div className="border-foreground/12 grid rounded-2xl border lg:grid-cols-2">
+        {/* Sticky against the viewport, which needs the card to not be a
+            scroll container — see the note on the card itself. top-28 clears
+            the 121px header when the photo is held in view. */}
+        <div className="border-foreground/12 min-w-0 border-b lg:sticky lg:top-28 lg:self-start lg:border-b-0">
           <ProductGallery
             images={gallery}
             name={product.name}

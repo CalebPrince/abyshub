@@ -20,12 +20,15 @@ const LOW_RES_THRESHOLD = 300;
  * treatment instead of an upscaled crop, trading some empty space for a
  * picture that still looks like a picture.
  */
-export function ProductImage({ className, ...props }: ImageProps) {
+export function ProductImage({ alt, className, ...props }: ImageProps) {
   const [lowRes, setLowRes] = React.useState(false);
 
   return (
     <Image
       {...props}
+      // Pulled out of the spread and passed on its own so a11y linting can
+      // see it. Callers already supply it — `""` for decorative thumbnails.
+      alt={alt}
       onLoad={(event) => {
         const img = event.currentTarget;
         if (img.naturalWidth < LOW_RES_THRESHOLD || img.naturalHeight < LOW_RES_THRESHOLD) {
