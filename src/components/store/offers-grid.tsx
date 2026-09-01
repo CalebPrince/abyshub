@@ -63,13 +63,27 @@ function Tile({ product }: { product: Product }) {
 }
 
 /**
+ * A stable scatter for the top-up slots. Shuffling them per render would
+ * reorder the shelf on every pass, so the id is hashed instead: the block
+ * still reads as a mix rather than the head of the catalogue, but it lands
+ * the same way every time it renders.
+ */
+function scatterKey(id: string) {
+  let hash = 0;
+  for (let index = 0; index < id.length; index += 1) {
+    hash = (hash * 31 + id.charCodeAt(index)) | 0;
+  }
+  return hash;
+}
+
+/**
  * The offers block.
  *
  * Never shows something sold out — a "while they last" tile that can't
  * actually be bought is worse than an empty slot. Discounted stock leads,
  * featured items fill next, and anything still available tops up the rest
- * at random so the block isn't half empty while most of the catalogue sits
- * unconfirmed for Ghana.
+ * in scattered order so the block isn't half empty while most of the
+ * catalogue sits unconfirmed for Ghana.
  */
 export function OffersGrid({ products }: { products: Product[] }) {
   const available = products.filter((p) => p.inStock);
@@ -79,7 +93,9 @@ export function OffersGrid({ products }: { products: Product[] }) {
 
   const picked = [...discounted, ...featured];
   const filler =
-    picked.length < 5 ? [...rest].sort(() => Math.random() - 0.5) : [];
+    picked.length < 5
+      ? [...rest].sort((a, b) => scatterKey(a.id) - scatterKey(b.id))
+      : [];
 
   // A compact five-item shelf keeps modest source images close to their useful
   // display size instead of stretching one product across half the page.
