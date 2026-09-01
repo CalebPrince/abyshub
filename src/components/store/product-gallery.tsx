@@ -54,7 +54,7 @@ export function ProductGallery({
                     aria-label={`Show photograph ${index + 1} of ${images.length}`}
                     aria-current={selected}
                     className={cn(
-                      "relative block size-14 shrink-0 overflow-hidden rounded-lg border-2 transition-colors sm:size-16",
+                      "relative block size-14 shrink-0 overflow-hidden rounded-l-lg border-2 border-r-0 transition-colors sm:size-16",
                       "focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none",
                       selected
                         ? "border-primary"
@@ -80,8 +80,13 @@ export function ProductGallery({
 
         <div
           className={cn(
-            "border-foreground/10 bg-secondary/20 relative aspect-square overflow-hidden rounded-2xl border",
-            images.length > 1 && "ml-16 sm:ml-[72px]"
+            "border-foreground/10 bg-secondary/20 relative aspect-square overflow-hidden border",
+            // Flush against the strip: the shared edge is squared off on both
+            // sides so the thumbnails read as attached to the photo rather
+            // than floating beside it.
+            images.length > 1
+              ? "ml-14 rounded-r-2xl sm:ml-16"
+              : "rounded-2xl"
           )}
         >
           <ProductImage
