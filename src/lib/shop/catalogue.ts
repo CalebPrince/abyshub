@@ -172,10 +172,21 @@ export function featuredFrom(products: Product[], limit = 6) {
   return [...featured, ...filler].slice(0, limit);
 }
 
+/**
+ * Stays inside the brand. With several ranges in the catalogue, matching on
+ * shelf alone puts Oriflame under a Tupperware product, which reads as the
+ * wrong shop rather than a suggestion. Same shelf leads; the rest of the
+ * brand fills any gap, and nothing outside it is offered.
+ */
 export function relatedFrom(products: Product[], product: Product, limit = 4) {
-  return products
-    .filter((item) => item.id !== product.id && item.category === product.category)
-    .slice(0, limit);
+  const sameBrand = products.filter(
+    (item) => item.id !== product.id && item.brand === product.brand
+  );
+  const sameShelf = sameBrand.filter((item) => item.category === product.category);
+  if (sameShelf.length >= limit) return sameShelf.slice(0, limit);
+
+  const rest = sameBrand.filter((item) => item.category !== product.category);
+  return [...sameShelf, ...rest].slice(0, limit);
 }
 
 export function brandsFrom(products: Product[]) {

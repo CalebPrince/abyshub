@@ -106,6 +106,23 @@ export default async function ProductsPage({
   }
   results = sortProducts(results, sortParam as SortOption);
 
+  // With a brand chosen, the shelves offered are only the ones that brand
+  // actually stocks — otherwise the filters advertise combinations that lead
+  // to an empty page. The shelf already selected stays listed regardless, so
+  // it never vanishes out from under whoever picked it.
+  const brandShelves = brandParam
+    ? new Set(
+        products
+          .filter((product) => product.brand === brandParam)
+          .map((product) => product.category)
+      )
+    : null;
+  const visibleCategories = brandShelves
+    ? categories.filter(
+        (item) => brandShelves.has(item.slug) || item.slug === categoryParam
+      )
+    : categories;
+
   const requestedPage = Number(
     typeof params.page === "string" ? params.page : params.page?.[0]
   );
@@ -165,7 +182,7 @@ export default async function ProductsPage({
         <React.Suspense fallback={<Skeleton className="h-28 w-full" />}>
           <ProductFilters
             resultCount={results.length}
-            categories={categories}
+            categories={visibleCategories}
             brands={brandsFrom(products)}
           />
         </React.Suspense>
