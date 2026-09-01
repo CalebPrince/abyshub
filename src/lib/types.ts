@@ -26,6 +26,8 @@ export type Product = {
   compareAtPrice?: number;
   category: string;
   image: string;
+  /** Additional photographs shown beneath the main one. */
+  images?: string[];
   rating: number;
   reviewCount: number;
   inStock: boolean;

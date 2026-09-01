@@ -360,6 +360,7 @@ export async function seedCatalogue(): Promise<void> {
       review_count: product.reviewCount,
       in_stock: product.inStock,
       stock_quantity: product.stockQuantity ?? (product.inStock ? 1 : 0),
+      images: product.images ?? [],
       featured: product.featured ?? false,
       highlights: product.highlights,
       variants: product.variants ?? [],
@@ -489,6 +490,52 @@ export async function removeStaff(formData: FormData): Promise<void> {
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
+/** How many photographs one product may carry, the main shot included. */
+const MAX_GALLERY_IMAGES = 8;
+
+/**
+ * Uploads the extra photographs for a product and returns their public URLs.
+ * A string rather than a list means the caller should stop and show it: a
+ * half-uploaded gallery is worse than a rejected save.
+ */
+async function uploadGallery(
+  supabase: ReturnType<typeof createAdminClient>,
+  files: File[],
+  slug: string
+): Promise<string[] | string> {
+  const urls: string[] = [];
+
+  for (const file of files) {
+    if (!IMAGE_TYPES.includes(file.type)) {
+      return "Images must be JPEG, PNG, WebP or SVG.";
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      return `${file.name} is over 4MB.`;
+    }
+
+    const extension = file.name.includes(".") ? file.name.split(".").pop() : "png";
+    // The index keeps two files picked in the same millisecond apart.
+    const path = `${slug}-${Date.now()}-${urls.length}.${extension}`;
+
+    const { error } = await supabase.storage
+      .from("product-images")
+      .upload(path, file, { contentType: file.type, upsert: false });
+
+    if (error) return `The image did not upload: ${error.message}`;
+
+    urls.push(supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl);
+  }
+
+  return urls;
+}
+
+/** The extra photographs a form is carrying, blanks dropped. */
+function galleryFiles(formData: FormData) {
+  return formData
+    .getAll("gallery")
+    .filter((entry): entry is File => entry instanceof File && entry.size > 0);
+}
+
 /** "8-piece Storage Set!" -> "8-piece-storage-set" */
 function slugify(value: string) {
   return value
@@ -571,6 +618,13 @@ export async function createProduct(
     image = pub.publicUrl;
   }
 
+  const extraFiles = galleryFiles(formData);
+  if (extraFiles.length > MAX_GALLERY_IMAGES - 1) {
+    return { error: `A product can carry ${MAX_GALLERY_IMAGES} photographs.`, notice: null };
+  }
+  const extras = await uploadGallery(supabase, extraFiles, slug);
+  if (typeof extras === "string") return { error: extras, notice: null };
+
   const compare = text(formData, "compare_at_price");
 
   const { error } = await supabase.from("products").insert({
@@ -586,6 +640,7 @@ export async function createProduct(
       compare && Number.isFinite(Number(compare)) ? Math.round(Number(compare)) : null,
     category,
     image: image || null,
+    images: extras,
     stock_quantity: stockQuantity,
     in_stock: stockQuantity > 0,
     featured: formData.get("featured") === "on",
@@ -671,7 +726,7 @@ export async function editProduct(
   const compare = text(formData, "compare_at_price");
   const { data: existing } = await supabase
     .from("products")
-    .select("stock_quantity")
+    .select("stock_quantity, images")
     .eq("id", id)
     .maybeSingle();
 
@@ -721,8 +776,31 @@ export async function editProduct(
     patch.image = pub.publicUrl;
   }
 
+  // --- the rest of the gallery ---------------------------------------------
+  // The form posts back the photographs it was shown, minus any the user
+  // unticked, so a stale tab cannot resurrect one that has since been removed.
+  const kept = formData.getAll("keep_image").filter((v): v is string => typeof v === "string");
+  const dropped = (existing?.images ?? []).filter((url: string) => !kept.includes(url));
+
+  const extraFiles = galleryFiles(formData);
+  if (kept.length + extraFiles.length > MAX_GALLERY_IMAGES - 1) {
+    return { error: `A product can carry ${MAX_GALLERY_IMAGES} photographs.`, notice: null };
+  }
+  const added = await uploadGallery(supabase, extraFiles, id);
+  if (typeof added === "string") return { error: added, notice: null };
+
+  patch.images = [...kept, ...added];
+
   const { error } = await supabase.from("products").update(patch).eq("id", id);
   if (error) return { error: error.message, notice: null };
+
+  if (dropped.length > 0) {
+    const paths = dropped
+      .filter((url: string) => url.includes("/product-images/"))
+      .map((url: string) => url.split("/product-images/").pop())
+      .filter((path: string | undefined): path is string => Boolean(path));
+    if (paths.length > 0) await supabase.storage.from("product-images").remove(paths);
+  }
 
   const previousQuantity = Number(existing?.stock_quantity ?? 0);
   const delta = stockQuantity - previousQuantity;
@@ -761,17 +839,18 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   // no longer exist.
   const { data: row } = await supabase
     .from("products")
-    .select("image")
+    .select("image, images")
     .eq("id", id)
     .maybeSingle();
 
   await supabase.from("products").delete().eq("id", id);
 
-  const image = row?.image as string | undefined;
-  if (image?.includes("/product-images/")) {
-    const path = image.split("/product-images/").pop();
-    if (path) await supabase.storage.from("product-images").remove([path]);
-  }
+  const owned = [row?.image, ...((row?.images as string[] | null) ?? [])]
+    .filter((url): url is string => Boolean(url) && url.includes("/product-images/"))
+    .map((url) => url.split("/product-images/").pop())
+    .filter((path): path is string => Boolean(path));
+
+  if (owned.length > 0) await supabase.storage.from("product-images").remove(owned);
 
   revalidateTag(CATALOGUE_TAG, { expire: 0 });
   revalidatePath("/admin/products");
