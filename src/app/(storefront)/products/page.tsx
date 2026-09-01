@@ -5,6 +5,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BrandHero } from "@/components/store/brand-hero";
 import { ProductCard } from "@/components/store/product-card";
 import { Reveal } from "@/components/store/reveal";
 import {
@@ -155,14 +156,30 @@ export default async function ProductsPage({
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-12 lg:px-8 lg:py-16">
+      {/* A brand gets its own banner. Every other view keeps the plain
+          heading — a shelf or a search is a slice of the shop, while a brand
+          is meant to feel like its own front. */}
+      {brandParam && !saleOnly ? (
+        <BrandHero brand={brandParam} count={results.length} />
+      ) : null}
+
       <Reveal>
         <header className="border-foreground/12 border-b pb-10">
           <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
-            {saleOnly ? "On offer" : category ? "Shelf" : brandParam ? "Brand" : "The shop"}
+            {saleOnly ? "On offer" : category ? "Shelf" : brandParam ? "In this range" : "The shop"}
           </p>
-          <h1 className="font-display mt-3 text-4xl font-extrabold tracking-tight uppercase sm:text-6xl">
-            {heading}
-          </h1>
+          {/* The banner above has already set the brand name as the page's
+              heading, so this drops to a subheading rather than repeating it
+              at the same size — and there is only ever one h1. */}
+          {brandParam && !saleOnly ? (
+            <p className="font-display mt-3 text-2xl font-extrabold tracking-tight uppercase sm:text-3xl">
+              {category ? category.name : "Everything"}
+            </p>
+          ) : (
+            <h1 className="font-display mt-3 text-4xl font-extrabold tracking-tight uppercase sm:text-6xl">
+              {heading}
+            </h1>
+          )}
           <p className="text-muted-foreground mt-4 max-w-xl">
             {saleOnly
               ? "Everything currently selling below its usual price."
