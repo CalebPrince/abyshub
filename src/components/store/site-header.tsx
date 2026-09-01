@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sheet";
 import { AccountMenu } from "@/components/store/account-menu";
 import { CartButton } from "@/components/store/cart-button";
+import { DrawerAccount } from "@/components/store/drawer-account";
 import { HeaderNav, HeaderSearch } from "@/components/store/header-nav";
 import { Logo } from "@/components/store/logo";
 import { ThemeToggle } from "@/components/store/theme-toggle";
@@ -78,6 +79,7 @@ export function SiteHeader() {
               <React.Suspense fallback={null}>
                 <HeaderNav variant="mobile" onNavigate={closeMenu} />
               </React.Suspense>
+              <DrawerAccount onNavigate={closeMenu} />
             </SheetContent>
           </Sheet>
 

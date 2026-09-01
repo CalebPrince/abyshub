@@ -32,6 +32,33 @@ export function categoryImage(slug: string) {
 }
 
 /**
+ * The backdrop for a brand's own page.
+ *
+ * Keyed on the brand written on the product, not the partner id: an Oriflame
+ * import can carry a sub-brand — Feminelle, NovAge — and those get their own
+ * page. Anything unrecognised falls back to the shop's own frame, so a new
+ * brand looks deliberate on the day it lands rather than broken.
+ */
+const BY_BRAND: Record<string, string> = {
+  tupperware: "/lifestyle/kitchen-hero.webp",
+  oriflame: "/lifestyle/beauty.webp",
+  feminelle: "/categories/bath-body.webp",
+  // Generated for these two ranges rather than borrowed: the shop takes real
+  // money, and a photograph lifted off the web is a claim against it rather
+  // than a placeholder. Swap them when the client supplies their own.
+  "jibu water": "/lifestyle/jibu-water.webp",
+  jibu: "/lifestyle/jibu-water.webp",
+  jbco: "/lifestyle/jbco.webp",
+  novage: "/lifestyle/skincare.webp",
+};
+
+const BRAND_FALLBACK = "/lifestyle/hero.webp";
+
+export function brandImage(brand: string) {
+  return BY_BRAND[brand.trim().toLowerCase()] ?? BRAND_FALLBACK;
+}
+
+/**
  * The hero album.
  *
  * Six frames rather than one, covering both partners — the kitchen side and

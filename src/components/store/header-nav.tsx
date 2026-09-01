@@ -10,14 +10,22 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  TUPPERWARE_MENU,
+  columnHref,
+  menuHref,
+} from "@/lib/shop/tupperware-menu";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
   href: string;
   label: string;
-  children?: { href: string; label: string }[];
+  children?: { href: string; label: string; mega?: boolean }[];
 };
 
 /**
@@ -31,7 +39,7 @@ const NAV: NavItem[] = [
     href: "/products?brand=Tupperware",
     label: "Tupperware",
     children: [
-      { href: "/products?brand=Tupperware", label: "Shop" },
+      { href: "/products?brand=Tupperware", label: "Shop", mega: true },
       { href: "/offers", label: "Monthly Offers" },
       { href: "/products?sale=1", label: "Discounted Items" },
       { href: "/sales-agent", label: "Become a Sales Agent" },
@@ -64,6 +72,10 @@ export function HeaderNav({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  // The mega panel is built from plain links rather than menu items, so Radix
+  // never sees a selection and would leave the menu hanging open over the page
+  // it just navigated to. Holding the open state here lets a link close it.
+  const [openMenu, setOpenMenu] = React.useState<string | null>(null);
 
   const isActive = React.useCallback(
     (href: string) => {
@@ -89,43 +101,104 @@ export function HeaderNav({
   if (variant === "mobile") {
     return (
       <nav className="flex flex-col px-4">
-        {NAV.map((item) => (
-          <div key={item.label}>
+        {NAV.map((item) =>
+          item.children ? (
+            // Folded shut on open. Laid out flat, Tupperware alone puts six
+            // groups and forty links between the top of the drawer and
+            // Contact Us, so everything below it is lost.
+            <details
+              key={item.label}
+              className="group border-foreground/10 border-b"
+            >
+              <summary
+                className={cn(
+                  "font-display flex cursor-pointer list-none items-center justify-between py-3.5 text-lg font-bold tracking-tight uppercase transition-colors marker:content-none",
+                  branchActive(item) ? "text-primary" : "hover:text-primary"
+                )}
+              >
+                {item.label}
+                <ChevronDownIcon className="size-5 transition-transform group-open:rotate-180" />
+              </summary>
+
+              <div className="flex flex-col pb-2 pl-3">
+                {item.children.map((child) =>
+                  child.mega ? (
+                    <details key={child.label} className="group/shop">
+                      <summary className="flex cursor-pointer list-none items-center justify-between py-2 text-sm font-semibold marker:content-none">
+                        {child.label}
+                        <ChevronDownIcon className="size-4 transition-transform group-open/shop:rotate-180" />
+                      </summary>
+
+                      <div className="flex flex-col pl-3">
+                        <Link
+                          href={child.href}
+                          onClick={onNavigate}
+                          className="text-muted-foreground hover:text-foreground py-1.5 text-sm font-semibold"
+                        >
+                          Shop all Tupperware
+                        </Link>
+
+                        {TUPPERWARE_MENU.map((column) => (
+                          <details key={column.heading} className="group/col">
+                            <summary className="text-muted-foreground marker:content-none flex cursor-pointer list-none items-center justify-between py-1.5 text-sm">
+                              {column.heading}
+                              <ChevronDownIcon className="size-3.5 transition-transform group-open/col:rotate-180" />
+                            </summary>
+                            <div className="flex flex-col pb-1 pl-3">
+                              <Link
+                                href={columnHref(column)}
+                                onClick={onNavigate}
+                                className="text-muted-foreground hover:text-foreground py-1.5 text-sm font-semibold"
+                              >
+                                All {column.heading}
+                              </Link>
+                              {column.entries.map((entry) => (
+                                <Link
+                                  key={entry.label}
+                                  href={menuHref(entry)}
+                                  onClick={onNavigate}
+                                  className="text-muted-foreground hover:text-foreground py-1.5 text-sm"
+                                >
+                                  {entry.label}
+                                </Link>
+                              ))}
+                            </div>
+                          </details>
+                        ))}
+                      </div>
+                    </details>
+                  ) : (
+                    <Link
+                      key={child.label}
+                      href={child.href}
+                      onClick={onNavigate}
+                      className={cn(
+                        "py-2 text-sm font-semibold transition-colors",
+                        isActive(child.href)
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {child.label}
+                    </Link>
+                  )
+                )}
+              </div>
+            </details>
+          ) : (
             <Link
+              key={item.label}
               href={item.href}
               onClick={onNavigate}
               className={cn(
                 "font-display border-foreground/10 block border-b py-3.5 text-lg font-bold tracking-tight uppercase transition-colors",
-                branchActive(item) ? "text-primary" : "hover:text-primary"
+                isActive(item.href) ? "text-primary" : "hover:text-primary"
               )}
             >
               {item.label}
             </Link>
-
-            {/* Laid out flat rather than behind a toggle: the drawer already
-                scrolls, and a second tap to reach Monthly Offers is a tap
-                most people will not make. */}
-            {item.children ? (
-              <div className="border-foreground/10 flex flex-col border-b py-1 pl-4">
-                {item.children.map((child) => (
-                  <Link
-                    key={child.label}
-                    href={child.href}
-                    onClick={onNavigate}
-                    className={cn(
-                      "py-2 text-sm font-semibold transition-colors",
-                      isActive(child.href)
-                        ? "text-primary"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {child.label}
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ))}
+          )
+        )}
       </nav>
     );
   }
@@ -136,7 +209,12 @@ export function HeaderNav({
         item.children ? (
           // modal={false} on purpose: the modal variant locks body scroll and
           // blanks pointer events behind it, which a header menu should not do.
-          <DropdownMenu key={item.label} modal={false}>
+          <DropdownMenu
+            key={item.label}
+            modal={false}
+            open={openMenu === item.label}
+            onOpenChange={(next) => setOpenMenu(next ? item.label : null)}
+          >
             <DropdownMenuTrigger
               className={cn(
                 "relative flex cursor-pointer items-center gap-1 py-1 text-[12px] font-semibold tracking-[0.12em] uppercase transition-colors outline-none",
@@ -152,19 +230,63 @@ export function HeaderNav({
               )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
-              {item.children.map((child) => (
-                <DropdownMenuItem key={child.label} asChild>
-                  <Link
-                    href={child.href}
-                    className={cn(
-                      "cursor-pointer text-[12px] font-semibold tracking-[0.08em] uppercase",
-                      isActive(child.href) && "text-primary"
-                    )}
-                  >
-                    {child.label}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
+              {item.children.map((child) =>
+                child.mega ? (
+                  <DropdownMenuSub key={child.label}>
+                    <DropdownMenuSubTrigger className="text-[12px] font-semibold tracking-[0.08em] uppercase">
+                      {child.label}
+                    </DropdownMenuSubTrigger>
+                    {/* Wide enough for six columns where there is room, and
+                        folding to three then two rather than scrolling off a
+                        laptop screen. */}
+                    <DropdownMenuSubContent
+                      sideOffset={2}
+                      collisionPadding={16}
+                      className="max-h-[70vh] w-[min(92vw,68rem)] overflow-y-auto p-5"
+                    >
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-7 md:grid-cols-3 xl:grid-cols-6">
+                        {TUPPERWARE_MENU.map((column) => (
+                          <div key={column.heading}>
+                            <Link
+                              href={columnHref(column)}
+                              onClick={() => setOpenMenu(null)}
+                              className="hover:text-primary block text-[13px] leading-tight font-bold"
+                            >
+                              {column.heading}
+                            </Link>
+                            <ul className="mt-3 space-y-2">
+                              {column.entries.map((entry) => (
+                                <li key={column.heading + entry.label}>
+                                  <Link
+                                    href={menuHref(entry)}
+                                    onClick={() => setOpenMenu(null)}
+                                    className="text-muted-foreground hover:text-foreground block text-[13px] leading-snug"
+                                  >
+                                    {entry.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                ) : (
+                  <DropdownMenuItem key={child.label} asChild>
+                    <Link
+                      href={child.href}
+                      onClick={() => setOpenMenu(null)}
+                      className={cn(
+                        "cursor-pointer text-[12px] font-semibold tracking-[0.08em] uppercase",
+                        isActive(child.href) && "text-primary"
+                      )}
+                    >
+                      {child.label}
+                    </Link>
+                  </DropdownMenuItem>
+                )
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
