@@ -1,3 +1,4 @@
+import type * as React from "react";
 import Link from "next/link";
 import { ArrowRightIcon, MessageCircleIcon } from "lucide-react";
 
@@ -19,12 +20,15 @@ export async function ComingSoon({
   title,
   blurb,
   enquiry,
+  children,
 }: {
   eyebrow: string;
   title: string;
   blurb: string;
   /** Pre-written WhatsApp message, so the reply lands with context. */
   enquiry: string;
+  /** Anything this particular page needs beneath the two calls to action. */
+  children?: React.ReactNode;
 }) {
   const shop = await getShopSettings();
 
@@ -55,6 +59,8 @@ export async function ComingSoon({
             </Link>
           </Button>
         </div>
+
+        {children}
 
         <p className="text-muted-foreground mt-12 text-sm">
           In the meantime,{" "}
