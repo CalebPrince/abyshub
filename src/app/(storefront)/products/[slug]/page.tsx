@@ -112,7 +112,11 @@ export default async function ProductPage({
       </nav>
 
       <div className="border-foreground/12 grid overflow-hidden rounded-2xl border lg:grid-cols-2">
-        <div className="border-foreground/12 min-w-0 border-b lg:sticky lg:top-32 lg:self-start lg:border-b-0">
+        {/* Not sticky: the card above is overflow-hidden, which makes it the
+            scroll container this would resolve against, so the offset only
+            ever parked the photo 128px down the card and never held it in
+            view. Dropping it closes that gap at the top. */}
+        <div className="border-foreground/12 min-w-0 border-b lg:self-start lg:border-b-0">
           <ProductGallery
             images={gallery}
             name={product.name}
