@@ -45,7 +45,7 @@ export async function ComingSoon({
       <div
         className={
           image
-            ? "mx-auto max-w-[1400px] px-4 py-10 lg:px-8 lg:py-14"
+            ? "mx-auto max-w-[1400px] px-4 pt-4 pb-10 lg:px-8 lg:pt-5 lg:pb-14"
             : "mx-auto max-w-[820px] px-4 py-16 lg:px-8 lg:py-24"
         }
       >

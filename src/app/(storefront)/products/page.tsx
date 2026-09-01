@@ -155,7 +155,16 @@ export default async function ProductsPage({
         : "Everything";
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-12 lg:px-8 lg:py-16">
+    <div
+      className={
+        // The banner is a full-bleed panel, so it wants to sit up against the
+        // header rather than float below it. Everything else keeps the shop's
+        // usual breathing room above the heading.
+        brandParam && !saleOnly
+          ? "mx-auto max-w-[1400px] px-4 pt-4 pb-12 lg:px-8 lg:pt-5 lg:pb-16"
+          : "mx-auto max-w-[1400px] px-4 py-12 lg:px-8 lg:py-16"
+      }
+    >
       {/* A brand gets its own banner. Every other view keeps the plain
           heading — a shelf or a search is a slice of the shop, while a brand
           is meant to feel like its own front. */}
