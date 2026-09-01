@@ -1,19 +1,22 @@
 "use client";
 
 import * as React from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { ProductImage } from "@/components/store/product-image";
 import { cn } from "@/lib/utils";
 
+/** How far one press of an arrow moves the strip. */
+const SCROLL_STEP = 240;
+
 /**
- * The main photograph with the rest of the shots as a filmstrip down its left
- * edge. Clicking a thumbnail swaps the large image.
+ * The main photograph with the rest of the shots in a row beneath it.
+ * Clicking a thumbnail swaps the large image.
  *
- * The main shot is capped rather than filling its half of the layout: at the
- * full width of a desktop column a square product photo runs taller than the
- * text beside it, which pushed the price and the buy button below the fold.
- * The strip sits tight against the photo so the two read as one object, and
- * scrolls within the photo's height rather than growing past it.
+ * The strip scrolls sideways rather than wrapping onto a second line, so a
+ * product with eight photographs takes the same vertical space as one with
+ * three. The arrows appear only when there is something to scroll to, and
+ * hide again at each end.
  *
  * `overlay` is the brand and sale badging. It is rendered on the server and
  * passed through so this file does not need the pricing rules to position it.
@@ -28,79 +31,149 @@ export function ProductGallery({
   overlay?: React.ReactNode;
 }) {
   const [active, setActive] = React.useState(0);
+  const stripRef = React.useRef<HTMLUListElement>(null);
+  const [overflow, setOverflow] = React.useState({ left: false, right: false });
 
   // A product whose photographs change under an open page — an admin edit, a
   // client-side navigation to a different product — should not keep pointing
   // at an index that no longer exists.
   const current = images[active] ?? images[0];
 
+  const measure = React.useCallback(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+
+    const max = strip.scrollWidth - strip.clientWidth;
+    setOverflow({
+      // A pixel of slack: fractional widths mean scrollLeft rarely lands
+      // exactly on either end, which would leave an arrow enabled forever.
+      left: strip.scrollLeft > 1,
+      right: strip.scrollLeft < max - 1,
+    });
+  }, []);
+
+  React.useEffect(() => {
+    measure();
+    const strip = stripRef.current;
+    if (!strip) return;
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(strip);
+    return () => observer.disconnect();
+  }, [measure, images.length]);
+
+  function scrollStrip(direction: -1 | 1) {
+    stripRef.current?.scrollBy({
+      left: direction * SCROLL_STEP,
+      behavior: "smooth",
+    });
+  }
+
+  // min-w-0 twice over: a grid or flex child defaults to min-content width,
+  // which the strip's full row of thumbnails would otherwise set, stretching
+  // the column past the viewport instead of scrolling inside it.
   return (
-    <div className="p-6 lg:p-8">
-      {/* The strip is positioned against the photo rather than sitting beside
-          it in the flow: as a flex sibling a tall strip stretched the row and
-          pulled the main shot out of square. This way the photo's own aspect
-          ratio sets the height and the strip scrolls inside it. */}
-      <div className="relative mx-auto w-full max-w-[440px]">
-        {images.length > 1 && (
-          <ul className="absolute inset-y-0 left-0 flex w-14 flex-col gap-2 overflow-y-auto sm:w-16">
-            {images.map((image, index) => {
-              const selected = index === active;
-
-              return (
-                <li key={image}>
-                  <button
-                    type="button"
-                    onClick={() => setActive(index)}
-                    aria-label={`Show photograph ${index + 1} of ${images.length}`}
-                    aria-current={selected}
-                    className={cn(
-                      "relative block size-14 shrink-0 overflow-hidden rounded-l-lg border-2 border-r-0 transition-colors sm:size-16",
-                      "focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none",
-                      selected
-                        ? "border-primary"
-                        : "border-foreground/12 hover:border-foreground/40"
-                    )}
-                  >
-                    <ProductImage
-                      src={image}
-                      alt=""
-                      fill
-                      sizes="64px"
-                      className={cn(
-                        "object-cover transition-opacity",
-                        selected ? "opacity-100" : "opacity-70 hover:opacity-100"
-                      )}
-                    />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-
-        <div
-          className={cn(
-            "border-foreground/10 bg-secondary/20 relative aspect-square overflow-hidden border",
-            // Flush against the strip: the shared edge is squared off on both
-            // sides so the thumbnails read as attached to the photo rather
-            // than floating beside it.
-            images.length > 1
-              ? "ml-14 rounded-r-2xl sm:ml-16"
-              : "rounded-2xl"
-          )}
-        >
+    <div className="min-w-0 p-6 lg:p-8">
+      <div className="mx-auto w-full max-w-[520px] min-w-0">
+        <div className="border-foreground/10 bg-secondary/20 relative aspect-square overflow-hidden rounded-2xl border">
           <ProductImage
             key={current}
             src={current}
             alt={active === 0 ? name : `${name} — photograph ${active + 1}`}
             fill
             priority
-            sizes="(min-width: 1024px) 380px, 80vw"
+            sizes="(min-width: 1024px) 520px, 90vw"
             className="object-cover"
           />
           {overlay}
         </div>
+
+        {images.length > 1 && (
+          <div className="relative mt-4">
+            <ul
+              ref={stripRef}
+              onScroll={measure}
+              className="flex gap-3 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {images.map((image, index) => {
+                const selected = index === active;
+
+                return (
+                  <li key={image} className="shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setActive(index)}
+                      aria-label={`Show photograph ${index + 1} of ${images.length}`}
+                      aria-current={selected}
+                      className={cn(
+                        "bg-secondary/30 relative block h-20 w-24 overflow-hidden rounded-xl border-2 transition-colors",
+                        "focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                        selected
+                          ? "border-foreground"
+                          : "border-transparent hover:border-foreground/25"
+                      )}
+                    >
+                      <ProductImage
+                        src={image}
+                        alt=""
+                        fill
+                        sizes="96px"
+                        className="object-cover"
+                      />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <StripArrow
+              side="left"
+              show={overflow.left}
+              onClick={() => scrollStrip(-1)}
+            />
+            <StripArrow
+              side="right"
+              show={overflow.right}
+              onClick={() => scrollStrip(1)}
+            />
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Sits over the end of the strip rather than beside it: putting the arrows
+ * outside would narrow the thumbnails on the phone widths where the strip is
+ * most likely to overflow in the first place.
+ */
+function StripArrow({
+  side,
+  show,
+  onClick,
+}: {
+  side: "left" | "right";
+  show: boolean;
+  onClick: () => void;
+}) {
+  const Icon = side === "left" ? ChevronLeftIcon : ChevronRightIcon;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      tabIndex={show ? 0 : -1}
+      aria-hidden={!show}
+      aria-label={side === "left" ? "Previous photographs" : "More photographs"}
+      className={cn(
+        "bg-background/90 text-foreground absolute top-1/2 z-10 grid size-8 -translate-y-1/2 place-items-center rounded-full border shadow-sm backdrop-blur transition-opacity",
+        "hover:bg-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:outline-none",
+        side === "left" ? "-left-1" : "-right-1",
+        show ? "opacity-100" : "pointer-events-none opacity-0"
+      )}
+    >
+      <Icon className="size-4" aria-hidden />
+    </button>
   );
 }

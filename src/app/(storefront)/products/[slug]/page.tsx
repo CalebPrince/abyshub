@@ -112,7 +112,7 @@ export default async function ProductPage({
       </nav>
 
       <div className="border-foreground/12 grid overflow-hidden rounded-2xl border lg:grid-cols-2">
-        <div className="border-foreground/12 border-b lg:sticky lg:top-32 lg:self-start lg:border-b-0">
+        <div className="border-foreground/12 min-w-0 border-b lg:sticky lg:top-32 lg:self-start lg:border-b-0">
           <ProductGallery
             images={gallery}
             name={product.name}
