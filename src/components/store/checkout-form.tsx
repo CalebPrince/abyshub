@@ -84,8 +84,8 @@ export function CheckoutForm({
     {
       id: "card",
       icon: CreditCardIcon,
-      title: "Pay by card",
-      body: "Card, transfer or USSD via Paystack",
+      title: "Pay By Card or Mobile Money",
+      body: "Card, MTN MoMo, Telecel Cash, AirtelTigo Money, transfer or USSD",
       available: paystackReady,
     },
     {
@@ -287,8 +287,9 @@ export function CheckoutForm({
               </Button>
               <p className="text-muted-foreground flex items-start gap-2 text-xs">
                 <LockIcon className="mt-0.5 size-3.5 shrink-0" />
-                You will be taken to Paystack to pay. Card details are entered on
-                Paystack&apos;s page and never touch this site.
+                You will be taken to Paystack to pay by card or mobile money —
+                MTN MoMo, Telecel Cash or AirtelTigo Money. Your details are
+                entered on Paystack&apos;s page and never touch this site.
               </p>
             </div>
           </form>

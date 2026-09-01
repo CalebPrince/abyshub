@@ -45,8 +45,8 @@ function buildPoints(freeDeliveryThreshold: number) {
     },
     {
       icon: CreditCardIcon,
-      title: "Three ways to pay",
-      body: "Card at checkout, WhatsApp, or ask us for a quote.",
+      title: "Card or mobile money",
+      body: "MTN MoMo, Telecel Cash and AirtelTigo Money, or pay by card.",
     },
   ];
 }
