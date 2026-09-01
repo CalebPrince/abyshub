@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
   BadgeCheckIcon,
   ClockIcon,
@@ -62,6 +63,7 @@ export default function SalesAgentPage() {
       title="Sell with Abys Hub."
       blurb="Register as a Tupperware demonstrator through us and earn on what you sell, in your own time. It takes about ten minutes, and we will walk you through the rest once you are in."
       enquiry="Hello Abys Hub, I am interested in becoming a sales agent. Please tell me how it works."
+      showContactActions={false}
     >
       <section className="mt-14">
         <h2 className="font-display text-2xl font-extrabold tracking-tight uppercase sm:text-3xl">
@@ -143,7 +145,14 @@ export default function SalesAgentPage() {
         <p className="text-muted-foreground mt-3 text-xs leading-5">
           Opens Tupperware&apos;s registration form in a new tab. You will be
           registered under our unit, which is how we are able to support you.
-          Not ready to sign up? Ask us anything first.
+          Not ready to sign up?{" "}
+          <Link
+            href="/contact"
+            className="text-foreground underline underline-offset-4"
+          >
+            Ask us anything first
+          </Link>
+          .
         </p>
       </section>
     </ComingSoon>

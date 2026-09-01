@@ -22,6 +22,7 @@ export async function ComingSoon({
   blurb,
   enquiry,
   image,
+  showContactActions = true,
   children,
 }: {
   eyebrow: string;
@@ -35,6 +36,12 @@ export async function ComingSoon({
    * range rather than an apology.
    */
   image?: string;
+  /**
+   * Off where the page has its own call to action further down. The WhatsApp
+   * and contact buttons sit directly under the blurb, so on a page with real
+   * content below them they offer a way out before anyone has read it.
+   */
+  showContactActions?: boolean;
   /** Anything this particular page needs beneath the two calls to action. */
   children?: React.ReactNode;
 }) {
@@ -70,20 +77,26 @@ export async function ComingSoon({
           </>
         )}
 
-        <div className={image ? "flex flex-wrap gap-3" : "mt-10 flex flex-wrap gap-3"}>
-          {shop.whatsappEnabled ? (
-            <WhatsAppLink message={enquiry}>
-              <Button size="lg">
-                <MessageCircleIcon /> Ask us on WhatsApp
-              </Button>
-            </WhatsAppLink>
-          ) : null}
-          <Button asChild size="lg" variant="outline">
-            <Link href="/contact">
-              Send a message <ArrowRightIcon />
-            </Link>
-          </Button>
-        </div>
+        {showContactActions ? (
+          <div
+            className={
+              image ? "flex flex-wrap gap-3" : "mt-10 flex flex-wrap gap-3"
+            }
+          >
+            {shop.whatsappEnabled ? (
+              <WhatsAppLink message={enquiry}>
+                <Button size="lg">
+                  <MessageCircleIcon /> Ask us on WhatsApp
+                </Button>
+              </WhatsAppLink>
+            ) : null}
+            <Button asChild size="lg" variant="outline">
+              <Link href="/contact">
+                Send a message <ArrowRightIcon />
+              </Link>
+            </Button>
+          </div>
+        ) : null}
 
         {children}
 
