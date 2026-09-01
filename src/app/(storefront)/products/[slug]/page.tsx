@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/store/product-card";
 import { ProductDescriptionTabs } from "@/components/store/product-description-tabs";
-import { ProductImage } from "@/components/store/product-image";
+import { ProductGallery } from "@/components/store/product-gallery";
 import { ProductPurchasePanel } from "@/components/store/product-purchase-panel";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
 import {
@@ -71,6 +71,9 @@ export default async function ProductPage({
 
   const category = categoryFrom(categories, product.category);
   const related = relatedFrom(products, product);
+  const gallery = [...new Set([product.image, ...(product.images ?? [])])].filter(
+    Boolean
+  );
   const onSale =
     product.compareAtPrice !== undefined &&
     product.compareAtPrice > product.price;
@@ -109,23 +112,27 @@ export default async function ProductPage({
       </nav>
 
       <div className="border-foreground/12 grid overflow-hidden rounded-2xl border lg:grid-cols-2">
-        <div className="border-foreground/12 relative aspect-square border-b lg:sticky lg:top-32 lg:self-start lg:border-b-0">
-          <ProductImage
-            src={product.image}
-            alt={product.name}
-            fill
-            priority
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            className="object-cover"
+        {/* Not sticky: the card above is overflow-hidden, which makes it the
+            scroll container this would resolve against, so the offset only
+            ever parked the photo 128px down the card and never held it in
+            view. Dropping it closes that gap at the top. */}
+        <div className="border-foreground/12 min-w-0 border-b lg:self-start lg:border-b-0">
+          <ProductGallery
+            images={gallery}
+            name={product.name}
+            overlay={
+              <>
+                <span className="bg-primary text-primary-foreground absolute top-3 left-3 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
+                  {product.brand}
+                </span>
+                {onSale && (
+                  <span className="bg-primary text-primary-foreground absolute top-3 right-3 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
+                    Save {formatPrice(product.compareAtPrice! - product.price)}
+                  </span>
+                )}
+              </>
+            }
           />
-          <span className="bg-primary text-primary-foreground absolute top-4 left-4 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
-            {product.brand}
-          </span>
-          {onSale && (
-            <span className="bg-primary text-primary-foreground absolute top-4 right-4 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
-              Save {formatPrice(product.compareAtPrice! - product.price)}
-            </span>
-          )}
         </div>
 
         <div className="border-foreground/12 space-y-7 p-6 lg:border-l lg:p-10">

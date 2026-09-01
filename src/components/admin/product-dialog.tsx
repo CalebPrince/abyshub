@@ -40,6 +40,7 @@ export type ProductDraft = {
   highlights: string[] | null;
   in_stock: boolean;
   stock_quantity: number;
+  images: string[] | null;
   featured: boolean;
   published: boolean;
 };
@@ -247,6 +248,56 @@ export function ProductDialog({
               <p className="text-muted-foreground text-xs">
                 JPEG, PNG, WebP or SVG, up to 4MB.
                 {editing ? " Leave empty to keep the current picture." : null}
+              </p>
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="pd-gallery">More photographs</Label>
+
+              {/* Ticked photographs are posted back and kept; unticking one is
+                  how a photograph is removed, so the form always describes the
+                  whole gallery rather than a change to it. */}
+              {editing && (product?.images ?? []).length > 0 ? (
+                <ul className="flex flex-wrap gap-3 pb-1">
+                  {(product?.images ?? []).map((url, index) => (
+                    <li key={url}>
+                      <label className="group relative block cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="keep_image"
+                          value={url}
+                          defaultChecked
+                          className="peer sr-only"
+                        />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={url}
+                          alt={`Photograph ${index + 2}`}
+                          className="border-border size-16 rounded-lg border-2 object-cover opacity-40 transition peer-checked:opacity-100 peer-checked:[border-color:var(--primary)]"
+                        />
+                        <span className="bg-background/90 text-muted-foreground peer-checked:text-primary absolute -top-1.5 -right-1.5 rounded-full border px-1.5 text-[10px] font-bold">
+                          {"✓"}
+                        </span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              <Input
+                id="pd-gallery"
+                name="gallery"
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                className="h-10 py-2"
+              />
+              <p className="text-muted-foreground text-xs">
+                Shown as thumbnails beside the main photograph on the product
+                page. Up to seven, 4MB each.
+                {editing
+                  ? " Untick one to remove it — the file is deleted when you save."
+                  : null}
               </p>
             </div>
           </div>
