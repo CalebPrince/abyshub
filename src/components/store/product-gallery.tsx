@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { ProductImage } from "@/components/store/product-image";
@@ -73,8 +74,8 @@ export function ProductGallery({
   // which the strip's full row of thumbnails would otherwise set, stretching
   // the column past the viewport instead of scrolling inside it.
   return (
-    <div className="min-w-0 p-6 lg:p-8">
-      <div className="mx-auto w-full max-w-[520px] min-w-0">
+    <div className="min-w-0 px-3 pt-2 pb-4 lg:px-4 lg:pt-3 lg:pb-5">
+      <div className="mx-auto w-full max-w-[714px] min-w-0">
         <div className="border-foreground/10 bg-secondary/20 relative aspect-square overflow-hidden rounded-2xl border">
           <ProductImage
             key={current}
@@ -82,14 +83,14 @@ export function ProductGallery({
             alt={active === 0 ? name : `${name} — photograph ${active + 1}`}
             fill
             priority
-            sizes="(min-width: 1024px) 520px, 90vw"
+            sizes="(min-width: 1024px) 714px, 96vw"
             className="object-cover"
           />
           {overlay}
         </div>
 
         {images.length > 1 && (
-          <div className="relative mt-4">
+          <div className="relative mt-6">
             <ul
               ref={stripRef}
               onScroll={measure}
@@ -106,18 +107,18 @@ export function ProductGallery({
                       aria-label={`Show photograph ${index + 1} of ${images.length}`}
                       aria-current={selected}
                       className={cn(
-                        "bg-secondary/30 relative block h-20 w-24 overflow-hidden rounded-xl border-2 transition-colors",
+                        "bg-secondary/30 relative block size-24 overflow-hidden rounded-xl border-2 transition-colors sm:size-28",
                         "focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
                         selected
                           ? "border-foreground"
                           : "border-transparent hover:border-foreground/25"
                       )}
                     >
-                      <ProductImage
+                      <Image
                         src={image}
                         alt=""
                         fill
-                        sizes="96px"
+                        sizes="112px"
                         className="object-cover"
                       />
                     </button>
