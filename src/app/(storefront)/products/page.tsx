@@ -76,6 +76,8 @@ export default async function ProductsPage({
   const brandParam = typeof params.brand === "string" ? params.brand : undefined;
   const sortParam = typeof params.sort === "string" ? params.sort : "featured";
   const queryParam = typeof params.q === "string" ? params.q.trim() : "";
+  // "Discounted Items" in the menu: anything currently below its usual price.
+  const saleOnly = params.sale === "1";
 
   const [{ products, categories }, copy] = await Promise.all([
     getCatalogue(),
@@ -91,6 +93,13 @@ export default async function ProductsPage({
   }
   if (brandParam) {
     results = results.filter((product) => product.brand === brandParam);
+  }
+  if (saleOnly) {
+    results = results.filter(
+      (product) =>
+        product.compareAtPrice !== undefined &&
+        product.compareAtPrice > product.price
+    );
   }
   if (queryParam) {
     results = results.filter((product) => matchesQuery(product, queryParam));
@@ -111,6 +120,7 @@ export default async function ProductsPage({
     const nextParams = new URLSearchParams();
     if (categoryParam) nextParams.set("category", categoryParam);
     if (brandParam) nextParams.set("brand", brandParam);
+    if (saleOnly) nextParams.set("sale", "1");
     if (sortParam !== "featured") nextParams.set("sort", sortParam);
     if (queryParam) nextParams.set("q", queryParam);
     if (nextPage > 1) nextParams.set("page", String(nextPage));
@@ -118,20 +128,28 @@ export default async function ProductsPage({
     return query ? `/products?${query}` : "/products";
   }
 
-  const heading = category ? category.name : brandParam ? brandParam : "Everything";
+  const heading = saleOnly
+    ? "Discounted Items"
+    : category
+      ? category.name
+      : brandParam
+        ? brandParam
+        : "Everything";
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-12 lg:px-8 lg:py-16">
       <Reveal>
         <header className="border-foreground/12 border-b pb-10">
           <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
-            {category ? "Shelf" : brandParam ? "Brand" : "The shop"}
+            {saleOnly ? "On offer" : category ? "Shelf" : brandParam ? "Brand" : "The shop"}
           </p>
           <h1 className="font-display mt-3 text-4xl font-extrabold tracking-tight uppercase sm:text-6xl">
             {heading}
           </h1>
           <p className="text-muted-foreground mt-4 max-w-xl">
-            {category
+            {saleOnly
+              ? "Everything currently selling below its usual price."
+              : category
               ? category.description
               : brandParam
                 ? `Everything we stock from ${brandParam}.`
