@@ -2,6 +2,7 @@ import type * as React from "react";
 import Link from "next/link";
 import { ArrowRightIcon, MessageCircleIcon } from "lucide-react";
 
+import { BrandHero } from "@/components/store/brand-hero";
 import { Button } from "@/components/ui/button";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
 import { getShopSettings } from "@/lib/shop/settings";
@@ -20,6 +21,7 @@ export async function ComingSoon({
   title,
   blurb,
   enquiry,
+  image,
   children,
 }: {
   eyebrow: string;
@@ -27,6 +29,12 @@ export async function ComingSoon({
   blurb: string;
   /** Pre-written WhatsApp message, so the reply lands with context. */
   enquiry: string;
+  /**
+   * Set on the ranges we carry but have not stocked yet: they get the same
+   * banner a brand with products gets, so an empty range still reads as a
+   * range rather than an apology.
+   */
+  image?: string;
   /** Anything this particular page needs beneath the two calls to action. */
   children?: React.ReactNode;
 }) {
@@ -34,18 +42,35 @@ export async function ComingSoon({
 
   return (
     <div className="bg-muted/25 min-h-[70vh]">
-      <div className="mx-auto max-w-[820px] px-4 py-16 lg:px-8 lg:py-24">
-        <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
-          {eyebrow}
-        </p>
-        <h1 className="font-display mt-4 text-4xl leading-[0.95] font-extrabold tracking-tight uppercase sm:text-6xl">
-          {title}
-        </h1>
-        <p className="text-muted-foreground mt-6 max-w-xl text-base leading-7">
-          {blurb}
-        </p>
+      <div
+        className={
+          image
+            ? "mx-auto max-w-[1400px] px-4 py-10 lg:px-8 lg:py-14"
+            : "mx-auto max-w-[820px] px-4 py-16 lg:px-8 lg:py-24"
+        }
+      >
+        {image ? (
+          <BrandHero
+            brand={eyebrow}
+            eyebrow="Range"
+            image={image}
+            blurb={blurb}
+          />
+        ) : (
+          <>
+            <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
+              {eyebrow}
+            </p>
+            <h1 className="font-display mt-4 text-4xl leading-[0.95] font-extrabold tracking-tight uppercase sm:text-6xl">
+              {title}
+            </h1>
+            <p className="text-muted-foreground mt-6 max-w-xl text-base leading-7">
+              {blurb}
+            </p>
+          </>
+        )}
 
-        <div className="mt-10 flex flex-wrap gap-3">
+        <div className={image ? "flex flex-wrap gap-3" : "mt-10 flex flex-wrap gap-3"}>
           {shop.whatsappEnabled ? (
             <WhatsAppLink message={enquiry}>
               <Button size="lg">

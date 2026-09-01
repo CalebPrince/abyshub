@@ -4,15 +4,32 @@ import { brandImage } from "@/lib/shop/imagery";
 import { SUPPLIERS } from "@/lib/suppliers/registry";
 
 /**
- * The banner at the top of a brand's own page.
+ * The banner at the top of a brand's page.
  *
  * Matched on the brand written on the product rather than the partner id: an
  * import can carry a sub-brand, and those get a page too. A partner we know
  * lends its logo and its one line; anything else still gets its name set
  * large over a backdrop, so every brand page reads as its own place instead
  * of the same shop listing with a different filter.
+ *
+ * The ranges that have no products yet use the same banner from their own
+ * page, which is why the count, the blurb and the picture can all be given
+ * rather than looked up.
  */
-export function BrandHero({ brand, count }: { brand: string; count: number }) {
+export function BrandHero({
+  brand,
+  count,
+  image,
+  blurb,
+  eyebrow,
+}: {
+  brand: string;
+  /** Omitted where there is no listing beneath — a range not yet stocked. */
+  count?: number;
+  image?: string;
+  blurb?: string;
+  eyebrow?: string;
+}) {
   const partner = SUPPLIERS.find(
     (supplier) =>
       supplier.defaultBrand.toLowerCase() === brand.toLowerCase() ||
@@ -22,7 +39,7 @@ export function BrandHero({ brand, count }: { brand: string; count: number }) {
   return (
     <section className="relative isolate mb-10 overflow-hidden rounded-2xl">
       <Image
-        src={brandImage(brand)}
+        src={image ?? brandImage(brand)}
         alt=""
         fill
         priority
@@ -52,7 +69,7 @@ export function BrandHero({ brand, count }: { brand: string; count: number }) {
           </span>
         ) : (
           <p className="text-[11px] font-semibold tracking-[0.24em] text-white/70 uppercase">
-            Brand
+            {eyebrow ?? "Brand"}
           </p>
         )}
 
@@ -61,12 +78,14 @@ export function BrandHero({ brand, count }: { brand: string; count: number }) {
         </h1>
 
         <p className="mt-4 max-w-xl text-sm leading-6 text-white/80 sm:text-base">
-          {partner?.blurb ?? `Everything we stock from ${brand}.`}
+          {blurb ?? partner?.blurb ?? `Everything we stock from ${brand}.`}
         </p>
 
-        <p className="mt-6 text-[11px] font-bold tracking-[0.18em] text-white/70 uppercase">
-          {count} {count === 1 ? "product" : "products"}
-        </p>
+        {count !== undefined ? (
+          <p className="mt-6 text-[11px] font-bold tracking-[0.18em] text-white/70 uppercase">
+            {count} {count === 1 ? "product" : "products"}
+          </p>
+        ) : null}
       </div>
     </section>
   );
