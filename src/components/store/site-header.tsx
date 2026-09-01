@@ -20,10 +20,8 @@ import type { Category } from "@/lib/types";
 import { ThemeToggle } from "@/components/store/theme-toggle";
 
 const ticker = [
-  "Genuine Tupperware",
-  "Lifetime seal warranty",
-  "Nationwide delivery",
-  "Pay by card, WhatsApp or on delivery",
+  "Pay by Card or Mobile Money",
+  "Secured & Convenient Payments",
 ];
 
 export function SiteHeader({ categories }: { categories: Category[] }) {

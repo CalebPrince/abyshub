@@ -27,7 +27,13 @@ export async function submitEnquiry(
   // The chat handoff sends the conversation as `details` and anything the
   // person typed as `note`; the enquiry page sends `details` alone.
   const note = text(formData, "note");
-  const fullDetails = note ? `${details}\n\nThey added: ${note}` : details;
+  const subject = text(formData, "subject");
+  const withNote = note ? `${details}\n\nThey added: ${note}` : details;
+  // The leads table has no subject column, so the subject rides at the top
+  // of the message, where the inbox already shows it.
+  const fullDetails = subject
+    ? `Subject: ${subject}\n\n${withNote}`
+    : withNote;
 
   if (!name || !details || (!email && !phone)) {
     return {

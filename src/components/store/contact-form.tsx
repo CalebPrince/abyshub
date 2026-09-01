@@ -49,6 +49,11 @@ export function ContactForm() {
       </div>
 
       <div className="mt-5 space-y-2">
+        <Label htmlFor="subject" className="text-[11px] font-semibold tracking-[0.12em] uppercase">Subject</Label>
+        <Input id="subject" name="subject" required maxLength={120} placeholder="What is this about?" />
+      </div>
+
+      <div className="mt-5 space-y-2">
         <Label htmlFor="details" className="text-[11px] font-semibold tracking-[0.12em] uppercase">Your message</Label>
         <Textarea id="details" name="details" required rows={7} maxLength={2000} placeholder="Tell us how we can help…" className="resize-y" />
       </div>
