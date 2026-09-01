@@ -72,6 +72,10 @@ export function HeaderNav({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  // The mega panel is built from plain links rather than menu items, so Radix
+  // never sees a selection and would leave the menu hanging open over the page
+  // it just navigated to. Holding the open state here lets a link close it.
+  const [openMenu, setOpenMenu] = React.useState<string | null>(null);
 
   const isActive = React.useCallback(
     (href: string) => {
@@ -205,7 +209,12 @@ export function HeaderNav({
         item.children ? (
           // modal={false} on purpose: the modal variant locks body scroll and
           // blanks pointer events behind it, which a header menu should not do.
-          <DropdownMenu key={item.label} modal={false}>
+          <DropdownMenu
+            key={item.label}
+            modal={false}
+            open={openMenu === item.label}
+            onOpenChange={(next) => setOpenMenu(next ? item.label : null)}
+          >
             <DropdownMenuTrigger
               className={cn(
                 "relative flex cursor-pointer items-center gap-1 py-1 text-[12px] font-semibold tracking-[0.12em] uppercase transition-colors outline-none",
@@ -240,6 +249,7 @@ export function HeaderNav({
                           <div key={column.heading}>
                             <Link
                               href={columnHref(column)}
+                              onClick={() => setOpenMenu(null)}
                               className="hover:text-primary block text-[13px] leading-tight font-bold"
                             >
                               {column.heading}
@@ -249,6 +259,7 @@ export function HeaderNav({
                                 <li key={column.heading + entry.label}>
                                   <Link
                                     href={menuHref(entry)}
+                                    onClick={() => setOpenMenu(null)}
                                     className="text-muted-foreground hover:text-foreground block text-[13px] leading-snug"
                                   >
                                     {entry.label}
@@ -265,6 +276,7 @@ export function HeaderNav({
                   <DropdownMenuItem key={child.label} asChild>
                     <Link
                       href={child.href}
+                      onClick={() => setOpenMenu(null)}
                       className={cn(
                         "cursor-pointer text-[12px] font-semibold tracking-[0.08em] uppercase",
                         isActive(child.href) && "text-primary"
