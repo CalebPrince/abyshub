@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronDownIcon, SearchIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronRightIcon, SearchIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  SHOP_ALL,
   TUPPERWARE_MENU,
   columnHref,
   menuHref,
@@ -131,11 +132,11 @@ export function HeaderNav({
 
                       <div className="flex flex-col pl-3">
                         <Link
-                          href={child.href}
+                          href={SHOP_ALL.href!}
                           onClick={onNavigate}
-                          className="text-muted-foreground hover:text-foreground py-1.5 text-sm font-semibold"
+                          className="text-foreground py-1.5 text-sm font-bold"
                         >
-                          Shop all Tupperware
+                          {SHOP_ALL.label}
                         </Link>
 
                         {TUPPERWARE_MENU.map((column) => (
@@ -241,10 +242,26 @@ export function HeaderNav({
                         laptop screen. */}
                     <DropdownMenuSubContent
                       sideOffset={2}
-                      collisionPadding={16}
-                      className="max-h-[70vh] w-[min(92vw,68rem)] overflow-y-auto p-5"
+                      collisionPadding={12}
+                      // A submenu opens beside its parent, so its collision
+                      // axis is vertical: on a 1024px tablet the panel ran
+                      // 364px off the right edge and nothing pulled it back.
+                      // Radix publishes the room it actually has, so the panel
+                      // is capped to that and the columns step down to suit.
+                      // Narrower on a tablet, but every entry reachable rather
+                      // than a third of them off the side of the screen.
+                      className="@container/mega max-h-[78vh] w-[min(96vw,68rem)] max-w-[var(--radix-dropdown-menu-content-available-width)] overflow-y-auto p-5"
                     >
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-7 md:grid-cols-3 xl:grid-cols-6">
+                      <Link
+                        href={SHOP_ALL.href!}
+                        onClick={() => setOpenMenu(null)}
+                        className="border-foreground/12 hover:bg-accent mb-4 flex items-center justify-between rounded-lg border px-3 py-2.5 text-[13px] font-bold"
+                      >
+                        {SHOP_ALL.label}
+                        <ChevronRightIcon className="size-3.5" aria-hidden />
+                      </Link>
+
+                      <div className="grid grid-cols-1 gap-x-6 gap-y-7 @[26rem]/mega:grid-cols-2 @[46rem]/mega:grid-cols-3 @[60rem]/mega:grid-cols-6">
                         {TUPPERWARE_MENU.map((column) => (
                           <div key={column.heading}>
                             <Link

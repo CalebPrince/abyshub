@@ -60,19 +60,44 @@ function toProduct(row: ProductRow): Product {
 /**
  * The catalogue the whole shop runs on.
  *
- * Reads the database, and falls back to lib/products.ts when the table is
- * empty or Supabase is unreachable. The fallback is not politeness: without it
- * a database hiccup would empty the shop, and an unseeded install would show
- * nothing at all.
+ * The hardcoded list in lib/products.ts is a development convenience and
+ * nothing more. Where a database is configured, a failure to read it returns
+ * an empty catalogue rather than those products: this shop takes real money,
+ * and serving invented prices and stock levels under the banner "genuine
+ * stock" is worse in every way than admitting the shelf cannot be read. A
+ * silent substitution also hides the outage, which is how the same fault has
+ * survived a deploy more than once.
  *
  * Cached and tagged rather than fetched per request, so the storefront can
  * still be rendered statically. Product mutations invalidate CATALOGUE_TAG,
- * so unchanged catalogue pages never regenerate on a timer.
+ * so unchanged catalogue pages never regenerate on a timer. The TTL is a
+ * backstop for the case the tag cannot cover: a read that failed is cached
+ * like any other result, and without an expiry one bad moment during a build
+ * outlives the problem that caused it.
  */
+/** Long enough to stay effectively static, short enough that a failed read heals itself. */
+const CATALOGUE_TTL_SECONDS = 300;
+
+export type Catalogue = {
+  products: Product[];
+  categories: Category[];
+  /** True when the database should have answered and did not. */
+  degraded: boolean;
+};
+
 export const getCatalogue = unstable_cache(
-  async (): Promise<{ products: Product[]; categories: Category[] }> => {
+  async (): Promise<Catalogue> => {
     if (!adminClientAvailable()) {
-      return { products: fileProducts, categories: fileCategories };
+      // No database configured. On a developer's machine that is the normal
+      // way to run the shop; in production it is a broken deploy, and the
+      // hardcoded list would paper over it.
+      if (process.env.NODE_ENV === "production") {
+        console.error(
+          "[catalogue] Supabase is not configured in production - serving an empty catalogue. Check SUPABASE_SERVICE_ROLE_KEY is set for this environment."
+        );
+        return { products: [], categories: [], degraded: true };
+      }
+      return { products: fileProducts, categories: fileCategories, degraded: false };
     }
 
     const supabase = createAdminClient();
@@ -110,34 +135,36 @@ export const getCatalogue = unstable_cache(
     const [productResult, categoryResult] = await fetchCatalogue();
 
     if (productResult.error) {
-      console.error("[catalogue] failed to read products from Supabase, falling back to lib/products.ts:", productResult.error.message);
+      console.error(
+        "[catalogue] failed to read products from Supabase - serving an empty catalogue rather than the hardcoded list:",
+        productResult.error.message
+      );
     }
     if (categoryResult.error) {
-      console.error("[catalogue] failed to read categories from Supabase:", categoryResult.error.message);
+      console.error(
+        "[catalogue] failed to read categories from Supabase:",
+        categoryResult.error.message
+      );
     }
 
     const rows = (productResult.data ?? []) as ProductRow[];
-    if (rows.length === 0) {
-      return { products: fileProducts, categories: fileCategories };
-    }
-
     const categoryRows = categoryResult.data ?? [];
 
     return {
       products: rows.map(toProduct),
-      categories:
-        categoryRows.length > 0
-          ? categoryRows.map((row) => ({
-              slug: row.slug,
-              name: row.name,
-              description: row.description ?? "",
-              gradient: row.gradient ?? "",
-            }))
-          : fileCategories,
+      categories: categoryRows.map((row) => ({
+        slug: row.slug,
+        name: row.name,
+        description: row.description ?? "",
+        gradient: row.gradient ?? "",
+      })),
+      // An empty shelf is only a fault if the query failed. A shop with
+      // nothing published yet is empty on purpose.
+      degraded: Boolean(productResult.error || categoryResult.error),
     };
   },
   ["shop-catalogue"],
-  { tags: [CATALOGUE_TAG] }
+  { tags: [CATALOGUE_TAG], revalidate: CATALOGUE_TTL_SECONDS }
 );
 
 export async function getProducts() {

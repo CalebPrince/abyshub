@@ -80,7 +80,7 @@ export default async function ProductsPage({
   // "Discounted Items" in the menu: anything currently below its usual price.
   const saleOnly = params.sale === "1";
 
-  const [{ products, categories }, copy] = await Promise.all([
+  const [{ products, categories, degraded }, copy] = await Promise.all([
     getCatalogue(),
     getPageCopy("products"),
   ]);
@@ -214,7 +214,27 @@ export default async function ProductsPage({
         </React.Suspense>
       </div>
 
-      {results.length === 0 ? (
+      {degraded ? (
+        // Said plainly rather than dressed as an empty shelf. "Nothing matched"
+        // would be a lie, and the shop used to answer this with a hardcoded
+        // list — inventing prices on a page that takes real money.
+        <div
+          role="alert"
+          className="border-foreground/12 flex flex-col items-center gap-4 rounded-xl border border-dashed py-24 text-center"
+        >
+          <p className="font-display text-xl font-extrabold uppercase">
+            We cannot load the shop right now
+          </p>
+          <p className="text-muted-foreground -mt-2 max-w-md text-sm">
+            This is our end, not yours, and we are on it. Nothing here is out of
+            stock — the list simply will not load. Message us and we will tell
+            you what we have.
+          </p>
+          <Button asChild>
+            <Link href="/contact">Message us</Link>
+          </Button>
+        </div>
+      ) : results.length === 0 ? (
         <div className="border-foreground/12 flex flex-col items-center gap-4 rounded-xl border border-dashed py-24 text-center">
           <p className="font-display text-xl font-extrabold uppercase">
             Nothing matched

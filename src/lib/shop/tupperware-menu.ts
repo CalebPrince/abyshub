@@ -24,6 +24,16 @@ export type MenuColumn = {
   entries: MenuEntry[];
 };
 
+/**
+ * Sits above the columns rather than inside one. Asked for by the client, and
+ * right anyway: the whole range is the most common thing to want, and hunting
+ * for it in the sixth column is a worse start than seeing it first.
+ */
+export const SHOP_ALL: MenuEntry = {
+  label: "Shop All Tupperware",
+  href: "/products?brand=Tupperware",
+};
+
 export const TUPPERWARE_MENU: MenuColumn[] = [
   {
     heading: "Food Storage",
@@ -85,7 +95,6 @@ export const TUPPERWARE_MENU: MenuColumn[] = [
   {
     heading: "Other",
     entries: [
-      { label: "Shop All Tupperware", href: "/products?brand=Tupperware" },
       { label: "Tupperware Cookbook", search: "cookbook" },
       { label: "Kids Feeding & Mealtime", search: "kids" },
       { label: "Toys & Playtime", search: "toy" },
