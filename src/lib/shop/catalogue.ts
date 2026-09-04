@@ -114,9 +114,13 @@ export const getCatalogue = unstable_cache(
       const result = await Promise.all([
         supabase
           .from("products")
-          .select(
-            "id, slug, name, brand, product_line, tagline, description, price, compare_at_price, category, categories, image, images, rating, review_count, in_stock, stock_quantity, featured, highlights, variants"
-          )
+          // Every column, rather than a list. Naming them means a column this
+          // build expects but the database has not got yet fails the whole
+          // query, and the shop then has no products at all. That has taken
+          // the storefront down once; a few unused fields on the wire is a
+          // trade worth making to retire the failure mode. toProduct reads
+          // what it needs and defaults the rest.
+          .select("*")
           .eq("published", true)
           .order("sort_order"),
         supabase
@@ -151,6 +155,9 @@ export const getCatalogue = unstable_cache(
     }
 
     const rows = (productResult.data ?? []) as ProductRow[];
+    if (!productResult.error && rows.length === 0) {
+      console.warn("[catalogue] the products table returned no published rows.");
+    }
     const categoryRows = categoryResult.data ?? [];
 
     return {
