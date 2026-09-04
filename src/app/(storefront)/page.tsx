@@ -71,7 +71,7 @@ export default async function HomePage() {
   const stats = [
     [
       String(products.filter((product) => product.inStock).length),
-      "currently in stock",
+      "currently available in stock",
     ],
     [String(categories.length), "categories to explore"],
     [String(orderRoutes.length), "ways to order"],
