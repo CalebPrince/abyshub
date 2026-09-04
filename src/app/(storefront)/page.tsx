@@ -71,9 +71,9 @@ export default async function HomePage() {
   const stats = [
     [
       String(products.filter((product) => product.inStock).length),
-      "products in stock",
+      "currently in stock",
     ],
-    [String(categories.length), "shelves to browse"],
+    [String(categories.length), "categories to explore"],
     [String(orderRoutes.length), "ways to order"],
   ] as const;
 
@@ -191,7 +191,7 @@ export default async function HomePage() {
             </div>
             <Button asChild variant="outline">
               <Link href="/products">
-                See all {products.length} <ArrowRightIcon />
+                Browse all products <ArrowRightIcon />
               </Link>
             </Button>
           </Reveal>

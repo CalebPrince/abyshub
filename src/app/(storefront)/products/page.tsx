@@ -12,7 +12,12 @@ import {
   ProductFilters,
   type SortOption,
 } from "@/components/store/product-filters";
-import { getCatalogue, categoryFrom, brandsFrom } from "@/lib/shop/catalogue";
+import {
+  getCatalogue,
+  categoryFrom,
+  brandsFrom,
+  inCategory,
+} from "@/lib/shop/catalogue";
 import { getPageCopy } from "@/lib/shop/content";
 import { matchesQuery } from "@/lib/search";
 import type { Product } from "@/lib/types";
@@ -90,7 +95,7 @@ export default async function ProductsPage({
 
   let results = products;
   if (category) {
-    results = results.filter((product) => product.category === category.slug);
+    results = results.filter((product) => inCategory(product, category.slug));
   }
   if (brandParam) {
     results = results.filter((product) => product.brand === brandParam);
@@ -115,7 +120,7 @@ export default async function ProductsPage({
     ? new Set(
         products
           .filter((product) => product.brand === brandParam)
-          .map((product) => product.category)
+          .flatMap((product) => [product.category, ...(product.categories ?? [])])
       )
     : null;
   const visibleCategories = brandShelves

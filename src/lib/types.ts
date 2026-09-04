@@ -25,6 +25,8 @@ export type Product = {
   /** Original price in cents, when the item is discounted. */
   compareAtPrice?: number;
   category: string;
+  /** Additional shelves this product also belongs on, beyond `category`. */
+  categories?: string[];
   image: string;
   /** Additional photographs shown beneath the main one. */
   images?: string[];

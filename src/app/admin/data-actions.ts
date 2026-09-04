@@ -355,6 +355,7 @@ export async function seedCatalogue(): Promise<void> {
       price: product.price,
       compare_at_price: product.compareAtPrice ?? null,
       category: product.category,
+      categories: product.categories ?? [],
       image: product.image,
       rating: product.rating,
       review_count: product.reviewCount,
@@ -489,6 +490,23 @@ export async function removeStaff(formData: FormData): Promise<void> {
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+
+/**
+ * The shelves a product appears on besides its main one. The main shelf is
+ * removed so the two lists cannot contradict each other, and unknown slugs
+ * are dropped rather than trusted: these arrive as form values.
+ */
+function extraCategories(formData: FormData, main: string) {
+  return [
+    ...new Set(
+      formData
+        .getAll("extra_categories")
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim())
+        .filter((value) => value && value !== main)
+    ),
+  ];
+}
 
 /** How many photographs one product may carry, the main shot included. */
 const MAX_GALLERY_IMAGES = 8;
@@ -639,6 +657,7 @@ export async function createProduct(
     compare_at_price:
       compare && Number.isFinite(Number(compare)) ? Math.round(Number(compare)) : null,
     category,
+    categories: extraCategories(formData, category),
     image: image || null,
     images: extras,
     stock_quantity: stockQuantity,
@@ -731,6 +750,7 @@ export async function editProduct(
     .maybeSingle();
 
   const patch: Record<string, unknown> = {
+    categories: extraCategories(formData, category),
     name,
     brand,
     category,

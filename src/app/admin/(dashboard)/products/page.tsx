@@ -54,6 +54,7 @@ type Row = {
   in_stock: boolean;
   stock_quantity: number;
   images: string[] | null;
+  categories: string[] | null;
   featured: boolean;
   published: boolean;
   supplier: string | null;
@@ -81,7 +82,7 @@ async function listRows(
   let query = supabase
     .from("products")
     .select(
-      "id, slug, name, brand, category, image, images, product_line, price, compare_at_price, tagline, description, highlights, in_stock, stock_quantity, featured, published, supplier, source_url",
+      "id, slug, name, brand, category, categories, image, images, product_line, price, compare_at_price, tagline, description, highlights, in_stock, stock_quantity, featured, published, supplier, source_url",
       { count: "exact" }
     );
 

@@ -33,6 +33,7 @@ export type ProductDraft = {
   name: string;
   brand: string;
   category: string;
+  categories: string[] | null;
   price: number;
   compare_at_price: number | null;
   tagline: string | null;
@@ -130,7 +131,7 @@ export function ProductDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="pd-category">Category</Label>
+              <Label htmlFor="pd-category">Main category</Label>
               <select
                 id="pd-category"
                 name="category"
@@ -144,6 +145,38 @@ export function ProductDialog({
                   </option>
                 ))}
               </select>
+              <p className="text-muted-foreground text-xs">
+                Where it belongs first. Used for related products.
+              </p>
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Also appears in</Label>
+              {/* Ticking the main category here is harmless: the save drops it
+                  from the extras, so the two lists can never disagree. */}
+              <div className="grid gap-2 sm:grid-cols-3">
+                {categories.map((category) => (
+                  <label
+                    key={category.slug}
+                    className="flex items-center gap-2 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      name="extra_categories"
+                      value={category.slug}
+                      defaultChecked={(product?.categories ?? []).includes(
+                        category.slug
+                      )}
+                      className="size-4"
+                    />
+                    {category.name}
+                  </label>
+                ))}
+              </div>
+              <p className="text-muted-foreground text-xs">
+                A product shows on every shelf ticked here as well as its main
+                one. Leave blank if it belongs in one place.
+              </p>
             </div>
 
             <div className="space-y-2">

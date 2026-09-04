@@ -118,7 +118,7 @@ export function OffersGrid({ products }: { products: Product[] }) {
           href="/products"
           className="text-primary flex items-center gap-1.5 text-sm font-semibold hover:underline"
         >
-          See everything <ArrowRightIcon className="size-4" />
+          Browse all products <ArrowRightIcon className="size-4" />
         </Link>
       </Reveal>
 

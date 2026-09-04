@@ -22,6 +22,7 @@ type ProductRow = {
   price: number;
   compare_at_price: number | null;
   category: string;
+  categories: string[] | null;
   image: string | null;
   images: string[] | null;
   rating: number | null;
@@ -45,6 +46,7 @@ function toProduct(row: ProductRow): Product {
     price: row.price,
     compareAtPrice: row.compare_at_price ?? undefined,
     category: row.category,
+    categories: row.categories ?? [],
     image: row.image ?? "",
     images: row.images ?? [],
     rating: Number(row.rating ?? 0),
@@ -112,7 +114,7 @@ export const getCatalogue = unstable_cache(
         supabase
           .from("products")
           .select(
-            "id, slug, name, brand, product_line, tagline, description, price, compare_at_price, category, image, images, rating, review_count, in_stock, stock_quantity, featured, highlights, variants"
+            "id, slug, name, brand, product_line, tagline, description, price, compare_at_price, category, categories, image, images, rating, review_count, in_stock, stock_quantity, featured, highlights, variants"
           )
           .eq("published", true)
           .order("sort_order"),
@@ -218,6 +220,15 @@ export function relatedFrom(products: Product[], product: Product, limit = 4) {
 
 export function brandsFrom(products: Product[]) {
   return [...new Set(products.map((product) => product.brand))].sort();
+}
+
+/**
+ * A product sits on its primary shelf plus any extra it has been given, so a
+ * shelf listing has to ask rather than compare: matching on `category` alone
+ * would hide a product filed somewhere else first.
+ */
+export function inCategory(product: Product, slug: string) {
+  return product.category === slug || (product.categories ?? []).includes(slug);
 }
 
 export function categoryFrom(categories: Category[], slug: string) {
