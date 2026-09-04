@@ -38,7 +38,7 @@ const REASONS = [
   {
     icon: BadgeCheckIcon,
     title: "Genuine stock",
-    body: "Real Tupperware with the seal warranty intact — not a market copy you will have to make excuses for.",
+    body: "Real Tupperware with the seal warranty intact, not a market copy you will have to make excuses for.",
   },
   {
     icon: UsersIcon,

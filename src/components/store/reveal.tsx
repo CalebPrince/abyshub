@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 type RevealProps = {
   children: ReactNode;
   className?: string;
-  /** Stagger, in ms — pass `index * 60` from a `.map()` for a cascading grid. */
+  /** Stagger, in ms, pass `index * 60` from a `.map()` for a cascading grid. */
   delay?: number;
   /** How far the content lifts in from, in px. */
   y?: number;

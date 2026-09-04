@@ -30,15 +30,15 @@ export default function PrivacyPage() {
       <p>Only what you type in, and only when you choose to send it:</p>
       <ul>
         <li>
-          <strong>At checkout</strong> — your name, phone number, email address
+          <strong>At checkout</strong>, your name, phone number, email address
           and delivery address, plus what you ordered.
         </li>
         <li>
-          <strong>Through the enquiry form or the chat handoff</strong> — your
+          <strong>Through the enquiry form or the chat handoff</strong>, your
           name, a phone number or email, and whatever you tell us you need.
         </li>
         <li>
-          <strong>If you message us on WhatsApp</strong> — the conversation
+          <strong>If you message us on WhatsApp</strong>, the conversation
           itself, which lives in your WhatsApp account and ours.
         </li>
       </ul>
@@ -50,14 +50,14 @@ export default function PrivacyPage() {
       <h3>What stays on your device</h3>
       <p>
         Your basket and your light or dark preference are kept in your
-        browser&apos;s local storage. They never reach our servers — see the{" "}
+        browser&apos;s local storage. They never reach our servers, see the{" "}
         <Link href="/legal/cookies">cookies page</Link> for the detail.
       </p>
 
       <h3>The chat assistant</h3>
       <p>
         Messages you type to Mimi are answered by code running in your own
-        browser. They are not transmitted to us and we cannot read them —
+        browser. They are not transmitted to us and we cannot read them, so
         unless you use the &ldquo;talk to a person&rdquo; form, which sends what
         you asked along with your contact details so somebody can reply.
       </p>
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
       <h2>Who else sees it</h2>
       <ul>
         <li>
-          <strong>Paystack</strong>, when you pay by card — they receive your
+          <strong>Paystack</strong>, when you pay by card, they receive your
           email and the amount, and they handle the card details themselves. We
           receive back only whether the payment succeeded.
         </li>
@@ -124,7 +124,7 @@ export default function PrivacyPage() {
 
       <h2>Keeping it safe</h2>
       <p>
-        The site is served over HTTPS and card details never touch it — they go
+        The site is served over HTTPS and card details never touch it, they go
         straight to Paystack. Access to order information is limited to the
         people who need it to fulfil your order. No system is perfectly secure,
         but we take this seriously and will tell you promptly if something goes

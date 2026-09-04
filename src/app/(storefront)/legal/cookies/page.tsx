@@ -20,7 +20,7 @@ export default function CookiesPage() {
       <h2>Why there is no banner</h2>
       <p>
         Consent banners exist because most shops load advertising and analytics
-        trackers. We load none — no Google Analytics, no advertising pixels, no
+        trackers. We load none, no Google Analytics, no advertising pixels, no
         social media widgets, no third-party scripts of any kind. The typefaces
         are served from our own domain rather than fetched from a font provider,
         so even loading a page tells nobody but us that you visited.
@@ -37,7 +37,7 @@ export default function CookiesPage() {
           <strong>
             <code>abyshub.cart.v1</code>
           </strong>{" "}
-          — what is in your basket, so it survives a reload and follows you
+          holds what is in your basket, so it survives a reload and follows you
           between tabs. It holds product references and quantities. No personal
           details, no payment information.
         </li>
@@ -45,7 +45,7 @@ export default function CookiesPage() {
           <strong>
             <code>theme</code>
           </strong>{" "}
-          — whether you chose light, dark or system appearance.
+          holds whether you chose light, dark or system appearance.
         </li>
       </ul>
       <p>
@@ -58,7 +58,7 @@ export default function CookiesPage() {
         Clearing site data for this domain in your browser settings removes
         both. Emptying your basket on the{" "}
         <Link href="/cart">basket page</Link> clears the first one on its own.
-        Private or incognito windows discard everything when you close them —
+        Private or incognito windows discard everything when you close them, so
         the shop still works, your basket just will not be there next time.
       </p>
 
@@ -85,7 +85,7 @@ export default function CookiesPage() {
       <h2>If this changes</h2>
       <p>
         Adding anything that sets a cookie or tracks visitors would mean
-        updating this page — and asking for your consent first where the law
+        updating this page, and asking for your consent first where the law
         requires it. Questions to{" "}
         <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
       </p>

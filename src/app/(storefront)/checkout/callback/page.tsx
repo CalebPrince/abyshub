@@ -47,7 +47,7 @@ export default async function CheckoutCallbackPage({
       <Result
         tone="error"
         title="We could not confirm that payment"
-        body={`${result.error} Keep your reference (${reference}) and contact us — we will check it manually.`}
+        body={`${result.error} Keep your reference (${reference}) and contact us, we will check it manually.`}
       />
     );
   }

@@ -30,7 +30,7 @@ export function buildWhatsAppOrder(
   const items = lines
     .map((line, index) =>
       [
-        `${index + 1}. ${line.product.name} (${line.product.brand}) x${line.quantity} — ${formatPrice(
+        `${index + 1}. ${line.product.name} (${line.product.brand}) x${line.quantity}, ${formatPrice(
           line.product.price * line.quantity
         )}`,
         ...productDetails(line.product),

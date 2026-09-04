@@ -139,7 +139,7 @@ export const products: Product[] = [
     brand: "Tupperware",
     tagline: "Onions, pepper and ata rodo in seconds, no tears",
     description:
-      "Pull the cord and the blades do the work — a full bowl of onions or pepper reduced in about ten pulls. No electricity, nothing to charge, and the bowl doubles as the storage container.",
+      "Pull the cord and the blades do the work, a full bowl of onions or pepper reduced in about ten pulls. No electricity, nothing to charge, and the bowl doubles as the storage container.",
     price: 36500,
     category: "kitchen-prep",
     image: "/products/speedy-chopper.svg",
@@ -182,7 +182,7 @@ export const products: Product[] = [
     brand: "Tupperware",
     tagline: "Beans in twenty minutes, in the microwave",
     description:
-      "A sealed cooker that builds pressure in a microwave, so beans, rice and tough cuts finish in a fraction of the usual time — and without the gas. The vent releases on its own when it is done.",
+      "A sealed cooker that builds pressure in a microwave, so beans, rice and tough cuts finish in a fraction of the usual time, and without the gas. The vent releases on its own when it is done.",
     price: 72000,
     compareAtPrice: 84000,
     category: "kitchen-prep",

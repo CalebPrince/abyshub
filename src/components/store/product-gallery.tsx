@@ -80,7 +80,7 @@ export function ProductGallery({
           <ProductImage
             key={current}
             src={current}
-            alt={active === 0 ? name : `${name} — photograph ${active + 1}`}
+            alt={active === 0 ? name : `${name}, photograph ${active + 1}`}
             fill
             priority
             sizes="(min-width: 1024px) 714px, 96vw"

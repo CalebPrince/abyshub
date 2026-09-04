@@ -32,7 +32,7 @@ export default async function AccountPage() {
             <p className="font-semibold">Confirm your email address</p>
             <p className="text-muted-foreground mt-1 text-sm">
               Check your inbox for the link we sent. Orders you placed as a
-              guest only appear here once the address is confirmed — that check
+              guest only appear here once the address is confirmed, that check
               is what stops someone else claiming your order history.
             </p>
           </div>

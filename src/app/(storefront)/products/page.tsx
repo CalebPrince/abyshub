@@ -30,7 +30,7 @@ function pageWindow(page: number, pageCount: number) {
 export const metadata: Metadata = {
   title: "Everything we stock",
   description:
-    "Browse genuine Tupperware and Abys Home goods — food storage, kitchen prep, lunch sets, serveware and home care.",
+    "Browse genuine Tupperware and Abys Home goods, food storage, kitchen prep, lunch sets, serveware and home care.",
 };
 
 /**
@@ -227,7 +227,7 @@ export default async function ProductsPage({
           </p>
           <p className="text-muted-foreground -mt-2 max-w-md text-sm">
             This is our end, not yours, and we are on it. Nothing here is out of
-            stock — the list simply will not load. Message us and we will tell
+            stock, the list simply will not load. Message us and we will tell
             you what we have.
           </p>
           <Button asChild>

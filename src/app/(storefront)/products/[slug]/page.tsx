@@ -47,7 +47,7 @@ export async function generateMetadata({
   if (!product) return { title: "Product not found" };
 
   return {
-    title: `${product.name} — ${product.brand}`,
+    title: `${product.name} | ${product.brand}`,
     description: product.tagline,
     openGraph: {
       title: product.name,
@@ -211,9 +211,9 @@ export default async function ProductPage({
             />
             {product.inStock
               ? product.stockQuantity !== undefined
-                ? `${product.stockQuantity} ${product.stockQuantity === 1 ? "unit" : "units"} in stock — dispatched within one working day`
-                : "In stock — dispatched within one working day"
-              : "Out of stock — ask us when it lands"}
+                ? `${product.stockQuantity} ${product.stockQuantity === 1 ? "unit" : "units"} in stock, dispatched within one working day`
+                : "In stock, dispatched within one working day"
+              : "Out of stock, ask us when it lands"}
           </div>
 
           <ProductPurchasePanel product={product} />

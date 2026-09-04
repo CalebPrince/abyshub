@@ -74,7 +74,7 @@ export function ChatHandoff({
           name="details"
           value={
             conversation
-              ? `From the site chat — asked: ${conversation}`
+              ? `From the site chat, asked: ${conversation}`
               : "Sent from the site chat."
           }
         />

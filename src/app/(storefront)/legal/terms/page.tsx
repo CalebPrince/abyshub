@@ -79,7 +79,7 @@ export default async function TermsPage() {
       </ul>
       <p>
         An order you place is an offer to buy. A contract exists once we confirm
-        the order — not when you submit it and not when a payment page loads. If
+        the order, not when you submit it and not when a payment page loads. If
         we cannot fulfil an order we will say so and refund anything you have
         paid.
       </p>
@@ -98,7 +98,7 @@ export default async function TermsPage() {
       <h2>Delivery</h2>
       <p>
         Orders confirmed before 3pm are dispatched the same working day. Any
-        delivery date we give is an estimate, not a guarantee — we do not
+        delivery date we give is an estimate, not a guarantee, we do not
         control the courier once a parcel leaves us. Risk in the goods passes to
         you on delivery.
       </p>
@@ -138,7 +138,7 @@ export default async function TermsPage() {
       <h2>The chat assistant</h2>
       <p>
         Mimi, the assistant on this site, gives general information about stock,
-        delivery and payment. Treat her answers as a guide — the price and
+        delivery and payment. Treat her answers as a guide, the price and
         availability confirmed on your order are what count. She cannot see your
         account or look up past orders.
       </p>

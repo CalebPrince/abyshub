@@ -12,7 +12,7 @@ export default function OffersPage() {
     <ComingSoon
       eyebrow="Monthly Offers"
       title="This month's offers."
-      blurb="Every month we put together a short list of Tupperware sets at a better price than usual. The next one is being finalised — ask us what is on it, or check the discounted items already in the shop."
+      blurb="Every month we put together a short list of Tupperware sets at a better price than usual. The next one is being finalised, ask us what is on it, or check the discounted items already in the shop."
       enquiry="Hello Abys Hub, what are this month's Tupperware offers?"
     />
   );

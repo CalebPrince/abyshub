@@ -27,7 +27,7 @@ const orderRoutes = [
   {
     icon: CreditCardIcon,
     title: "Pay By Card or Mobile Money",
-    body: "Pay with card or mobile money — MTN MoMo, Telecel Cash and AirtelTigo Money — plus bank transfer and USSD, all through Paystack.",
+    body: "Pay with card or mobile money, MTN MoMo, Telecel Cash and AirtelTigo Money, plus bank transfer and USSD, all through Paystack.",
     href: "/checkout",
     cta: "Go to checkout",
   },
@@ -92,7 +92,7 @@ export default async function HomePage() {
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
-              01 — The shelves
+              01 The shelves
             </p>
             <h2 className="font-display mt-3 text-4xl font-extrabold tracking-tight uppercase sm:text-5xl">
               Find it by where
@@ -182,7 +182,7 @@ export default async function HomePage() {
           <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
-                02 — Moving fast
+                02 Moving fast
               </p>
               <h2 className="font-display mt-3 text-4xl font-extrabold tracking-tight uppercase sm:text-5xl">
                 What people keep
@@ -211,7 +211,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1400px] px-4 py-16 lg:px-8 lg:py-24">
           <Reveal>
             <p className="text-primary-foreground/75 text-[11px] font-semibold tracking-[0.24em] uppercase">
-              03 — Ordering
+              03 Ordering
             </p>
             <h2 className="font-display mt-3 max-w-2xl text-4xl font-extrabold tracking-tight uppercase sm:text-5xl">
               Order the way that suits you

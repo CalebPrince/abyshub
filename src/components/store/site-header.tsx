@@ -30,7 +30,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full">
-      {/* Scrolling claim strip — the shop's first piece of voice. */}
+      {/* Scrolling claim strip, the shop's first piece of voice. */}
       <div className="bg-primary text-primary-foreground overflow-hidden py-2">
         <div className="animate-marquee flex w-max gap-10 pr-10">
           {[0, 1].map((copy) => (

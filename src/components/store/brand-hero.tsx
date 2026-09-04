@@ -24,7 +24,7 @@ export function BrandHero({
   eyebrow,
 }: {
   brand: string;
-  /** Omitted where there is no listing beneath — a range not yet stocked. */
+  /** Omitted where there is no listing beneath, a range not yet stocked. */
   count?: number;
   image?: string;
   blurb?: string;

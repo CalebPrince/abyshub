@@ -28,11 +28,11 @@ export const metadata: Metadata = {
   // reached `new URL("")` here and failed the production build outright.
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Abys Hub — Genuine Tupperware & home goods",
+    default: "Abys Hub | Genuine Tupperware & home goods",
     template: "%s | Abys Hub",
   },
   description:
-    "Genuine Tupperware and Abys Home goods — airtight food storage, kitchen prep, lunch sets and serveware. Order by card, on WhatsApp, or ask us for a quote.",
+    "Genuine Tupperware and Abys Home goods, airtight food storage, kitchen prep, lunch sets and serveware. Order by card, on WhatsApp, or ask us for a quote.",
   openGraph: {
     title: "Abys Hub",
     description: "Genuine Tupperware and home goods. Buy it once, keep it for years.",

@@ -112,7 +112,7 @@ export function WelcomeModal() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {/* Deliberately small on phones — a welcome should not eat the screen. */}
+      {/* Deliberately small on phones, a welcome should not eat the screen. */}
       <DialogContent className="max-w-[20rem] sm:max-w-md" showClose={false}>
         <div className="bg-primary text-primary-foreground relative px-5 py-5 sm:px-6 sm:py-7">
           {/* The shared close is styled for light surfaces and vanishes on this
@@ -134,7 +134,7 @@ export function WelcomeModal() {
           </DialogTitle>
           <DialogDescription className="text-background/70 mt-2 line-clamp-2 text-xs sm:mt-3 sm:line-clamp-none sm:text-sm">
             Leave your email and {STORE_NAME} will send you our discount
-            offers as they land — monthly deals and price drops on genuine
+            offers as they land, monthly deals and price drops on genuine
             Tupperware and our own home range.
           </DialogDescription>
         </div>

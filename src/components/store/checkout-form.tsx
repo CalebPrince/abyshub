@@ -112,7 +112,7 @@ export function CheckoutForm({
       <div className="space-y-8">
         <fieldset>
           <legend className="text-primary mb-4 text-[11px] font-semibold tracking-[0.2em] uppercase">
-            01 — How will you receive it?
+            01 How will you receive it?
           </legend>
           <div className="grid gap-3 sm:grid-cols-2">
             {([
@@ -163,7 +163,7 @@ export function CheckoutForm({
         {/* ── Method picker ── */}
         <fieldset>
           <legend className="text-primary mb-4 text-[11px] font-semibold tracking-[0.2em] uppercase">
-            02 — How would you like to pay?
+            02 How would you like to pay?
           </legend>
 
           <div className="grid gap-px sm:grid-cols-3">
@@ -213,7 +213,7 @@ export function CheckoutForm({
 
         {method === "card" && (
           <form action={formAction} className="space-y-8">
-            {/* Ids and quantities only — the server prices the order itself. */}
+            {/* Ids and quantities only, the server prices the order itself. */}
             <input type="hidden" name="cart" value={JSON.stringify(items)} />
             <input
               type="hidden"
@@ -223,7 +223,7 @@ export function CheckoutForm({
 
             <section className="space-y-5">
               <h2 className="text-primary text-[11px] font-semibold tracking-[0.2em] uppercase">
-                03 — {fulfilmentMethod === "delivery" ? "Delivery" : "Contact"} details
+                03 {fulfilmentMethod === "delivery" ? "Delivery" : "Contact"} details
               </h2>
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field id="name" label="Full name" autoComplete="name" />
@@ -287,7 +287,7 @@ export function CheckoutForm({
               </Button>
               <p className="text-muted-foreground flex items-start gap-2 text-xs">
                 <LockIcon className="mt-0.5 size-3.5 shrink-0" />
-                You will be taken to Paystack to pay by card or mobile money —
+                You will be taken to Paystack to pay by card or mobile money:
                 MTN MoMo, Telecel Cash or AirtelTigo Money. Your details are
                 entered on Paystack&apos;s page and never touch this site.
               </p>
@@ -298,7 +298,7 @@ export function CheckoutForm({
         {method === "whatsapp" && (
           <section className="space-y-5">
             <h2 className="text-primary text-[11px] font-semibold tracking-[0.2em] uppercase">
-              02 — Send us your basket
+              02 Send us your basket
             </h2>
             <p className="text-muted-foreground text-sm">
               This opens WhatsApp with your basket already written out. We reply
@@ -320,7 +320,7 @@ export function CheckoutForm({
         {method === "enquiry" && (
           <section className="space-y-5">
             <h2 className="text-primary text-[11px] font-semibold tracking-[0.2em] uppercase">
-              02 — Ask us for a price
+              02 Ask us for a price
             </h2>
             <p className="text-muted-foreground text-sm">
               Buying in quantity, or for an event? Send the basket as an enquiry
