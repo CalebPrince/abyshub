@@ -1,5 +1,7 @@
 import "server-only";
 
+import { plainText } from "@/lib/shop/plain-text";
+
 import { unstable_cache } from "next/cache";
 
 import { createAdminClient, adminClientAvailable } from "@/lib/supabase/admin";
@@ -37,5 +39,9 @@ const loadContent = unstable_cache(
 /** Returns a lookup for one page: `copy("hero_heading", "Buy it once.")`. */
 export async function getPageCopy(page: string): Promise<PageCopy> {
   const map = await loadContent();
-  return (key, fallback) => map[`${page}:${key}`] ?? fallback;
+  // Staff-written copy goes through the same cleaner as the imported kind.
+  return (key, fallback) => {
+    const stored = map[`${page}:${key}`];
+    return stored ? plainText(stored) : fallback;
+  };
 }

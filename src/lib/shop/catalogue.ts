@@ -7,6 +7,7 @@ import {
   categories as fileCategories,
   products as fileProducts,
 } from "@/lib/products";
+import { plainText } from "@/lib/shop/plain-text";
 import type { Category, Product } from "@/lib/types";
 
 export const CATALOGUE_TAG = "catalogue";
@@ -38,11 +39,11 @@ function toProduct(row: ProductRow): Product {
   return {
     id: row.id,
     slug: row.slug,
-    name: row.name,
+    name: plainText(row.name),
     brand: row.brand,
-    productLine: row.product_line ?? undefined,
-    tagline: row.tagline ?? "",
-    description: row.description ?? "",
+    productLine: row.product_line ? plainText(row.product_line) : undefined,
+    tagline: plainText(row.tagline),
+    description: plainText(row.description),
     price: row.price,
     compareAtPrice: row.compare_at_price ?? undefined,
     category: row.category,
@@ -54,7 +55,7 @@ function toProduct(row: ProductRow): Product {
     inStock: row.in_stock,
     stockQuantity: row.stock_quantity,
     featured: row.featured,
-    highlights: row.highlights ?? [],
+    highlights: (row.highlights ?? []).map(plainText),
     variants: row.variants ?? [],
   };
 }
@@ -156,8 +157,8 @@ export const getCatalogue = unstable_cache(
       products: rows.map(toProduct),
       categories: categoryRows.map((row) => ({
         slug: row.slug,
-        name: row.name,
-        description: row.description ?? "",
+        name: plainText(row.name),
+        description: plainText(row.description),
         gradient: row.gradient ?? "",
       })),
       // An empty shelf is only a fault if the query failed. A shop with
