@@ -63,7 +63,7 @@ export default async function CheckoutCallbackPage({
 
     return (
       <>
-        <ClearCartOnMount />
+        <ClearCartOnMount value={transaction.amount} />
         <Receipt
           reference={transaction.reference}
           amount={transaction.amount}

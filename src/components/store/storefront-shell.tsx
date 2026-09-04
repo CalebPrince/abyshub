@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { Analytics } from "@/components/store/analytics";
 import { CartProvider } from "@/components/store/cart-provider";
 import { CartSheet } from "@/components/store/cart-sheet";
 import { ChatWidget } from "@/components/store/chat/chat-widget";
@@ -41,6 +42,7 @@ export async function StorefrontShell({
       }}
     >
       {/* First, so the flag lands on <html> before the splash is parsed. */}
+      <Analytics />
       <SplashScript />
       <SplashScreen />
       <SiteHeader />

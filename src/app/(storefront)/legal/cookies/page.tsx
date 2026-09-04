@@ -25,6 +25,14 @@ export default function CookiesPage() {
         are served from our own domain rather than fetched from a font provider,
         so even loading a page tells nobody but us that you visited.
       </p>
+      <p>
+        We do count how the shop is used, but we do it ourselves. Which pages
+        and products are looked at, what is searched for, what reaches a basket
+        and which way people choose to pay are recorded on our own server, in
+        our own database. None of it is shared, sold or sent anywhere else, and
+        none of it is tied to a name, an email address or an account. If your
+        browser sends a Do Not Track signal we record nothing at all.
+      </p>
 
       <h2>What is stored on your device</h2>
       <p>
@@ -46,6 +54,19 @@ export default function CookiesPage() {
             <code>theme</code>
           </strong>{" "}
           holds whether you chose light, dark or system appearance.
+        </li>
+        <li>
+          <strong>
+            <code>abyshub.session.v1</code>
+          </strong>{" "}
+          and{" "}
+          <strong>
+            <code>abyshub.source.v1</code>
+          </strong>{" "}
+          hold a random id for the current tab and the page that sent you to us,
+          so the steps of one visit can be counted as one visit. They are cleared the
+          moment you close the tab, and the id means nothing to anyone but this
+          site.
         </li>
       </ul>
       <p>

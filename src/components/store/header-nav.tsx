@@ -21,6 +21,7 @@ import {
   columnHref,
   menuHref,
 } from "@/lib/shop/tupperware-menu";
+import { track } from "@/lib/analytics/track";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -343,6 +344,8 @@ export function HeaderSearch({
     event.preventDefault();
     const query = new FormData(event.currentTarget).get("q");
     const trimmed = typeof query === "string" ? query.trim() : "";
+
+    if (trimmed) track({ name: "search", searchTerm: trimmed });
 
     router.push(
       trimmed ? `/products?q=${encodeURIComponent(trimmed)}` : "/products"

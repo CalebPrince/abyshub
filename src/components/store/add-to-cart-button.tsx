@@ -5,6 +5,7 @@ import { CheckIcon, ShoppingBagIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/store/cart-provider";
+import { track } from "@/lib/analytics/track";
 import type { Product } from "@/lib/types";
 
 type AddToCartButtonProps = {
@@ -41,6 +42,11 @@ export function AddToCartButton({
 
   function handleClick() {
     addItem(product.id, quantity, product.stockQuantity ?? 99);
+    track({
+      name: "add_to_cart",
+      productSlug: product.slug,
+      value: product.price * quantity,
+    });
     setJustAdded(true);
     if (openCartOnAdd) setOpen(true);
 

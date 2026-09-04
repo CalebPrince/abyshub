@@ -43,8 +43,18 @@ export default function PrivacyPage() {
         </li>
       </ul>
       <p>
-        We do not run analytics, advertising pixels or third-party trackers on
-        this site. We do not build profiles, and there is no account to create.
+        We do not run advertising pixels or third-party trackers on this site,
+        and we do not build profiles of you.
+      </p>
+      <p>
+        We do count how the shop is used, and we do it ourselves rather than
+        handing it to anyone else. Which pages and products get looked at, what
+        is searched for, what reaches a basket and which way people choose to
+        pay are written to our own database. Those records carry a random id
+        that your browser makes up for one tab and forgets when you close it,
+        so they can be counted as a single visit. They are not linked to your
+        name, your email or your orders, and if your browser sends a Do Not
+        Track signal nothing is recorded at all.
       </p>
 
       <h3>What stays on your device</h3>

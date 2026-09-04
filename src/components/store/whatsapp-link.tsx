@@ -12,10 +12,13 @@ export function WhatsAppLink({
   message,
   children,
   className,
+  onClick,
 }: {
   message: string;
   children: React.ReactNode;
   className?: string;
+  /** Fires before the browser leaves for WhatsApp. */
+  onClick?: () => void;
 }) {
   if (!whatsappEnabled) return null;
 
@@ -24,6 +27,7 @@ export function WhatsAppLink({
       href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={onClick}
       className={className}
     >
       {children}

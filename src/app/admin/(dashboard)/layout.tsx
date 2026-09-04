@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
+  ChartLineIcon,
   ClipboardListIcon,
   CreditCardIcon,
   FileTextIcon,
@@ -37,6 +38,7 @@ export const metadata: Metadata = {
 
 const nav = [
   { href: "/admin", label: "Overview", icon: LayoutDashboardIcon },
+  { href: "/admin/analytics", label: "Analytics", icon: ChartLineIcon },
   { href: "/admin/orders", label: "Orders", icon: ClipboardListIcon },
   { href: "/admin/payments", label: "Payments", icon: CreditCardIcon },
   { href: "/admin/enquiries", label: "Inbox", icon: MessageSquareTextIcon },

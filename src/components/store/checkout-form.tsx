@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { OrderSummary } from "@/components/store/order-summary";
 import { useCart } from "@/components/store/cart-provider";
 import { startPaystackCheckout } from "@/lib/actions/checkout";
+import { track } from "@/lib/analytics/track";
 import { whatsappEnabled } from "@/lib/config";
 import { formatPrice, formatPriceExact } from "@/lib/money";
 import { buildWhatsAppOrder } from "@/lib/whatsapp-message";
@@ -48,6 +49,16 @@ export function CheckoutForm({
     fulfilmentMethod === "pickup"
       ? { ...totals, delivery: 0, total: totals.subtotal }
       : totals;
+
+  // Reaching checkout with a basket is the funnel's "started checkout". Above
+  // the empty-basket and pre-hydration returns because a hook cannot sit
+  // behind one, and guarded on the total so an empty visit is not counted.
+  const startedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (startedRef.current || checkoutTotals.total <= 0) return;
+    startedRef.current = true;
+    track({ name: "begin_checkout", value: checkoutTotals.total });
+  }, [checkoutTotals.total]);
 
   if (!hydrated) {
     return (
@@ -212,7 +223,14 @@ export function CheckoutForm({
         </fieldset>
 
         {method === "card" && (
-          <form action={formAction} className="space-y-8">
+          <form
+            action={formAction}
+            // Recorded here rather than on the radio: card is the default, so
+            // most people never click it and counting the click would report
+            // almost nobody paying by card.
+            onSubmit={() => track({ name: "checkout_method", method: "card" })}
+            className="space-y-8"
+          >
             {/* Ids and quantities only, the server prices the order itself. */}
             <input type="hidden" name="cart" value={JSON.stringify(items)} />
             <input
@@ -309,7 +327,10 @@ export function CheckoutForm({
               {whatsappOrderMessage}
             </pre>
 
-            <WhatsAppLink message={whatsappOrderMessage}>
+            <WhatsAppLink
+              message={whatsappOrderMessage}
+              onClick={() => track({ name: "checkout_method", method: "whatsapp" })}
+            >
               <Button size="lg" className="w-full sm:w-auto">
                 <MessageCircleIcon /> Send this order on WhatsApp
               </Button>
@@ -327,7 +348,10 @@ export function CheckoutForm({
               and we will come back with a quote, including delivery.
             </p>
             <Button asChild size="lg">
-              <Link href="/enquiry">
+              <Link
+                href="/enquiry"
+                onClick={() => track({ name: "checkout_method", method: "enquiry" })}
+              >
                 <FileTextIcon /> Continue to the enquiry form
               </Link>
             </Button>
