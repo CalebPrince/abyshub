@@ -21,5 +21,8 @@
 # Local tooling / agent state.
 /.claude/
 
+# Operational scripts — run by hand, never by the app.
+/scripts/
+
 # Build scratch that can be regenerated.
 /tsconfig.tsbuildinfo
