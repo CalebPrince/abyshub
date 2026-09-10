@@ -2,19 +2,24 @@
 # and .git; this is for the things in the repo that the running site never
 # touches. Keeping them out of every upload keeps deployment storage down —
 # retained deployments are billed by size over time.
+#
+# Every pattern is anchored with a leading slash so it matches only the repo
+# root. An unanchored "supabase/" also matches src/lib/supabase/, which broke
+# the build once — that directory is the Supabase client the whole data layer
+# imports.
 
 # Remotion ad project: source, renders and a committed ~2.7MB mp4.
-videos/
+/videos/
 
 # Long-form docs and working notes.
-docs/
-NOTES.md
+/docs/
+/NOTES.md
 
 # Database migrations are applied by hand, never by the build.
-supabase/
+/supabase/
 
 # Local tooling / agent state.
-.claude/
+/.claude/
 
 # Build scratch that can be regenerated.
-*.tsbuildinfo
+/tsconfig.tsbuildinfo
