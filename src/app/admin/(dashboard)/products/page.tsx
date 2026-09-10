@@ -10,6 +10,7 @@ import { ProductDialog } from "@/components/admin/product-dialog";
 import { ImportProductDialog } from "@/components/admin/import-product-dialog";
 import { DeleteAllProducts } from "@/components/admin/delete-all-products";
 import { BulkImportDialog } from "@/components/admin/bulk-import-dialog";
+import { MobiSyncDialog } from "@/components/admin/mobi-sync-dialog";
 import { BulkAvailabilityDialog } from "@/components/admin/bulk-availability-dialog";
 import { ProductStatusFilter } from "@/components/admin/product-status-filter";
 import {
@@ -201,6 +202,7 @@ export default async function AdminProductsPage({
 
         {connected ? (
           <div className="flex flex-wrap gap-2">
+            <MobiSyncDialog />
             <BulkImportDialog />
             <BulkAvailabilityDialog />
             <ImportProductDialog />

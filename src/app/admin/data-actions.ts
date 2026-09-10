@@ -16,6 +16,14 @@ import { CONTENT_TAG } from "@/lib/shop/content";
 import { fetchImage, readProductPage } from "@/lib/suppliers/fetch";
 import { supplierById, supplierForUrl } from "@/lib/suppliers/registry";
 import { discoverProductUrls } from "@/lib/suppliers/discover";
+import {
+  parseMobiSnapshot,
+  planRow,
+  planDrops,
+  storeMobiImage,
+  SELECT_COLUMNS as MOBI_SELECT,
+  type ExistingRow as MobiExistingRow,
+} from "@/lib/suppliers/mobi-sync";
 
 export type ActionState = { error: string | null; notice: string | null };
 
@@ -1516,5 +1524,156 @@ export async function importChunk(
     revalidateTag(CATALOGUE_TAG, "max");
     revalidatePath("/admin/products");
   }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// MOBI catalogue sync
+// ---------------------------------------------------------------------------
+
+/**
+ * Reconciles the shop with a pasted snapshot of the MOBI "Sales Force" portal
+ * (the only Tupperware stock actually available). The heavy lifting — matching,
+ * pricing, category guessing — lives in lib/suppliers/mobi-sync.ts; these two
+ * actions are the admin's door to it.
+ *
+ * `previewMobiSync` reads nothing but the catalogue and returns the plan.
+ * `applyMobiSyncChunk` walks the snapshot `offset..offset+CHUNK` and does the
+ * writes, downloading each MOBI photo into the bucket as it goes. `offset`
+ * indexes the sorted snapshot, not a shrinking plan, so a re-run is a no-op.
+ */
+
+export type MobiSyncPreview = {
+  error: string | null;
+  total: number;
+  updates: { slug: string; reasons: string[] }[];
+  creates: { slug: string; category: string; price: number; hasImage: boolean }[];
+  drops: { slug: string; name: string }[];
+  unchanged: number;
+};
+
+async function loadMobiRows(): Promise<{
+  supabase: ReturnType<typeof createAdminClient>;
+  rows: MobiExistingRow[];
+}> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.from("products").select(MOBI_SELECT);
+  if (error) throw new Error(error.message);
+  return { supabase, rows: (data ?? []) as MobiExistingRow[] };
+}
+
+export async function previewMobiSync(snapshot: string): Promise<MobiSyncPreview> {
+  await requireAdmin();
+  const empty: MobiSyncPreview = {
+    error: null, total: 0, updates: [], creates: [], drops: [], unchanged: 0,
+  };
+  if (!adminClientAvailable()) return { ...empty, error: "The database is not connected." };
+
+  let mobi;
+  try {
+    mobi = parseMobiSnapshot(snapshot);
+  } catch (error) {
+    return { ...empty, error: error instanceof Error ? error.message : "Could not read that snapshot." };
+  }
+
+  const { rows } = await loadMobiRows();
+
+  const preview: MobiSyncPreview = { ...empty, total: mobi.length };
+  for (const m of mobi) {
+    const plan = planRow(m, rows);
+    if (plan.kind === "update") preview.updates.push({ slug: plan.slug, reasons: plan.reasons });
+    else if (plan.kind === "create")
+      preview.creates.push({
+        slug: plan.slug,
+        category: String((plan.product as Record<string, unknown>).category),
+        price: Number((plan.product as Record<string, unknown>).price) / 100,
+        hasImage: Boolean(plan.mobiImg),
+      });
+    else preview.unchanged++;
+  }
+  preview.drops = planDrops(mobi, rows).map((r) => ({ slug: r.slug, name: r.name }));
+  return preview;
+}
+
+export type MobiSyncChunk = {
+  error: string | null;
+  total: number;
+  offset: number;
+  done: boolean;
+  updated: number;
+  created: number;
+  dropped: number;
+  failed: number;
+  problems: string[];
+};
+
+/** Small — every item may pull an image from a slow server before it answers. */
+const MOBI_CHUNK = 6;
+
+export async function applyMobiSyncChunk(
+  snapshot: string,
+  offset: number
+): Promise<MobiSyncChunk> {
+  const base: MobiSyncChunk = {
+    error: null, total: 0, offset, done: true,
+    updated: 0, created: 0, dropped: 0, failed: 0, problems: [],
+  };
+  await requireAdmin();
+  if (!adminClientAvailable()) return { ...base, error: "The database is not connected." };
+
+  let mobi;
+  try {
+    mobi = parseMobiSnapshot(snapshot);
+  } catch (error) {
+    return { ...base, error: error instanceof Error ? error.message : "Could not read that snapshot." };
+  }
+
+  const { supabase, rows } = await loadMobiRows();
+  const slice = mobi.slice(offset, offset + MOBI_CHUNK);
+  const result: MobiSyncChunk = {
+    ...base,
+    total: mobi.length,
+    offset: offset + slice.length,
+    done: offset + slice.length >= mobi.length,
+  };
+
+  for (const m of slice) {
+    const plan = planRow(m, rows);
+    try {
+      if (plan.kind === "update") {
+        const patch: Record<string, unknown> = { ...plan.patch };
+        if (plan.mobiImg && plan.mobiCode) patch.image = await storeMobiImage(supabase, plan.mobiCode, plan.mobiImg);
+        if (Object.keys(patch).length) {
+          const { error } = await supabase.from("products").update(patch).eq("id", plan.id);
+          if (error) throw new Error(error.message);
+        }
+        result.updated++;
+      } else if (plan.kind === "create") {
+        const product: Record<string, unknown> = { ...plan.product };
+        if (plan.mobiImg && plan.mobiCode) product.image = await storeMobiImage(supabase, plan.mobiCode, plan.mobiImg);
+        const { error } = await supabase.from("products").insert(product);
+        if (error) throw new Error(error.message);
+        result.created++;
+      }
+    } catch (error) {
+      result.failed++;
+      result.problems.push(`${m.name} — ${error instanceof Error ? error.message : "failed"}`);
+    }
+  }
+
+  if (result.done) {
+    const drops = planDrops(mobi, rows);
+    if (drops.length > 0) {
+      const { error } = await supabase
+        .from("products")
+        .update({ in_stock: false, stock_quantity: 0 })
+        .in("id", drops.map((r) => r.id));
+      if (error) result.problems.push(`out of stock — ${error.message}`);
+      else result.dropped = drops.length;
+    }
+    updateTag(CATALOGUE_TAG);
+    revalidatePath("/admin/products");
+  }
+
   return result;
 }

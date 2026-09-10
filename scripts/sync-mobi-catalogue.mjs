@@ -3,6 +3,11 @@
  * (tuppafrica — https://amp.tuppafrica.co.za), which is the only stock actually
  * available now.
  *
+ * There is now an admin UI for this: Products -> "Sync from MOBI" runs the same
+ * reconciliation from a pasted snapshot, no Supabase key needed. This script is
+ * the fallback for when the app is down or a scripted run is wanted; the shared
+ * logic lives in src/lib/suppliers/mobi-sync.ts.
+ *
  * MOBI is behind a consultant login, so this cannot run as an automated importer.
  * The workflow is: a human pastes a fresh catalogue snapshot into
  * scripts/mobi-catalogue.json, then runs this script.
