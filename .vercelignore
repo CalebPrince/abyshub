@@ -1,0 +1,20 @@
+# Files that have no place in the deployment. Vercel already skips node_modules
+# and .git; this is for the things in the repo that the running site never
+# touches. Keeping them out of every upload keeps deployment storage down —
+# retained deployments are billed by size over time.
+
+# Remotion ad project: source, renders and a committed ~2.7MB mp4.
+videos/
+
+# Long-form docs and working notes.
+docs/
+NOTES.md
+
+# Database migrations are applied by hand, never by the build.
+supabase/
+
+# Local tooling / agent state.
+.claude/
+
+# Build scratch that can be regenerated.
+*.tsbuildinfo

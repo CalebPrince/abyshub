@@ -20,7 +20,11 @@ import { CURRENCY } from "@/lib/config";
 
 const RATES_URL = "https://open.er-api.com/v6/latest/";
 
-const FX_TTL = 6 * 3600;
+// The source publishes once a day, and holding a rate steady across a whole
+// import run is the point (see above), so a day is the natural window. Longer
+// than the old six hours mainly to stop the cached entry being refetched and
+// rewritten for no gain.
+const FX_TTL = 24 * 3600;
 
 export const FX_TAG = "exchange-rates";
 

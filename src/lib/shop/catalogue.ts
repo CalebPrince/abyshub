@@ -77,9 +77,16 @@ function toProduct(row: ProductRow): Product {
  * backstop for the case the tag cannot cover: a read that failed is cached
  * like any other result, and without an expiry one bad moment during a build
  * outlives the problem that caused it.
+ *
+ * Every storefront page depends on this entry (the header and footer both read
+ * it), so each time it expires the next crawl regenerates the whole shop and
+ * writes an ISR entry per page. At five minutes that ran into millions of
+ * writes a cycle. An hour keeps a failed read self-healing well inside a
+ * working day while cutting that regeneration rate twelvefold; every real
+ * change still lands immediately through CATALOGUE_TAG.
  */
-/** Long enough to stay effectively static, short enough that a failed read heals itself. */
-const CATALOGUE_TTL_SECONDS = 300;
+/** Backstop only — real changes invalidate CATALOGUE_TAG. Long enough that a healthy read is not rewritten on a timer. */
+const CATALOGUE_TTL_SECONDS = 3600;
 
 export type Catalogue = {
   products: Product[];

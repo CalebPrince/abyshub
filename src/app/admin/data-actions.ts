@@ -255,7 +255,7 @@ export async function saveSettings(
     if (error) return { error: error.message, notice: null };
   }
 
-  revalidateTag(SETTINGS_TAG, { expire: 0 });
+  updateTag(SETTINGS_TAG);
   revalidatePath("/admin/settings");
   revalidatePath("/admin/payments");
   return { error: null, notice: "Saved." };
@@ -371,7 +371,7 @@ export async function seedCatalogue(): Promise<void> {
     { onConflict: "id" }
   );
 
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  updateTag(CATALOGUE_TAG);
   revalidatePath("/admin/products");
 }
 
@@ -681,7 +681,7 @@ export async function createProduct(
     if (movementError) console.error("[inventory] could not record opening stock", slug, movementError.message);
   }
 
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  updateTag(CATALOGUE_TAG);
   revalidatePath("/admin/products");
   return { error: null, notice: `${name} is in the catalogue.` };
 }
@@ -703,7 +703,7 @@ export async function unpublishProduct(formData: FormData): Promise<void> {
   const supabase = createAdminClient();
   await supabase.from("products").update({ published: false }).eq("id", id);
 
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  updateTag(CATALOGUE_TAG);
   revalidatePath("/admin/products");
 }
 
@@ -872,7 +872,7 @@ export async function deleteProduct(formData: FormData): Promise<void> {
 
   if (owned.length > 0) await supabase.storage.from("product-images").remove(owned);
 
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  updateTag(CATALOGUE_TAG);
   revalidatePath("/admin/products");
 }
 
@@ -1004,7 +1004,7 @@ export async function importProduct(
 
     if (error) return { error: error.message, notice: null };
 
-    revalidateTag(CATALOGUE_TAG, { expire: 0 });
+    updateTag(CATALOGUE_TAG);
     revalidatePath("/admin/products");
     return {
       error: null,
@@ -1071,7 +1071,7 @@ export async function importProduct(
 
   if (error) return { error: error.message, notice: null };
 
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  updateTag(CATALOGUE_TAG);
   revalidatePath("/admin/products");
 
   const reference =
@@ -1148,7 +1148,7 @@ export async function refreshProduct(formData: FormData): Promise<void> {
 
   await supabase.from("products").update(patch).eq("id", id);
 
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  updateTag(CATALOGUE_TAG);
   revalidatePath("/admin/products");
 }
 
@@ -1184,7 +1184,7 @@ export async function setGhanaAvailability(
 
   if (error) return { error: error.message, notice: null };
 
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  updateTag(CATALOGUE_TAG);
   revalidatePath("/admin/products");
 
   const count = data?.length ?? 0;
@@ -1254,7 +1254,7 @@ export async function deleteAllProducts(
   const { error } = await supabase.from("products").delete().neq("id", "");
   if (error) return { error: error.message, notice: null };
 
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
+  updateTag(CATALOGUE_TAG);
   revalidatePath("/admin/products");
 
   return {
@@ -1504,7 +1504,17 @@ export async function importChunk(
     }
   }
 
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
-  revalidatePath("/admin/products");
+  // The browser calls this once per four-product chunk, so invalidating here
+  // would purge and regenerate the entire storefront a hundred times over a
+  // single 400-product run. Invalidate once, when the last chunk lands. A run
+  // stopped halfway leaves the new rows uninvalidated — acceptable, since
+  // every import arrives out of stock and unbuyable until staff confirm it,
+  // and the next mutation or the catalogue TTL picks them up regardless.
+  if (result.done) {
+    // Soft: a freshly synced catalogue does not need to block the next
+    // storefront request while hundreds of pages regenerate.
+    revalidateTag(CATALOGUE_TAG, "max");
+    revalidatePath("/admin/products");
+  }
   return result;
 }

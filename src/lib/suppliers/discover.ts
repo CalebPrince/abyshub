@@ -13,12 +13,14 @@ import { supplierById } from "@/lib/suppliers/registry";
  * answer and the polite one — no guessing at URL patterns and no walking their
  * category pages.
  *
- * Cached for an hour: a 400-entry sitemap does not change between the chunks
- * of one import, and re-fetching it on every chunk would be several hundred
- * needless requests over a full run.
+ * Cached for a day: a 400-entry sitemap does not change between the chunks of
+ * one import, and re-fetching it on every chunk would be several hundred
+ * needless requests over a full run. A fresh run past the window pays one
+ * fetch; a partner adding products mid-day is picked up on the next run or by
+ * the single-product import.
  */
 
-const DISCOVERY_TTL = 3600;
+const DISCOVERY_TTL = 24 * 3600;
 
 function locs(xml: string) {
   return [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) =>

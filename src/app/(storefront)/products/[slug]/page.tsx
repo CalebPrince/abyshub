@@ -33,9 +33,21 @@ import { formatPrice } from "@/lib/money";
 import { getShopSettings } from "@/lib/shop/settings";
 import { buildWhatsAppProductEnquiry } from "@/lib/whatsapp-message";
 
+// Anything not prerendered below is still rendered on first request and then
+// cached and revalidated exactly like a built page — CATALOGUE_TAG and the
+// catalogue TTL cover both. This is the default, stated here because the list
+// is deliberately partial.
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
-  // Built from the live catalogue, so a product added in the admin gets a page.
-  return (await getProducts()).map((product) => ({ slug: product.slug }));
+  // Only the featured products are built ahead of time. Prerendering the whole
+  // catalogue baked hundreds of product pages into every deployment — the bulk
+  // of the Vercel deployment-storage bill — and regenerated every one of them
+  // on each catalogue revalidation. The rest are built on first visit.
+  return (await getProducts())
+    .filter((product) => product.featured)
+    .slice(0, 24)
+    .map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata({

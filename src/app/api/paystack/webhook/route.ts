@@ -65,10 +65,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Could not record order" }, { status: 500 });
       }
 
-      // The paid-order write also decrements physical stock. Expire the shared
-      // catalogue immediately so product pages, carts and Mimi quote the new
-      // remaining quantity on their next request.
-      revalidateTag(CATALOGUE_TAG, { expire: 0 });
+      // The paid-order write also decrements physical stock. Mark the shared
+      // catalogue stale so product pages, carts and Mimi pick up the new
+      // remaining quantity. Soft ("max") rather than an immediate expire: a
+      // sale should not force every catalogue-backed page to regenerate before
+      // Paystack's webhook can be answered, and a stock count a minute stale is
+      // harmless next to that. The hard-expire form is deprecated in any case.
+      revalidateTag(CATALOGUE_TAG, "max");
 
       // Both mails are sent, and neither is allowed to sink the other: the
       // customer's copy carries their handover code, the staff alert is how
