@@ -1,4 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "[ \"$VERCEL_ENV\" = \"production\" ] || [ -n \"$VERCEL_GIT_PULL_REQUEST_ID\" ] || exit 0; git rev-parse --verify HEAD^ >/dev/null 2>&1 && git diff --quiet HEAD^ HEAD -- . ':(exclude)docs' ':(exclude)videos' ':(exclude)scripts' ':(exclude)*.md' ':(exclude).claude' ':(exclude).vscode' || exit 1"
+  "ignoreCommand": "git rev-parse --verify HEAD^ >/dev/null 2>&1 && git diff --quiet HEAD^ HEAD -- . ':(exclude)docs' ':(exclude)videos' ':(exclude)scripts' ':(exclude)*.md' ':(exclude).claude' ':(exclude).vscode' || exit 1"
 }
