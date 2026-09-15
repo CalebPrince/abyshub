@@ -50,6 +50,7 @@ const BY_BRAND: Record<string, string> = {
   jibu: "/lifestyle/jibu-water.webp",
   jbco: "/lifestyle/jbco.webp",
   novage: "/lifestyle/skincare.webp",
+  godrej: "/lifestyle/godrej-aer.webp",
 };
 
 const BRAND_FALLBACK = "/lifestyle/hero.webp";
