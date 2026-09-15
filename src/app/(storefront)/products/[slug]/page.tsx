@@ -63,6 +63,17 @@ function ogImageUrl(image: string) {
   return `/_next/image?url=${encodeURIComponent(image)}&w=1200&q=75`;
 }
 
+/**
+ * A handful of products whose real photograph is a tall product-box shot —
+ * exactly right for the gallery, wrong for a link preview. WhatsApp in
+ * particular renders nothing at all for an og:image far from landscape
+ * rather than cropping it, so those get a purpose-cropped 1200x630 standing
+ * in for sharing only; the product page itself still shows the real photo.
+ */
+const OG_IMAGE_OVERRIDES: Record<string, string> = {
+  "aer-power-pocket-bathroom-fragrance": "/products/aer-power-pocket-og.jpg",
+};
+
 export async function generateMetadata({
   params,
 }: PageProps<"/products/[slug]">): Promise<Metadata> {
@@ -71,13 +82,22 @@ export async function generateMetadata({
 
   if (!product) return { title: "Product not found" };
 
+  const ogImage = OG_IMAGE_OVERRIDES[slug];
+  const image = ogImage
+    ? { url: ogImage, width: 1200, height: 630 }
+    : product.image
+      ? { url: ogImageUrl(product.image) }
+      : null;
+
   return {
     title: `${product.name} | ${product.brand}`,
     description: product.tagline,
     openGraph: {
+      type: "website",
+      url: `/products/${slug}`,
       title: product.name,
       description: product.tagline,
-      images: product.image ? [{ url: ogImageUrl(product.image) }] : [],
+      images: image ? [image] : [],
     },
   };
 }
