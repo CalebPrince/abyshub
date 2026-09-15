@@ -182,6 +182,20 @@ export const HERO_SLIDES = [
     cta: "Shop the beauty range",
     href: "/products",
   },
+  {
+    src: "/lifestyle/hero-slide-03.webp",
+    alt: "A hanging fragrance sachet at a sunlit window, next to folded towels",
+    focus: "object-right",
+    eyebrow: "Godrej aer · most asked-for this month",
+    headline: [
+      [{ text: "Fresh air," }],
+      [{ text: "up to 30", accent: true }],
+      [{ text: "days straight." }],
+    ],
+    body: "Godrej aer Power Pocket: hang it and forget it. No spray, no outlet, no mess — customers keep asking for it, so we keep it stocked.",
+    cta: "Shop Home Fragrance",
+    href: "/products?brand=Godrej",
+  },
 ] as const;
 
 export type HeroSlide = (typeof HERO_SLIDES)[number];
