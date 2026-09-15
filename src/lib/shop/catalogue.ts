@@ -129,7 +129,13 @@ export const getCatalogue = unstable_cache(
           // what it needs and defaults the rest.
           .select("*")
           .eq("published", true)
-          .order("sort_order"),
+          // Most rows share the default sort_order, so on its own this is an
+          // unstable order — two ties can swap between requests. Newest
+          // first as the tiebreak means a product just added actually shows
+          // up (in the featured slice, in "related") instead of landing
+          // wherever Postgres happened to return it this time.
+          .order("sort_order")
+          .order("created_at", { ascending: false }),
         supabase
           .from("categories")
           .select("slug, name, description, gradient")
