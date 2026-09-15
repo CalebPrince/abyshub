@@ -31,6 +31,13 @@ const nextConfig: NextConfig = {
           },
         ]
       : [],
+    // Next's own default ("attachment") tells a link-preview crawler to
+    // download the image rather than render it, which along with Supabase
+    // Storage's own `x-robots-tag: none` on every object is why WhatsApp and
+    // Facebook show a bare link for a product with a perfectly good photo:
+    // product pages route og:image through the optimiser (below) specifically
+    // to shed that header, so it must not hand back a different one of its own.
+    contentDispositionType: "inline",
   },
 };
 

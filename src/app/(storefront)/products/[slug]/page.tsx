@@ -50,6 +50,17 @@ export async function generateStaticParams() {
     .map((product) => ({ slug: product.slug }));
 }
 
+/**
+ * Supabase Storage sends every object back with `x-robots-tag: none`, which
+ * a link-preview crawler (WhatsApp, Facebook — the ones that matter for a
+ * product someone is sharing) takes as "do not show this". Routing the same
+ * photograph through our own image optimiser re-serves it from this domain
+ * with clean headers, so the crawler gets a picture instead of a bare link.
+ */
+function ogImageUrl(image: string) {
+  return `/_next/image?url=${encodeURIComponent(image)}&w=1200&q=80`;
+}
+
 export async function generateMetadata({
   params,
 }: PageProps<"/products/[slug]">): Promise<Metadata> {
@@ -64,7 +75,7 @@ export async function generateMetadata({
     openGraph: {
       title: product.name,
       description: product.tagline,
-      images: [{ url: product.image }],
+      images: product.image ? [{ url: ogImageUrl(product.image) }] : [],
     },
   };
 }
