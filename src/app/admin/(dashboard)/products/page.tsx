@@ -96,16 +96,20 @@ async function listRows(
 
   const from = (page - 1) * PER_PAGE;
   const { data, count } = await query
-    // Featured products lead the list — they are the ones staff have
-    // actively vouched for (a fixed photo, a checked price), so whoever is
-    // scanning the table for something to review should hit those first
-    // rather than paging past hundreds of untouched bulk-import rows.
+    // Sellable stock leads: an out-of-stock row is not actionable the way an
+    // available one is, so it should not crowd the top of the table.
+    .order("in_stock", { ascending: false })
+    // Within that, featured products are the ones staff have actively
+    // vouched for (a fixed photo, a checked price) — worth seeing before the
+    // untouched rest of the shelf.
     .order("featured", { ascending: false })
-    .order("sort_order")
-    // Ordering has to be total, not just useful: two rows sharing a
-    // sort_order could otherwise swap between pages and one of them would
-    // never be seen. Imported rows all have none, so name and then id decide.
-    .order("name")
+    // And within that, newest first: a product just added (or a MOBI import
+    // just run) is what staff usually want to check, rather than paging past
+    // hundreds of untouched bulk-import rows to find it.
+    .order("created_at", { ascending: false })
+    // Ordering has to be total, not just useful: two rows sharing all three
+    // could otherwise swap between pages and one of them would never be
+    // seen. Imported rows share a timestamp, so id decides.
     .order("id")
     .range(from, from + PER_PAGE - 1);
 

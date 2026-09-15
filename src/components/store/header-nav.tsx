@@ -51,6 +51,7 @@ const NAV: NavItem[] = [
   { href: "/products?brand=Oriflame", label: "Oriflame" },
   { href: "/jibu-water", label: "JIBU Water" },
   { href: "/jbco", label: "JBCO" },
+  { href: "/products?brand=Godrej", label: "Home Fragrance" },
   { href: "/contact", label: "Contact Us" },
 ];
 
