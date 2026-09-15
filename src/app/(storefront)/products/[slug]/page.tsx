@@ -58,7 +58,9 @@ export async function generateStaticParams() {
  * with clean headers, so the crawler gets a picture instead of a bare link.
  */
 function ogImageUrl(image: string) {
-  return `/_next/image?url=${encodeURIComponent(image)}&w=1200&q=80`;
+  // 75 rather than a nicer-looking number: next.config.ts does not list any
+  // other quality as allowed, and the optimiser 400s on one that is not.
+  return `/_next/image?url=${encodeURIComponent(image)}&w=1200&q=75`;
 }
 
 export async function generateMetadata({
