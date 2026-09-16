@@ -79,9 +79,8 @@ const OG_IMAGE_OVERRIDES: Record<string, string> = {
  * Same idea as the og:image override above, one step further: the DB has
  * nowhere to pin a photograph to a specific variant, so a product that
  * needs "pick Sea Breeze, see Sea Breeze" gets that pairing hardcoded here
- * until enough products want it to earn a column. One is still missing its
- * own photograph (the three-pack stands in) — swap it out once the real
- * individual shot arrives.
+ * until enough products want it to earn a column. All six of the client's
+ * confirmed fragrances now have their own real photograph.
  */
 const VARIANT_GALLERY: Record<
   string,
@@ -98,10 +97,10 @@ const VARIANT_GALLERY: Record<
       {
         name: "Lemon Tangy Delight",
         image:
-          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789509279725-0.jpg",
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789546621217-1.jpg",
       },
       {
-        name: "Blueberry Rush",
+        name: "Berry Rush",
         image:
           "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789509280875-2.jpg",
       },
@@ -110,9 +109,26 @@ const VARIANT_GALLERY: Record<
         image:
           "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789508224570-0.jpg",
       },
+      {
+        name: "Rose Fresh Blossom",
+        image:
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789509281769-3.jpg",
+      },
+      {
+        name: "Jasmine Floral Delight",
+        image:
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789546620871-0.jpg",
+      },
     ],
   },
 };
+
+/**
+ * A product video, same per-slug pattern as the maps above: nowhere in the
+ * schema to hold one, so it lives here until enough products have one to
+ * earn an admin field of their own.
+ */
+const PRODUCT_VIDEO: Record<string, string> = {};
 
 export async function generateMetadata({
   params,
@@ -211,6 +227,7 @@ export default async function ProductPage({
             name={product.name}
             variants={variantGallery?.options}
             variantLabel={variantGallery?.label}
+            video={PRODUCT_VIDEO[slug]}
             overlay={
               <>
                 <span className="bg-primary text-primary-foreground absolute top-3 left-3 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">

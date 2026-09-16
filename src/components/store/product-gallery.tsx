@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, PlayIcon } from "lucide-react";
 
 import { ProductImage } from "@/components/store/product-image";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,12 @@ export type GalleryVariant = { name: string; image: string };
  * it — picking one swaps the main image the same way a thumbnail does,
  * because on a product that comes in six scents "which one is this" is the
  * first question a photograph has to answer.
+ *
+ * `video`, when given, adds one more thumbnail ahead of the photographs —
+ * same corner Amazon puts theirs — that swaps the frame for a native
+ * `<video>` instead of another `<Image>`. Only one product needs this today,
+ * so there is no gallery of clips, just the one a supplier or client has
+ * actually sent.
  */
 export function ProductGallery({
   images,
@@ -35,14 +41,17 @@ export function ProductGallery({
   overlay,
   variants,
   variantLabel = "Fragrance",
+  video,
 }: {
   images: string[];
   name: string;
   overlay?: React.ReactNode;
   variants?: GalleryVariant[];
   variantLabel?: string;
+  video?: string;
 }) {
   const [active, setActive] = React.useState(0);
+  const [showVideo, setShowVideo] = React.useState(false);
   const [selectedVariant, setSelectedVariant] = React.useState<string | null>(
     null
   );
@@ -53,6 +62,7 @@ export function ProductGallery({
     const index = images.indexOf(variant.image);
     if (index >= 0) setActive(index);
     setSelectedVariant(variant.name);
+    setShowVideo(false);
   }
 
   // A product whose photographs change under an open page — an admin edit, a
@@ -97,27 +107,71 @@ export function ProductGallery({
     <div className="min-w-0 px-3 pt-2 pb-4 lg:px-4 lg:pt-3 lg:pb-5">
       <div className="mx-auto w-full max-w-[714px] min-w-0">
         <div className="border-foreground/10 bg-secondary/20 relative aspect-square overflow-hidden rounded-2xl border">
-          <ProductImage
-            key={current}
-            src={current}
-            alt={active === 0 ? name : `${name}, photograph ${active + 1}`}
-            fill
-            priority
-            sizes="(min-width: 1024px) 714px, 96vw"
-            className="object-cover"
-          />
-          {overlay}
+          {showVideo && video ? (
+            // autoPlay would fight the whole point of a click-to-watch
+            // thumbnail — it starts silent and paused, same as landing on
+            // this photograph does.
+            <video
+              key={video}
+              src={video}
+              poster={current}
+              controls
+              playsInline
+              className="absolute inset-0 size-full object-contain bg-black"
+            />
+          ) : (
+            <ProductImage
+              key={current}
+              src={current}
+              alt={active === 0 ? name : `${name}, photograph ${active + 1}`}
+              fill
+              priority
+              sizes="(min-width: 1024px) 714px, 96vw"
+              className="object-cover"
+            />
+          )}
+          {!showVideo && overlay}
         </div>
 
-        {images.length > 1 && (
+        {(images.length > 1 || video) && (
           <div className="relative mt-6">
             <ul
               ref={stripRef}
               onScroll={measure}
               className="flex gap-3 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
+              {video ? (
+                <li className="shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowVideo(true)}
+                    aria-label="Play the product video"
+                    aria-current={showVideo}
+                    className={cn(
+                      "bg-secondary/30 relative block size-24 overflow-hidden rounded-xl border-2 transition-colors sm:size-28",
+                      "focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                      showVideo
+                        ? "border-foreground"
+                        : "border-transparent hover:border-foreground/25"
+                    )}
+                  >
+                    <Image
+                      src={images[0]}
+                      alt=""
+                      fill
+                      sizes="112px"
+                      className="object-cover"
+                    />
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/35">
+                      <span className="bg-background/90 grid size-9 place-items-center rounded-full">
+                        <PlayIcon className="size-4 fill-current" aria-hidden />
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ) : null}
               {images.map((image, index) => {
-                const selected = index === active;
+                const selected = index === active && !showVideo;
 
                 return (
                   <li key={image} className="shrink-0">
@@ -125,6 +179,7 @@ export function ProductGallery({
                       type="button"
                       onClick={() => {
                         setActive(index);
+                        setShowVideo(false);
                         // A thumbnail can point at the same photograph a
                         // variant button does — keep the two in step either
                         // way, rather than the label going stale.
