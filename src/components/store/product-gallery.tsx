@@ -99,6 +99,73 @@ function youTubeId(url: string): string | null {
 }
 
 /**
+ * The same clip the gallery thumbnail plays, repeated further down the page
+ * under its own "Product Videos" heading — Amazon shows a video in both
+ * places rather than making the gallery the only way to find it, since a
+ * shopper who has scrolled past the images is not going to scroll back up
+ * for one. Its own play state, independent of the gallery's.
+ */
+export function ProductVideoSection({
+  video,
+  name,
+}: {
+  video?: string;
+  name: string;
+}) {
+  const [playing, setPlaying] = React.useState(false);
+  if (!video) return null;
+  const ytId = youTubeId(video);
+
+  return (
+    <div className="border-foreground/12 border-t pt-6">
+      <p className="font-display text-sm font-bold tracking-wide uppercase">
+        Product Videos
+      </p>
+      <div className="border-foreground/10 bg-secondary/20 relative mt-3 aspect-video w-full max-w-md overflow-hidden rounded-xl border">
+        {playing && ytId ? (
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1`}
+            title={`${name} — product video`}
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 size-full"
+          />
+        ) : playing && video ? (
+          <video
+            src={video}
+            controls
+            autoPlay
+            playsInline
+            className="absolute inset-0 size-full object-contain bg-black"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setPlaying(true)}
+            aria-label="Play the product video"
+            className="group absolute inset-0"
+          >
+            {ytId ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`}
+                alt=""
+                className="absolute inset-0 size-full object-cover"
+              />
+            ) : null}
+            <span className="absolute inset-0 flex items-center justify-center bg-black/25 transition-colors group-hover:bg-black/35">
+              <span className="bg-background/90 grid size-12 place-items-center rounded-full">
+                <PlayIcon className="size-5 fill-current" aria-hidden />
+              </span>
+            </span>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
  * The main photograph with the rest of the shots in a row beneath it.
  * Clicking a thumbnail swaps the large image.
  *

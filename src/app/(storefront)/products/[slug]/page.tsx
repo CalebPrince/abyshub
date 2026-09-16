@@ -23,6 +23,7 @@ import { ProductDescriptionTabs } from "@/components/store/product-description-t
 import {
   ProductGallery,
   ProductVariantPicker,
+  ProductVideoSection,
   type GalleryVariant,
 } from "@/components/store/product-gallery";
 import { ProductVariantProvider } from "@/components/store/product-variant-context";
@@ -97,17 +98,17 @@ const VARIANT_GALLERY: Record<
       {
         name: "Sea Breeze",
         image:
-          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789509280282-1.jpg",
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789547954001-0.jpeg",
       },
       {
         name: "Lemon Tangy Delight",
         image:
-          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789546621217-1.jpg",
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789547956554-4.jpeg",
       },
       {
         name: "Berry Rush",
         image:
-          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789509280875-2.jpg",
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789547955908-3.jpeg",
       },
       {
         name: "Lavender Bloom",
@@ -117,12 +118,12 @@ const VARIANT_GALLERY: Record<
       {
         name: "Rose Fresh Blossom",
         image:
-          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789509281769-3.jpg",
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789547954707-1.jpeg",
       },
       {
         name: "Jasmine Floral Delight",
         image:
-          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789546620871-0.jpg",
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789547955297-2.jpeg",
       },
     ],
   },
@@ -393,6 +394,8 @@ export default async function ProductPage({
             tagline={product.tagline}
             description={product.description}
           />
+
+          <ProductVideoSection video={PRODUCT_VIDEO[slug]} name={product.name} />
 
           {/* A small spec sheet — Amazon's "Product information" table, cut
               down to the facts this catalogue actually holds rather than
