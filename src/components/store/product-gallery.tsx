@@ -5,12 +5,75 @@ import Image from "next/image";
 import { ChevronLeftIcon, ChevronRightIcon, PlayIcon } from "lucide-react";
 
 import { ProductImage } from "@/components/store/product-image";
+import { useProductVariant } from "@/components/store/product-variant-context";
 import { cn } from "@/lib/utils";
 
 /** How far one press of an arrow moves the strip. */
 const SCROLL_STEP = 240;
 
 export type GalleryVariant = { name: string; image: string };
+
+/**
+ * The variant picker itself — Amazon puts this beside the photographs, not
+ * underneath them, so it lives here as its own component rather than inside
+ * ProductGallery, and the page places it in the info column. Reads and
+ * writes the same context ProductGallery does, so picking a scent here
+ * swaps the photograph over there.
+ *
+ * Nothing selected is not a neutral state: this is the one thing on the page
+ * a shopper must do before "Add to cart" will work, so it says so outright
+ * rather than just presenting a row of buttons and hoping the point lands.
+ */
+export function ProductVariantPicker({ label = "Fragrance" }: { label?: string }) {
+  const { variants, selected, select } = useProductVariant();
+  if (variants.length === 0) return null;
+
+  return (
+    <div
+      className={cn(
+        "rounded-xl border-2 p-4",
+        selected
+          ? "border-foreground/12"
+          : "border-primary/40 bg-primary/5"
+      )}
+    >
+      <p className="text-sm font-semibold">
+        {selected ? (
+          <>
+            {label}: <span className="font-bold">{selected}</span>
+          </>
+        ) : (
+          <span className="text-primary">
+            Select a {label.toLowerCase()} — required before you can add this to
+            your cart
+          </span>
+        )}
+      </p>
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+        {variants.map((variant) => {
+          const isSelected = variant.name === selected;
+          return (
+            <button
+              key={variant.name}
+              type="button"
+              onClick={() => select(variant.name)}
+              aria-pressed={isSelected}
+              className={cn(
+                "rounded-lg border-2 px-3 py-2.5 text-left text-sm font-semibold transition-colors",
+                "focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                isSelected
+                  ? "border-primary bg-primary/5 text-foreground"
+                  : "border-foreground/15 text-muted-foreground hover:border-foreground/35 hover:text-foreground"
+              )}
+            >
+              {variant.name}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 /**
  * A client's product video almost always means "here's a YouTube link", not
@@ -62,32 +125,33 @@ export function ProductGallery({
   images,
   name,
   overlay,
-  variants,
-  variantLabel = "Fragrance",
   video,
 }: {
   images: string[];
   name: string;
   overlay?: React.ReactNode;
-  variants?: GalleryVariant[];
-  variantLabel?: string;
   video?: string;
 }) {
+  const { variants, selected: selectedVariant, select: setSelectedVariant } =
+    useProductVariant();
   const [active, setActive] = React.useState(0);
   const [showVideo, setShowVideo] = React.useState(false);
-  const [selectedVariant, setSelectedVariant] = React.useState<string | null>(
-    null
-  );
   const stripRef = React.useRef<HTMLUListElement>(null);
   const [overflow, setOverflow] = React.useState({ left: false, right: false });
   const ytId = video ? youTubeId(video) : null;
 
-  function selectVariant(variant: GalleryVariant) {
+  // The picker itself now lives beside the buy box, on the right, where
+  // Amazon puts it — but picking a photograph here still has to pick the
+  // matching variant, and picking a variant there still has to swap this
+  // photograph, so the sync stays here where both directions meet.
+  React.useEffect(() => {
+    if (!selectedVariant) return;
+    const variant = variants.find((v) => v.name === selectedVariant);
+    if (!variant) return;
     const index = images.indexOf(variant.image);
     if (index >= 0) setActive(index);
-    setSelectedVariant(variant.name);
     setShowVideo(false);
-  }
+  }, [selectedVariant, variants, images]);
 
   // A product whose photographs change under an open page — an admin edit, a
   // client-side navigation to a different product — should not keep pointing
@@ -268,40 +332,6 @@ export function ProductGallery({
           </div>
         )}
 
-        {variants && variants.length > 0 ? (
-          <div className="mt-6">
-            <p className="text-sm">
-              {variantLabel}
-              {selectedVariant ? (
-                <>
-                  : <span className="font-bold">{selectedVariant}</span>
-                </>
-              ) : null}
-            </p>
-            <div className="mt-2.5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-              {variants.map((variant) => {
-                const selected = variant.name === selectedVariant;
-                return (
-                  <button
-                    key={variant.name}
-                    type="button"
-                    onClick={() => selectVariant(variant)}
-                    aria-pressed={selected}
-                    className={cn(
-                      "rounded-lg border-2 px-3 py-2.5 text-left text-sm font-semibold transition-colors",
-                      "focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
-                      selected
-                        ? "border-primary bg-primary/5 text-foreground"
-                        : "border-foreground/15 text-muted-foreground hover:border-foreground/35 hover:text-foreground"
-                    )}
-                  >
-                    {variant.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
       </div>
     </div>
   );

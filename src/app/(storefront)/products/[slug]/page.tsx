@@ -20,7 +20,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/store/product-card";
 import { ProductDescriptionTabs } from "@/components/store/product-description-tabs";
-import { ProductGallery, type GalleryVariant } from "@/components/store/product-gallery";
+import {
+  ProductGallery,
+  ProductVariantPicker,
+  type GalleryVariant,
+} from "@/components/store/product-gallery";
+import { ProductVariantProvider } from "@/components/store/product-variant-context";
 import { ProductPurchasePanel } from "@/components/store/product-purchase-panel";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
 import {
@@ -219,6 +224,7 @@ export default async function ProductPage({
           for the sticky photo beside it, which parks the photo partway down
           the card and never holds it in view. Nothing bleeds to the card edge
           any more — the photo carries its own inset, rounded frame. */}
+      <ProductVariantProvider variants={variantGallery?.options}>
       <div className="border-foreground/12 grid rounded-2xl border lg:grid-cols-2">
         {/* Sticky against the viewport, which needs the card to not be a
             scroll container — see the note on the card itself. top-28 clears
@@ -227,8 +233,6 @@ export default async function ProductPage({
           <ProductGallery
             images={gallery}
             name={product.name}
-            variants={variantGallery?.options}
-            variantLabel={variantGallery?.label}
             video={PRODUCT_VIDEO[slug]}
             overlay={
               <>
@@ -291,6 +295,13 @@ export default async function ProductPage({
               </span>
             </div>
           </div>
+
+          {/* Right beside the photographs rather than under them — Amazon's
+              placement for a scent/colour picker, and the reason it lives in
+              this column at all rather than inside ProductGallery. */}
+          {variantGallery ? (
+            <ProductVariantPicker label={variantGallery.label} />
+          ) : null}
 
           {/* "About this item" — promoted out of the accordion and onto the
               page itself. Amazon leads with these bullets because they are
@@ -445,6 +456,7 @@ export default async function ProductPage({
           </Accordion>
         </div>
       </div>
+      </ProductVariantProvider>
 
       {/* A room, not a product: the item itself is only ever shown in the
           supplier's own photograph. */}

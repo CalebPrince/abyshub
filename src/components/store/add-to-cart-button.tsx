@@ -17,6 +17,10 @@ type AddToCartButtonProps = {
   size?: React.ComponentProps<typeof Button>["size"];
   variant?: React.ComponentProps<typeof Button>["variant"];
   className?: string;
+  /** Set by a caller that has its own reason to hold the button off — a
+   * variant that has not been chosen yet, say. Sold-out still wins either
+   * way, since no choice of scent makes an empty shelf sellable. */
+  disabled?: boolean;
 };
 
 export function AddToCartButton({
@@ -28,6 +32,7 @@ export function AddToCartButton({
   size = "default",
   variant = "default",
   className,
+  disabled = false,
 }: AddToCartButtonProps) {
   const { addItem, setOpen } = useCart();
   const [justAdded, setJustAdded] = React.useState(false);
@@ -68,6 +73,7 @@ export function AddToCartButton({
       variant={variant}
       className={className}
       onClick={handleClick}
+      disabled={disabled}
     >
       {justAdded ? (
         <>
