@@ -52,6 +52,7 @@ type Row = {
   tagline: string | null;
   description: string | null;
   highlights: string[] | null;
+  variants: string[] | null;
   in_stock: boolean;
   stock_quantity: number;
   images: string[] | null;
@@ -83,7 +84,7 @@ async function listRows(
   let query = supabase
     .from("products")
     .select(
-      "id, slug, name, brand, category, categories, image, images, product_line, price, compare_at_price, tagline, description, highlights, in_stock, stock_quantity, featured, published, supplier, source_url",
+      "id, slug, name, brand, category, categories, image, images, product_line, price, compare_at_price, tagline, description, highlights, variants, in_stock, stock_quantity, featured, published, supplier, source_url",
       { count: "exact" }
     );
 

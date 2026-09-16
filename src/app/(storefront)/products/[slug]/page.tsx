@@ -1,3 +1,4 @@
+import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -19,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/store/product-card";
 import { ProductDescriptionTabs } from "@/components/store/product-description-tabs";
-import { ProductGallery } from "@/components/store/product-gallery";
+import { ProductGallery, type GalleryVariant } from "@/components/store/product-gallery";
 import { ProductPurchasePanel } from "@/components/store/product-purchase-panel";
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
 import {
@@ -74,6 +75,45 @@ const OG_IMAGE_OVERRIDES: Record<string, string> = {
   "aer-power-pocket-bathroom-fragrance": "/products/aer-power-pocket-og.jpg",
 };
 
+/**
+ * Same idea as the og:image override above, one step further: the DB has
+ * nowhere to pin a photograph to a specific variant, so a product that
+ * needs "pick Sea Breeze, see Sea Breeze" gets that pairing hardcoded here
+ * until enough products want it to earn a column. One is still missing its
+ * own photograph (the three-pack stands in) — swap it out once the real
+ * individual shot arrives.
+ */
+const VARIANT_GALLERY: Record<
+  string,
+  { label: string; options: GalleryVariant[] }
+> = {
+  "aer-power-pocket-bathroom-fragrance": {
+    label: "Fragrance",
+    options: [
+      {
+        name: "Sea Breeze",
+        image:
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789509280282-1.jpg",
+      },
+      {
+        name: "Lemon Tangy Delight",
+        image:
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789509279725-0.jpg",
+      },
+      {
+        name: "Blueberry Rush",
+        image:
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789509280875-2.jpg",
+      },
+      {
+        name: "Lavender Bloom",
+        image:
+          "https://mttcglcnjvvfbxzgjggj.supabase.co/storage/v1/object/public/product-images/aer-power-pocket-bathroom-fragrance-1789508224570-0.jpg",
+      },
+    ],
+  },
+};
+
 export async function generateMetadata({
   params,
 }: PageProps<"/products/[slug]">): Promise<Metadata> {
@@ -122,6 +162,7 @@ export default async function ProductPage({
   const onSale =
     product.compareAtPrice !== undefined &&
     product.compareAtPrice > product.price;
+  const variantGallery = VARIANT_GALLERY[slug];
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-8 lg:px-8">
@@ -168,6 +209,8 @@ export default async function ProductPage({
           <ProductGallery
             images={gallery}
             name={product.name}
+            variants={variantGallery?.options}
+            variantLabel={variantGallery?.label}
             overlay={
               <>
                 <span className="bg-primary text-primary-foreground absolute top-3 left-3 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] uppercase">
@@ -230,18 +273,90 @@ export default async function ProductPage({
             </div>
           </div>
 
-          <div className="border-foreground/12 border-t pt-6">
-            <div className="bg-primary mb-3 h-1 w-12 rounded-full" aria-hidden />
-            <div className="flex items-baseline gap-3">
-              <span className="font-display text-4xl font-extrabold tabular-nums">
-                {formatPrice(product.price)}
-              </span>
-              {onSale && (
-                <span className="text-muted-foreground text-lg line-through tabular-nums">
-                  {formatPrice(product.compareAtPrice!)}
+          {/* "About this item" — promoted out of the accordion and onto the
+              page itself. Amazon leads with these bullets because they are
+              the fastest answer to "is this the thing I want", and burying
+              them a click away just makes someone scroll past the buy box
+              twice. */}
+          {product.highlights.length > 0 ? (
+            <div className="border-foreground/12 border-t pt-6">
+              <p className="font-display text-sm font-bold tracking-wide uppercase">
+                About this item
+              </p>
+              <ul className="text-muted-foreground mt-3 space-y-2">
+                {product.highlights.map((highlight) => (
+                  <li key={highlight} className="flex gap-2.5">
+                    <span
+                      className="bg-primary mt-2 size-1.5 shrink-0 rounded-full"
+                      aria-hidden
+                    />
+                    {highlight}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {/* The buy box: everything to do with the decision to purchase,
+              set apart in its own card rather than blended into the reading
+              copy above it — a border a shopper's eye can use to find price
+              and "add to cart" again after reading the bullets. */}
+          <div className="border-foreground/15 bg-secondary/10 space-y-5 rounded-xl border-2 p-5 sm:p-6">
+            <div>
+              <div className="flex items-baseline gap-3">
+                <span className="font-display text-4xl font-extrabold tabular-nums">
+                  {formatPrice(product.price)}
                 </span>
+                {onSale && (
+                  <span className="text-muted-foreground text-lg line-through tabular-nums">
+                    {formatPrice(product.compareAtPrice!)}
+                  </span>
+                )}
+              </div>
+              {onSale && (
+                <p className="text-primary mt-1 text-sm font-semibold">
+                  Save {formatPrice(product.compareAtPrice! - product.price)}
+                </p>
               )}
             </div>
+
+            <div className="flex items-center gap-2 text-sm">
+              <span
+                className={`size-2 rounded-full ${product.inStock ? "bg-emerald-600" : "bg-muted-foreground"}`}
+                aria-hidden
+              />
+              {product.inStock
+                ? product.stockQuantity !== undefined
+                  ? `${product.stockQuantity} left in stock, dispatched within one working day`
+                  : "In stock, dispatched within one working day"
+                : "Out of stock, ask us when it lands"}
+            </div>
+
+            <ProductPurchasePanel product={product} />
+
+            <WhatsAppLink
+              message={buildWhatsAppProductEnquiry(product)}
+              className="block"
+            >
+              <Button variant="outline" className="w-full sm:w-auto">
+                <MessageCircleIcon /> Ask about this on WhatsApp
+              </Button>
+            </WhatsAppLink>
+
+            <ul className="border-foreground/12 grid gap-3 border-t pt-5 sm:grid-cols-2">
+              {[
+                { icon: BadgeCheckIcon, label: "Genuine stock, warranty intact" },
+                { icon: TruckIcon, label: "Nationwide delivery" },
+              ].map((item) => (
+                <li
+                  key={item.label}
+                  className="text-muted-foreground flex items-center gap-2 text-sm"
+                >
+                  <item.icon className="text-primary size-4 shrink-0" />
+                  {item.label}
+                </li>
+              ))}
+            </ul>
           </div>
 
           <ProductDescriptionTabs
@@ -249,46 +364,30 @@ export default async function ProductPage({
             description={product.description}
           />
 
-          <div className="flex items-center gap-2 text-sm">
-            <span
-              className={`size-2 rounded-full ${product.inStock ? "bg-emerald-600" : "bg-muted-foreground"}`}
-              aria-hidden
-            />
-            {product.inStock
-              ? product.stockQuantity !== undefined
-                ? `${product.stockQuantity} ${product.stockQuantity === 1 ? "unit" : "units"} in stock, dispatched within one working day`
-                : "In stock, dispatched within one working day"
-              : "Out of stock, ask us when it lands"}
+          {/* A small spec sheet — Amazon's "Product information" table, cut
+              down to the facts this catalogue actually holds rather than
+              padded out with placeholders for fields it doesn't. */}
+          <div className="border-foreground/12 border-t pt-6">
+            <p className="font-display text-sm font-bold tracking-wide uppercase">
+              Product information
+            </p>
+            <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+              {[
+                ["Brand", product.brand],
+                ...(product.productLine ? [["Range", product.productLine]] : []),
+                ["Category", category?.name ?? product.category],
+                ["Availability", product.inStock ? "In stock" : "Out of stock"],
+              ].map(([label, value]) => (
+                <React.Fragment key={label}>
+                  <dt className="text-muted-foreground">{label}</dt>
+                  <dd className="font-medium">{value}</dd>
+                </React.Fragment>
+              ))}
+            </dl>
           </div>
 
-          <ProductPurchasePanel product={product} />
-
-          <WhatsAppLink
-            message={buildWhatsAppProductEnquiry(product)}
-            className="block"
-          >
-            <Button variant="outline" className="w-full sm:w-auto">
-              <MessageCircleIcon /> Ask about this on WhatsApp
-            </Button>
-          </WhatsAppLink>
-
-          <ul className="border-foreground/12 grid gap-3 border-t pt-6 sm:grid-cols-2">
-            {[
-              { icon: BadgeCheckIcon, label: "Genuine stock, warranty intact" },
-              { icon: TruckIcon, label: "Nationwide delivery" },
-            ].map((item) => (
-              <li
-                key={item.label}
-                className="text-muted-foreground flex items-center gap-2 text-sm"
-              >
-                <item.icon className="text-primary size-4 shrink-0" />
-                {item.label}
-              </li>
-            ))}
-          </ul>
-
-          <Accordion type="single" collapsible defaultValue="highlights">
-            {product.variants && product.variants.length > 0 ? (
+          <Accordion type="single" collapsible>
+            {!variantGallery && product.variants && product.variants.length > 0 ? (
               <AccordionItem value="variants">
                 <AccordionTrigger className="font-display text-sm font-bold tracking-wide uppercase">
                   Available options
@@ -308,24 +407,6 @@ export default async function ProductPage({
                 </AccordionContent>
               </AccordionItem>
             ) : null}
-            <AccordionItem value="highlights">
-              <AccordionTrigger className="font-display text-sm font-bold tracking-wide uppercase">
-                What you get
-              </AccordionTrigger>
-              <AccordionContent>
-                <ul className="text-muted-foreground space-y-2">
-                  {product.highlights.map((highlight) => (
-                    <li key={highlight} className="flex gap-2.5">
-                      <span
-                        className="bg-primary mt-2 size-1.5 shrink-0 rounded-full"
-                        aria-hidden
-                      />
-                      {highlight}
-                    </li>
-                  ))}
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
             <AccordionItem value="delivery">
               <AccordionTrigger className="font-display text-sm font-bold tracking-wide uppercase">
                 Delivery &amp; returns

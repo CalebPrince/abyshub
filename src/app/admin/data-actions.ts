@@ -676,6 +676,10 @@ export async function createProduct(
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean),
+    variants: text(formData, "variants")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean),
   });
 
   if (error) return { error: error.message, notice: null };
@@ -772,6 +776,10 @@ export async function editProduct(
     featured: formData.get("featured") === "on",
     published: formData.get("published") === "on",
     highlights: text(formData, "highlights")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean),
+    variants: text(formData, "variants")
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean),

@@ -39,6 +39,7 @@ export type ProductDraft = {
   tagline: string | null;
   description: string | null;
   highlights: string[] | null;
+  variants: string[] | null;
   in_stock: boolean;
   stock_quantity: number;
   images: string[] | null;
@@ -267,6 +268,21 @@ export function ProductDialog({
                 placeholder={"One per line\nAirtight seal\nDishwasher safe"}
               />
               <p className="text-muted-foreground text-xs">One per line.</p>
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="pd-variants">Variants</Label>
+              <Textarea
+                id="pd-variants"
+                name="variants"
+                rows={3}
+                defaultValue={(product?.variants ?? []).join("\n")}
+                placeholder={"One per line\nSea Breeze\nLavender Bloom"}
+              />
+              <p className="text-muted-foreground text-xs">
+                Colours, scents or sizes this comes in. One per line — leave
+                blank if it only comes one way.
+              </p>
             </div>
 
             <div className="space-y-2 sm:col-span-2">

@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 /** How far one press of an arrow moves the strip. */
 const SCROLL_STEP = 240;
 
+export type GalleryVariant = { name: string; image: string };
+
 /**
  * The main photograph with the rest of the shots in a row beneath it.
  * Clicking a thumbnail swaps the large image.
@@ -21,19 +23,37 @@ const SCROLL_STEP = 240;
  *
  * `overlay` is the brand and sale badging. It is rendered on the server and
  * passed through so this file does not need the pricing rules to position it.
+ *
+ * `variants`, when given, pairs each option with the photograph that shows
+ * it — picking one swaps the main image the same way a thumbnail does,
+ * because on a product that comes in six scents "which one is this" is the
+ * first question a photograph has to answer.
  */
 export function ProductGallery({
   images,
   name,
   overlay,
+  variants,
+  variantLabel = "Fragrance",
 }: {
   images: string[];
   name: string;
   overlay?: React.ReactNode;
+  variants?: GalleryVariant[];
+  variantLabel?: string;
 }) {
   const [active, setActive] = React.useState(0);
+  const [selectedVariant, setSelectedVariant] = React.useState<string | null>(
+    null
+  );
   const stripRef = React.useRef<HTMLUListElement>(null);
   const [overflow, setOverflow] = React.useState({ left: false, right: false });
+
+  function selectVariant(variant: GalleryVariant) {
+    const index = images.indexOf(variant.image);
+    if (index >= 0) setActive(index);
+    setSelectedVariant(variant.name);
+  }
 
   // A product whose photographs change under an open page — an admin edit, a
   // client-side navigation to a different product — should not keep pointing
@@ -103,7 +123,14 @@ export function ProductGallery({
                   <li key={image} className="shrink-0">
                     <button
                       type="button"
-                      onClick={() => setActive(index)}
+                      onClick={() => {
+                        setActive(index);
+                        // A thumbnail can point at the same photograph a
+                        // variant button does — keep the two in step either
+                        // way, rather than the label going stale.
+                        const matched = variants?.find((v) => v.image === image);
+                        setSelectedVariant(matched?.name ?? null);
+                      }}
                       aria-label={`Show photograph ${index + 1} of ${images.length}`}
                       aria-current={selected}
                       className={cn(
@@ -139,6 +166,41 @@ export function ProductGallery({
             />
           </div>
         )}
+
+        {variants && variants.length > 0 ? (
+          <div className="mt-6">
+            <p className="text-sm">
+              {variantLabel}
+              {selectedVariant ? (
+                <>
+                  : <span className="font-bold">{selectedVariant}</span>
+                </>
+              ) : null}
+            </p>
+            <div className="mt-2.5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+              {variants.map((variant) => {
+                const selected = variant.name === selectedVariant;
+                return (
+                  <button
+                    key={variant.name}
+                    type="button"
+                    onClick={() => selectVariant(variant)}
+                    aria-pressed={selected}
+                    className={cn(
+                      "rounded-lg border-2 px-3 py-2.5 text-left text-sm font-semibold transition-colors",
+                      "focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                      selected
+                        ? "border-primary bg-primary/5 text-foreground"
+                        : "border-foreground/15 text-muted-foreground hover:border-foreground/35 hover:text-foreground"
+                    )}
+                  >
+                    {variant.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
