@@ -13,6 +13,29 @@ const SCROLL_STEP = 240;
 export type GalleryVariant = { name: string; image: string };
 
 /**
+ * A client's product video almost always means "here's a YouTube link", not
+ * a file to host ourselves — rehosting someone else's upload is a step this
+ * shop has no rights to take. Recognised as YouTube, it renders as YouTube's
+ * own embed and thumbnail; anything else falls back to a plain `<video>` for
+ * a file actually supplied to put in our own storage.
+ */
+function youTubeId(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "youtu.be") return parsed.pathname.slice(1) || null;
+    if (parsed.hostname.endsWith("youtube.com")) {
+      if (parsed.pathname === "/watch") return parsed.searchParams.get("v");
+      if (parsed.pathname.startsWith("/embed/")) {
+        return parsed.pathname.split("/")[2] ?? null;
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * The main photograph with the rest of the shots in a row beneath it.
  * Clicking a thumbnail swaps the large image.
  *
@@ -57,6 +80,7 @@ export function ProductGallery({
   );
   const stripRef = React.useRef<HTMLUListElement>(null);
   const [overflow, setOverflow] = React.useState({ left: false, right: false });
+  const ytId = video ? youTubeId(video) : null;
 
   function selectVariant(variant: GalleryVariant) {
     const index = images.indexOf(variant.image);
@@ -107,7 +131,16 @@ export function ProductGallery({
     <div className="min-w-0 px-3 pt-2 pb-4 lg:px-4 lg:pt-3 lg:pb-5">
       <div className="mx-auto w-full max-w-[714px] min-w-0">
         <div className="border-foreground/10 bg-secondary/20 relative aspect-square overflow-hidden rounded-2xl border">
-          {showVideo && video ? (
+          {showVideo && ytId ? (
+            <iframe
+              key={ytId}
+              src={`https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1`}
+              title={`${name} — product video`}
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 size-full"
+            />
+          ) : showVideo && video ? (
             // autoPlay would fight the whole point of a click-to-watch
             // thumbnail — it starts silent and paused, same as landing on
             // this photograph does.
@@ -155,13 +188,26 @@ export function ProductGallery({
                         : "border-transparent hover:border-foreground/25"
                     )}
                   >
-                    <Image
-                      src={images[0]}
-                      alt=""
-                      fill
-                      sizes="112px"
-                      className="object-cover"
-                    />
+                    {ytId ? (
+                      // YouTube's own thumbnail CDN — a plain <img> rather
+                      // than next/image, since it is one external host for
+                      // one element and not worth widening the image
+                      // optimiser's allow-list for.
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`}
+                        alt=""
+                        className="absolute inset-0 size-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src={images[0]}
+                        alt=""
+                        fill
+                        sizes="112px"
+                        className="object-cover"
+                      />
+                    )}
                     <span className="absolute inset-0 flex items-center justify-center bg-black/35">
                       <span className="bg-background/90 grid size-9 place-items-center rounded-full">
                         <PlayIcon className="size-4 fill-current" aria-hidden />

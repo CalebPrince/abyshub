@@ -128,7 +128,9 @@ const VARIANT_GALLERY: Record<
  * schema to hold one, so it lives here until enough products have one to
  * earn an admin field of their own.
  */
-const PRODUCT_VIDEO: Record<string, string> = {};
+const PRODUCT_VIDEO: Record<string, string> = {
+  "aer-power-pocket-bathroom-fragrance": "https://www.youtube.com/watch?v=uE1BrDy6Mlk",
+};
 
 export async function generateMetadata({
   params,
