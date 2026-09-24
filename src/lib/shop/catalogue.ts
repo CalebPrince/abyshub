@@ -1,6 +1,7 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
+import { connection } from "next/server";
 
 import { createAdminClient, adminClientAvailable } from "@/lib/supabase/admin";
 import {
@@ -73,20 +74,22 @@ function toProduct(row: ProductRow): Product {
  *
  * Cached and tagged rather than fetched per request, so the storefront can
  * still be rendered statically. Product mutations invalidate CATALOGUE_TAG,
- * so unchanged catalogue pages never regenerate on a timer. The TTL is a
- * backstop for the case the tag cannot cover: a read that failed is cached
- * like any other result, and without an expiry one bad moment during a build
- * outlives the problem that caused it.
+ * so real changes land immediately.
  *
- * Every storefront page depends on this entry (the header and footer both read
- * it), so each time it expires the next crawl regenerates the whole shop and
- * writes an ISR entry per page. At five minutes that ran into millions of
- * writes a cycle. An hour keeps a failed read self-healing well inside a
- * working day while cutting that regeneration rate twelvefold; every real
- * change still lands immediately through CATALOGUE_TAG.
+ * A failed read is never cached: loadCatalogue throws instead of returning an
+ * empty shelf, and unstable_cache stores nothing when its callback throws. On a
+ * refresh of an existing entry the last good catalogue keeps being served; with
+ * no entry at all, getCatalogue serves the empty "degraded" catalogue for that
+ * request only and opts the render out of static caching, so an outage never
+ * becomes a stored page. That used to be what the TTL was for (a cached failed
+ * read had to expire), and at five minutes, then one hour, it regenerated every
+ * storefront page (the header and footer both read this entry) on a timer:
+ * millions of ISR writes a cycle.
  */
-/** Backstop only — real changes invalidate CATALOGUE_TAG. Long enough that a healthy read is not rewritten on a timer. */
-const CATALOGUE_TTL_SECONDS = 3600;
+/** Backstop for edits made outside the admin (e.g. straight in Supabase), which the tag cannot see. */
+const CATALOGUE_TTL_SECONDS = 24 * 3600;
+
+class CatalogueUnavailableError extends Error {}
 
 export type Catalogue = {
   products: Product[];
@@ -95,17 +98,16 @@ export type Catalogue = {
   degraded: boolean;
 };
 
-export const getCatalogue = unstable_cache(
+const loadCatalogue = unstable_cache(
   async (): Promise<Catalogue> => {
     if (!adminClientAvailable()) {
       // No database configured. On a developer's machine that is the normal
       // way to run the shop; in production it is a broken deploy, and the
       // hardcoded list would paper over it.
       if (process.env.NODE_ENV === "production") {
-        console.error(
-          "[catalogue] Supabase is not configured in production - serving an empty catalogue. Check SUPABASE_SERVICE_ROLE_KEY is set for this environment."
+        throw new CatalogueUnavailableError(
+          "Supabase is not configured in production. Check SUPABASE_SERVICE_ROLE_KEY is set for this environment."
         );
-        return { products: [], categories: [], degraded: true };
       }
       return { products: fileProducts, categories: fileCategories, degraded: false };
     }
@@ -154,41 +156,75 @@ export const getCatalogue = unstable_cache(
 
     const [productResult, categoryResult] = await fetchCatalogue();
 
-    if (productResult.error) {
-      console.error(
-        "[catalogue] failed to read products from Supabase - serving an empty catalogue rather than the hardcoded list:",
-        productResult.error.message
-      );
-    }
-    if (categoryResult.error) {
-      console.error(
-        "[catalogue] failed to read categories from Supabase:",
-        categoryResult.error.message
+    // Either half failing after the retries is an outage: throw so nothing is
+    // cached, rather than storing a shop without products or without shelves.
+    if (productResult.error || categoryResult.error) {
+      throw new CatalogueUnavailableError(
+        [
+          productResult.error && `products: ${productResult.error.message}`,
+          categoryResult.error && `categories: ${categoryResult.error.message}`,
+        ]
+          .filter(Boolean)
+          .join("; ")
       );
     }
 
     const rows = (productResult.data ?? []) as ProductRow[];
-    if (!productResult.error && rows.length === 0) {
+    if (rows.length === 0) {
+      // An empty shelf is only a fault if the query failed. A shop with
+      // nothing published yet is empty on purpose.
       console.warn("[catalogue] the products table returned no published rows.");
     }
-    const categoryRows = categoryResult.data ?? [];
 
     return {
       products: rows.map(toProduct),
-      categories: categoryRows.map((row) => ({
+      categories: (categoryResult.data ?? []).map((row) => ({
         slug: row.slug,
         name: plainText(row.name),
         description: plainText(row.description),
         gradient: row.gradient ?? "",
       })),
-      // An empty shelf is only a fault if the query failed. A shop with
-      // nothing published yet is empty on purpose.
-      degraded: Boolean(productResult.error || categoryResult.error),
+      degraded: false,
     };
   },
   ["shop-catalogue"],
   { tags: [CATALOGUE_TAG], revalidate: CATALOGUE_TTL_SECONDS }
 );
+
+const UNAVAILABLE: Catalogue = { products: [], categories: [], degraded: true };
+
+async function tryLoadCatalogue(): Promise<Catalogue | null> {
+  try {
+    return await loadCatalogue();
+  } catch (error) {
+    if (!(error instanceof CatalogueUnavailableError)) throw error;
+    console.error(
+      "[catalogue] database unavailable - serving an empty catalogue rather than the hardcoded list:",
+      error.message
+    );
+    return null;
+  }
+}
+
+export async function getCatalogue(): Promise<Catalogue> {
+  const catalogue = await tryLoadCatalogue();
+  if (catalogue) return catalogue;
+  // Serve the empty shelf to this request only. connection() opts the render
+  // out of static generation, so an ISR regeneration that lands here fails
+  // and the last good page stays up, and a build that lands here renders the
+  // route per request for that deployment instead of freezing it empty.
+  await connection();
+  return UNAVAILABLE;
+}
+
+/**
+ * For generateStaticParams, which runs at build time with no request, so
+ * connection() is not allowed. An outage there prerenders nothing and every
+ * product page renders on its first visit instead.
+ */
+export async function getCatalogueForStaticParams(): Promise<Catalogue> {
+  return (await tryLoadCatalogue()) ?? UNAVAILABLE;
+}
 
 export async function getProducts() {
   return (await getCatalogue()).products;

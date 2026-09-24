@@ -31,6 +31,7 @@ import { ProductPurchasePanel } from "@/components/store/product-purchase-panel"
 import { WhatsAppLink } from "@/components/store/whatsapp-link";
 import {
   getCatalogue,
+  getCatalogueForStaticParams,
   getProducts,
   categoryFrom,
   relatedFrom,
@@ -51,7 +52,7 @@ export async function generateStaticParams() {
   // catalogue baked hundreds of product pages into every deployment — the bulk
   // of the Vercel deployment-storage bill — and regenerated every one of them
   // on each catalogue revalidation. The rest are built on first visit.
-  return (await getProducts())
+  return (await getCatalogueForStaticParams()).products
     .filter((product) => product.featured)
     .slice(0, 24)
     .map((product) => ({ slug: product.slug }));
